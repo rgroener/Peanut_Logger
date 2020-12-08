@@ -125,53 +125,14 @@ int main(void)
     // Enable Global Interrupts
     //sei();
 		
-	/*DISP_RST_1;
-	_delay_ms(5000);
-	DISP_RST_0;
-	_delay_ms(5000);
-	DISP_RST_1;
-	_delay_ms(5000);
-	DISP_COMM;
-	CS_DISP_0;
-
- 	send_command(0xae);//--turn off oled panel
-	send_command(0xd5);//--set display clock divide ratio/oscillator frequency
-	send_command(0x80);//--set divide ratio
-	send_command(0xa8);//--set multiplex ratio(1 to 64)
-	send_command(0x2f);//--1/64 duty orig 3f
-	send_command(0xd3);//-set display offset
-	send_command(0x00);//-not offset
-	send_command(0x40);//--set start line address orig 40
-	send_command(0x8d);//--set Charge Pump enable/disable
-	send_command(0x14);//--set(0x10) disable
-	send_command(0xa1);//--set segment re-map 128 to 0
-	send_command(0xC8);//--Set COM Output Scan Direction 64 to 0
-	send_command(0xda);//--set com pins hardware configuration
-	send_command(0x12);
-	send_command(0x81);//--set contrast control register
-	send_command(0xcf);//orig 80
-	send_command(0xd9);//--set pre-charge period
-	send_command(0x22);
-	send_command(0xdb);//--set vcomh
-	send_command(0x00);
-	send_command(0x2e);//deactivate scroll
-	send_command(0xa4);// Disable Entire Display On orig a4
-	send_command(0xa6);//--set normal display
 	
-	send_command(0xaf);//--turn on oled panel
-	CS_DISP_1;//release chip select
-	DISP_DATA;
-	*/
 	Display_Init();
 	Display_Picture(pic1);
 	_delay_ms(65000);
 	
 	while(1)
 	{ 		
-		send_data(0xa7);//invert display
-		_delay_ms(2000);
-		send_data(0xa6);//vormal display
-		_delay_ms(2000);		
+			
 		
 	} //end while
 }//end of main
@@ -202,10 +163,10 @@ void send_data(char data)
 
 void send_command(char command)
 {
-	//DISP_COMM;
-	//CS_DISP_ON;
+	DISP_COMM;
+	CS_DISP_0;
 	SPI_MasterTransmit(command);
-	//CS_DISP_OFF;
+	CS_DISP_1;
 }
 
 // Set page address 0~7
