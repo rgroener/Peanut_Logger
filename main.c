@@ -25,6 +25,8 @@
 #define 	Start_page		0x00
 #define	StartLine_set	0x00
 
+char buffer[20];//string buffer
+
 const unsigned char pic1[] PROGMEM = 
 { 
 	/*64x48  --*/
@@ -217,6 +219,21 @@ const unsigned char font[] PROGMEM =
 };
 void Char_Position(uint8_t row, uint8_t pos);
 void Write_Char(char n);
+void PlotString(uint8_t row, uint8_t pos, char str[]) 
+{
+	//set position for new char (font size 8x14)
+	Set_Page_Address(7-pos);	//0-7 	(* 8 bit)
+	Set_Column_Address(row*14);	//0-3	(* 14 collums / char)
+	while (*str) 
+	{
+		Set_Column_Address(row*14);
+		Set_Page_Address(7-pos);
+		Write_Char(*str++);
+		pos++;
+	}
+}//End
+
+
 
 int main(void)
 {
@@ -231,14 +248,14 @@ int main(void)
 	SPI_MasterInit();
     // Enable Global Interrupts
     //sei();
-		
+		uint8_t sec=229;
 	Display_Init();
 	Display_Clear();
 	Set_Page_Address(0);
     Set_Column_Address(0);
   
-	Char_Position(2,4);
-	Write_Char('R');
+	sprintf(buffer,"sec=%d",sec);
+	PlotString(0,0,buffer);
 	
 	
 	while(1)
