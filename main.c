@@ -122,8 +122,8 @@ void Set_Contrast_Control_Register(unsigned char mod);
 void Display_Picture(const unsigned char pic[]);
 void Display_Init(void);
 void Display_Clear(void);
-void Write_Char(char n);
-const unsigned char font[] PROGMEM =
+void Write_Char(uint8_t fontsize, char n);
+const unsigned char font14[] PROGMEM =
 {	
 	//8x14 MSB 
 	0x00,0x10,0x10,0x10,0x10,0x10,0x10,0x10,0x00,0x10,0x10,0x00,0x00,0x00,	// 0x21
@@ -217,22 +217,44 @@ const unsigned char font[] PROGMEM =
 	0x00,0x00,0x00,0x00,0x81,0x42,0x42,0x24,0x24,0x18,0x18,0x10,0x30,0xE0,	// 0x79
 	0x00,0x00,0x00,0x00,0xFE,0x04,0x08,0x10,0x20,0x40,0xFE,0x00,0x00,0x00,	// 0x7A
 };
+const unsigned char font8[] PROGMEM =
+{
+	
+};
 void Char_Position(uint8_t row, uint8_t pos);
-void Write_Char(char n);
-void PlotString(uint8_t row, uint8_t pos, char str[]) 
+void Write_Char(uint8_t fontsize, char n);
+void PlotString(uint8_t fontsize, uint8_t row, uint8_t pos, char str[]) 
 {
 	//set position for new char (font size 8x14)
 	Set_Page_Address(7-pos);	//0-7 	(* 8 bit)
-	Set_Column_Address(row*14);	//0-3	(* 14 collums / char)
-	while (*str) 
+	switch(fontsize)
 	{
-		Set_Column_Address(row*14);
-		Set_Page_Address(7-pos);
-		Write_Char(*str++);
-		pos++;
+		case 1:	fontsize = 8;break;		//8x8
+		case 2:	fontsize = 14;break;	//8x14
+		default: fontsize = 8;
 	}
-}//End
+	
+		Set_Column_Address(row*fontsize);	//0-3	(* 14 collums / char)
+		while (*str) 
+		{
+			Set_Column_Address(row*fontsize);
+			Set_Page_Address(7-pos);
+			Write_Char(fontsize,*str++);
+			pos++;
+		}
+}//End of PlotString
 
+void Write_Char(uint8_t fontsize, char n)
+{
+	uint8_t *fsize;
+	uint8_t x;
+	n-=0x21;	//jump to position in asci table
+	
+	for(x=0;x<fontsize;x++) //print char
+	{
+			send_data(pgm_read_byte(&font14[(n*fontsize)+x]));
+	}
+}
 
 
 int main(void)
@@ -255,7 +277,7 @@ int main(void)
     Set_Column_Address(0);
   
 	sprintf(buffer,"sec=%d",sec);
-	PlotString(0,0,buffer);
+	PlotString(1,0,0,buffer);
 	
 	
 	while(1)
@@ -348,18 +370,7 @@ void Char_Position(uint8_t row, uint8_t pos)
 	Set_Page_Address(7-pos);	//0-7 	(* 8 bit)
 	Set_Column_Address(row*14);	//0-3	(* 14 collums / char)
 }
-void Write_Char(char n)
-{
-	// writes char at current cursor position
-	
-	uint8_t x;
-	n-=0x21;	//jump to position in asci table
-	
-	for(x=0;x<14;x++) //print char
-	{
-			send_data(pgm_read_byte(&font[(n*14)+x]));
-	}
-}
+
 void Display_Init(void)
 {
 	/*Init session according datasheet and sample code:
