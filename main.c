@@ -217,6 +217,41 @@ const char font[] PROGMEM =
 };
 void Char_Position(uint8_t row, uint8_t pos);
 void Write_Char(char n);
+void Char_Position(uint8_t row, uint8_t pos)
+{
+	//set position for new char (font size 8x14)
+	Set_Page_Address(7-pos);	//0-7 	(* 8 bit)
+	Set_Column_Address(row*14);	//0-3	(* 14 collums / char)
+}
+void Write_Char(char n)
+{
+	// writes char at current cursor position
+	const char *fontzeiger;
+	uint8_t x;
+	n-=0x21;	//jump to position in asci table
+	fontzeiger=font;
+	for(x=0;x<14;x++) //print char
+	{
+			send_data(pgm_read_byte(&fontzeiger[(n*14)+x]));
+	}
+}
+
+void Write_String(uint8_t row, uint8_t pos, const char str[]) 
+{
+	//set position for new char (font size 8x14)
+	
+	while(*str)
+	{
+		Set_Page_Address(7-pos);	//0-7 	(* 8 bit)
+		Set_Column_Address(row*14);	//0-3	(* 14 collums / char)
+		Write_Char(*str++);
+		pos++;
+	 }
+}
+
+
+
+
 
 int main(void)
 {
@@ -237,8 +272,9 @@ int main(void)
 	Set_Page_Address(0);
     Set_Column_Address(0);
   
-	Char_Position(2,4);
-	Write_Char('P');
+	//Char_Position(2,4);
+	//Write_Char('P');
+	Write_String(1,0,"Roman");
 	
 	
 	while(1)
@@ -325,24 +361,7 @@ void Display_Clear(void)
 	}
     return;
 }
-void Char_Position(uint8_t row, uint8_t pos)
-{
-	//set position for new char (font size 8x14)
-	Set_Page_Address(7-pos);	//0-7 	(* 8 bit)
-	Set_Column_Address(row*14);	//0-3	(* 14 collums / char)
-}
-void Write_Char(char n)
-{
-	// writes char at current cursor position
-	const char *fontzeiger;
-	uint8_t x;
-	n-=0x21;	//jump to position in asci table
-	fontzeiger=font;
-	for(x=0;x<14;x++) //print char
-	{
-			send_data(pgm_read_byte(&fontzeiger[(n*14)+x]));
-	}
-}
+
 void Display_Init(void)
 {
 	/*Init session according datasheet and sample code:
