@@ -50,56 +50,8 @@ void Display_Init(void);
 void Display_Clear(void);
 void Write_Char(uint8_t fontsize, char n);
 void Char_Position(uint8_t fontsize, uint8_t row, uint8_t pos);
-
-void Write_Char(uint8_t fontsize, char n)
-{
-	const char *fontpointer;
-	uint8_t x;
-	
-	switch(fontsize)		//variable height and fixed width (8 Pixel)
-	{
-		case 8:fontpointer=font8;break;
-		case 14:fontpointer=font14;break;
-		case 26:fontpointer=font26;break;
-	}
-	if(fontsize == 26)
-	{
-		n-=0x2E;
-		for(x=0;x<fontsize;x++) 
-		{
-			send_data(pgm_read_byte(&fontpointer[(n*fontsize*2)+x]));
-		}
-	}else 
-	{
-		n-=0x21;			//jump to position in asci table
-		for(x=0;x<fontsize;x++) 
-		{
-			send_data(pgm_read_byte(&fontpointer[(n*fontsize)+x]));
-		}
-	}
-}
-void Write_String(uint8_t fontsize, uint8_t row, uint8_t pos, const char str[]) 
-{
-	if(fontsize==26)
-	{
-		while(*str)
-		{
-			Set_Page_Address(7-pos*2);			//0-7 	(* 8 bit)
-			Set_Column_Address(row*fontsize);	//0-3	(* 14 collums / char)
-			Write_Char(fontsize, *str++);
-			pos++;
-		 }
-	}else
-	{
-		while(*str)
-		{
-			Set_Page_Address(7-pos);			//0-7 	(* 8 bit)
-			Set_Column_Address(row*fontsize);	//0-3	(* 14 collums / char)
-			Write_Char(fontsize, *str++);
-			pos++;
-		 }
-	}
-}
+void Write_Char(uint8_t fontsize, char n);
+void Write_String(uint8_t fontsize, uint8_t row, uint8_t pos, const char str[]); 
 int main(void)
 {
 	DDRB 	|= (1<<PB0) | (1<<PB1) | (1<<PB2) | (1<<PB3) | (1<<PB5);//set CS_DISP and RES and D/C output
@@ -118,8 +70,10 @@ int main(void)
 	Display_Clear();
 	Set_Page_Address(0);
     Set_Column_Address(0);
+    
+   
  
-	Write_String(14,0,0,"Row1");
+	Write_String(8,0,0,"Row1");
 	Write_String(14,1,0,"rgroener@");
 	Write_String(14,2,0,"mailbox.org");
 	
@@ -250,5 +204,44 @@ void Display_Init(void)
 	send_command(0xaf);//--turn on oled panel
 	CS_DISP_1;		   //release chip select
 	DISP_DATA;
+}
+void Write_Char(uint8_t fontsize, char n)
+{
+	const char *fontpointer=0;
+	uint8_t x;
+	
+	switch(fontsize)		//variable height and fixed width (8 Pixel)
+	{
+		case 8:fontpointer=font8;break;
+		case 14:fontpointer=font14;break;
+	}
+	n-=0x21;			//jump to position in asci table
+	for(x=0;x<fontsize;x++) 
+	{
+		send_data(pgm_read_byte(&fontpointer[(n*fontsize)+x]));
+	}
+	
+}
+void Write_String(uint8_t fontsize, uint8_t row, uint8_t pos, const char str[]) 
+{
+	if(fontsize==26)
+	{
+		while(*str)
+		{
+			Set_Page_Address(7-pos*2);			//0-7 	(* 8 bit)
+			Set_Column_Address(row*fontsize);	//0-3	(* 14 collums / char)
+			Write_Char(fontsize, *str++);
+			pos++;
+		 }
+	}else
+	{
+		while(*str)
+		{
+			Set_Page_Address(7-pos);			//0-7 	(* 8 bit)
+			Set_Column_Address(row*fontsize);	//0-3	(* 14 collums / char)
+			Write_Char(fontsize, *str++);
+			pos++;
+		 }
+	}
 }
 
