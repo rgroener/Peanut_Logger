@@ -13,6 +13,8 @@
 #include <stdio.h>                 
 #include <avr/pgmspace.h>
 #include "fonts.h"
+#include "grn_TWI.h"
+#include "grn_sht21.h"
 
 //OLED Controling
 #define CS_DISP_0 	PORTB &= ~(1<<PB0)	//select chip select display
@@ -37,9 +39,10 @@
  * 
  * */
  
-
+//SPI
 void SPI_MasterInit(void);
 void SPI_MasterTransmit(char cData);
+//SSD1306
 void send_data(char data);
 void send_command(char command);
 void Set_Page_Address(unsigned char add);
@@ -52,6 +55,13 @@ void Write_Char(uint8_t fontsize, char n);
 void Char_Position(uint8_t fontsize, uint8_t row, uint8_t pos);
 void Write_Char(uint8_t fontsize, char n);
 void Write_String(uint8_t fontsize, uint8_t row, uint8_t pos, const char str[]); 
+//TIMER
+ISR (TIMER1_COMPA_vect);
+
+
+volatile uint8_t ms10,ms100,sec,min, entprell;
+char buffer[20]; // buffer to store string
+
 int main(void)
 {
 	DDRB 	|= (1<<PB0) | (1<<PB1) | (1<<PB2) | (1<<PB3) | (1<<PB5);//set CS_DISP and RES and D/C output
@@ -63,8 +73,26 @@ int main(void)
 	
 	//init SPI as master without interrupt
 	SPI_MasterInit();
-    // Enable Global Interrupts
-    //sei();
+    //Timer 1 Configuration
+	OCR1A = 1249;	//OCR1A = 0x3D08;==1sec
+	
+    TCCR1B |= (1 << WGM12);
+    // Mode 4, CTC on OCR1A
+
+    TIMSK1 |= (1 << OCIE1A);
+    //Set interrupt on compare match
+
+    TCCR1B |= (1 << CS11) | (1 << CS10);
+    // set prescaler to 64 and start the timer
+
+    sei();
+    // enable interrupts
+    
+    ms10=0;
+    ms100=0;
+    sec=0;
+    min=0;
+    entprell=0;
 		
 	Display_Init();
 	Display_Clear();
@@ -73,14 +101,14 @@ int main(void)
     
    
  
-	Write_String(8,0,0,"Row1");
-	Write_String(14,1,0,"rgroener@");
-	Write_String(14,2,0,"mailbox.org");
+	sprintf(buffer,"sec=%d",sec);
+	Write_String(14,1,0,buffer);
 	
 
 	while(1)
 	{ 		
-		
+		sprintf(buffer,"sec=%d",sec);
+		Write_String(14,1,0,buffer);
 	} //end while
 }//end of main
 
@@ -245,3 +273,26 @@ void Write_String(uint8_t fontsize, uint8_t row, uint8_t pos, const char str[])
 	}
 }
 
+ISR (TIMER1_COMPA_vect)
+{
+	
+		ms10++;
+			
+	if(ms10==10)	//10ms
+	{
+		ms10=0;
+		ms100++;
+	
+		
+	}
+    if(ms100==10)	//100ms
+	{
+		ms100=0;
+		sec++;
+	}
+	if(sec==60)	//Minute
+	{
+		sec=0;
+		min++;
+	}
+}
