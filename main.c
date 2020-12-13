@@ -113,18 +113,26 @@ int main(void)
 	Set_Page_Address(0);
     Set_Column_Address(0);
     TWIInit();
-	//sht21_init();
+	sht21_init();
   
    state = MEASURE;
  
 	//sprintf(buffer,"sec=%d",sec);
-	Write_String(14,0,0,"test");
+	//Write_String(14,0,0,"test");
+	/*
+	 * 
+	 * 0xa0
+	 * 0xae
+	 * 0xde
+	 * 0xee
+	 * 0xef
+	 * 
+	 * 
+	 * */
 	
-	
-
+uint16_t temp=0;
 	while(1)
 	{ 	
-		
 		switch(state)
 		{
 			case GREETER:	if(BUTTON)
@@ -158,10 +166,12 @@ int main(void)
 								
 							}
 							break;
-			case MEASURE:	
+			case MEASURE:	temp = (sht21_measure(0));
+							sprintf(buffer,"T: %d*",temp);
+							Write_String(14,0,0,buffer);
 							break;
 		}//End of switch(state)	
-		
+			
 		
 		//sprintf(buffer,"sec=%d",test);
 		//Write_String(14,1,0,buffer);

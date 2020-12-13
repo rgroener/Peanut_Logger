@@ -11,8 +11,8 @@
 #include "grn_TWI.h"
 #include "grn_sht21.h"
 
-#define SHT21_W 0b10000000				//SHT21 Adresse und schreiben 0x80
-#define SHT21_R 0b10000001				//SHT21 Adresse und lesen
+#define SHT21_W 0x80				//SHT21 Adresse und schreiben 	0x80
+#define SHT21_R 0x81				//SHT21 Adresse und lesen		0x81
 #define SHT21_TEMP_HOLDMASTER 0xE3		//Tempreature hold master = on =>0b11100011
 #define SHT21_HUM_HOLDMASTER 0xF3		//Humidity hold master = on => 0b11100101
 #define SHT21_SOFTRESET 0xFE				//Softreset
