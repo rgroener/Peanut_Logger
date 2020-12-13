@@ -30,10 +30,6 @@
 #define 	Start_column	0x00
 #define 	Start_page		0x00
 #define	StartLine_set	0x00
-#define 	Start_column	0x00
-#define 	Start_page		0x00
-#define	StartLine_set	0x00
-char buffer[20];//string buffer
 /*
  * RES		PB1
  * CS_DISP	PB0
@@ -46,6 +42,7 @@ char buffer[20];//string buffer
  * SCL		PC5
  * 
  * */
+ 
 //SPI
 void SPI_MasterInit(void);
 void SPI_MasterTransmit(char cData);
@@ -59,7 +56,8 @@ void Display_Picture(const unsigned char pic[]);
 void Display_Init(void);
 void Display_Clear(void);
 void Write_Char(uint8_t fontsize, char n);
-
+void Char_Position(uint8_t fontsize, uint8_t row, uint8_t pos);
+void Write_Char(uint8_t fontsize, char n);
 void Write_String(uint8_t fontsize, uint8_t row, uint8_t pos, const char str[]); 
 //TIMER
 ISR (TIMER1_COMPA_vect);
@@ -74,14 +72,13 @@ char buffer[20]; // buffer to store string
 
 int main(void)
 {
-
 	DDRB 	|= (1<<PB0) | (1<<PB1) | (1<<PB2) | (1<<PB3) | (1<<PB5);//set CS_DISP and RES and D/C output
 	PORTB	|= (1<<PB0) | (1<<PB1) | (1<<PB2) | (1<<PB3) | (1<<PB5);//set CS_DISP and RES and D/C high
 		
 	DDRC |= (1<<PC5);	//SCL
 	PORTC |= (1<<PC5);
 	PORTC &= ~(1<<PC5);
-
+	
 	DDRD &= ~(1<<PD3);	//Button
 	PORTD |= (1<<PD3);	//activate Pullup
 	
@@ -111,12 +108,12 @@ int main(void)
     toggle=0;
     toggle_alt=toggle;
 		
-
 	Display_Init();
 	Display_Clear();
 	Set_Page_Address(0);
     Set_Column_Address(0);
-
+    
+  
    state = GREETER;
  
 	//sprintf(buffer,"sec=%d",sec);
@@ -162,7 +159,6 @@ int main(void)
 			case MEASURE:	
 							break;
 		}//End of switch(state)	
-
 		
 		
 		//sprintf(buffer,"sec=%d",test);
@@ -199,7 +195,6 @@ void send_command(char command)
 	SPI_MasterTransmit(command);
 	CS_DISP_1;
 }
-
 void Set_Page_Address(unsigned char add)
 {
     add=0xb0|add;
@@ -248,41 +243,6 @@ void Display_Clear(void)
 	}
     return;
 }
-
-void Write_String(uint8_t fontsize, uint8_t row, uint8_t pos, const char str[]) 
-{
-	//set position for new char (font size 8x14)
-	Set_Page_Address(7-pos);	//0-7 	(* 8 bit)
-	switch(fontsize)
-	{
-		case 1:	fontsize = 8;break;		//8x8
-		case 2:	fontsize = 14;break;	//8x14
-		default: fontsize = 8;
-	}
-	
-		Set_Column_Address(row*fontsize);	//0-3	(* 14 collums / char)
-		while (*str) 
-		{
-			Set_Column_Address(row*fontsize);
-			Set_Page_Address(7-pos);
-			Write_Char(fontsize,*str++);
-			pos++;
-		}
-}//End of PlotString
-
-void Write_Char(uint8_t fontsize, char n)
-{
-	//uint8_t *fsize;
-	uint8_t x;
-	n-=0x21;	//jump to position in asci table
-	
-	for(x=0;x<fontsize;x++) //print char
-	{
-			send_data(pgm_read_byte(&font14[(n*fontsize)+x]));
-	}
-}
-
-
 void Char_Position(uint8_t fontsize, uint8_t row, uint8_t pos)
 {
 	//set position for new char (font size 8x14)
@@ -327,8 +287,45 @@ void Display_Init(void)
 	CS_DISP_1;		   //release chip select
 	DISP_DATA;
 }
-
-
+void Write_Char(uint8_t fontsize, char n)
+{
+	const char *fontpointer=0;
+	uint8_t x;
+	
+	switch(fontsize)		//variable height and fixed width (8 Pixel)
+	{
+		case 8:fontpointer=font8;break;
+		case 14:fontpointer=font14;break;
+	}
+	n-=0x20;			//jump to position in asci table
+	for(x=0;x<fontsize;x++) 
+	{
+		send_data(pgm_read_byte(&fontpointer[(n*fontsize)+x]));
+	}
+	
+}
+void Write_String(uint8_t fontsize, uint8_t row, uint8_t pos, const char str[]) 
+{
+	if(fontsize==26)
+	{
+		while(*str)
+		{
+			Set_Page_Address(7-pos*2);			//0-7 	(* 8 bit)
+			Set_Column_Address(row*fontsize);	//0-3	(* 14 collums / char)
+			Write_Char(fontsize, *str++);
+			pos++;
+		 }
+	}else
+	{
+		while(*str)
+		{
+			Set_Page_Address(7-pos);			//0-7 	(* 8 bit)
+			Set_Column_Address(row*fontsize);	//0-3	(* 14 collums / char)
+			Write_Char(fontsize, *str++);
+			pos++;
+		 }
+	}
+}
 
 ISR (TIMER1_COMPA_vect)
 {
@@ -363,5 +360,4 @@ ISR (TIMER1_COMPA_vect)
 		sec=0;
 		min++;
 	}
-}//end of isr
-
+}
