@@ -16,6 +16,10 @@
 #include "grn_TWI.h"
 #include "grn_sht21.h"
 
+#define BUTTON	(!(PIND & (1<<PD3))) && (entprell==0) //read button input
+#define RELOAD_ENTPRELL 40
+#define TOGGLEMAX 4
+
 //OLED Controling
 #define CS_DISP_0 	PORTB &= ~(1<<PB0)	//select chip select display
 #define CS_DISP_1 	PORTB |= (1<<PB0)	//deselect chip select display
@@ -58,8 +62,12 @@ void Write_String(uint8_t fontsize, uint8_t row, uint8_t pos, const char str[]);
 //TIMER
 ISR (TIMER1_COMPA_vect);
 
+enum state {START, MEASURE};
+uint8_t state;
+
 
 volatile uint8_t ms10,ms100,sec,min, entprell;
+volatile uint8_t screentoggle, toggle;
 char buffer[20]; // buffer to store string
 
 int main(void)
@@ -70,6 +78,9 @@ int main(void)
 	DDRC |= (1<<PC5);	//SCL
 	PORTC |= (1<<PC5);
 	PORTC &= ~(1<<PC5);
+	
+	DDRD &= ~(1<<PD3);	//Button
+	PORTD |= (1<<PD3);	//activate Pullup
 	
 	//init SPI as master without interrupt
 	SPI_MasterInit();
@@ -93,22 +104,49 @@ int main(void)
     sec=0;
     min=0;
     entprell=0;
+    screentoggle=3;
+    toggle=0;
 		
 	Display_Init();
 	Display_Clear();
 	Set_Page_Address(0);
     Set_Column_Address(0);
     
-   
+   char test=0;
+   state = START;
  
-	sprintf(buffer,"sec=%d",sec);
-	Write_String(14,1,0,buffer);
+	//sprintf(buffer,"sec=%d",sec);
+	
 	
 
 	while(1)
-	{ 		
-		sprintf(buffer,"sec=%d",sec);
-		Write_String(14,1,0,buffer);
+	{ 	
+		
+		switch(state)
+		{
+			case START: if(toggle)
+						{
+							Write_String(14,0,0,"If found");
+							Write_String(14,1,0,"please  ");
+							Write_String(14,2,0, "contact ");
+						}else
+						{
+							Write_String(14,0,0,"rgroener");
+							Write_String(14,1,0,"@mailbox");
+							Write_String(14,2,0, ".org    ");	
+						}
+						break;
+			
+			
+		}	
+		if(BUTTON)
+		{
+			test++;
+			entprell= RELOAD_ENTPRELL; 
+		}
+		
+		//sprintf(buffer,"sec=%d",test);
+		//Write_String(14,1,0,buffer);
 	} //end while
 }//end of main
 
@@ -243,7 +281,7 @@ void Write_Char(uint8_t fontsize, char n)
 		case 8:fontpointer=font8;break;
 		case 14:fontpointer=font14;break;
 	}
-	n-=0x21;			//jump to position in asci table
+	n-=0x20;			//jump to position in asci table
 	for(x=0;x<fontsize;x++) 
 	{
 		send_data(pgm_read_byte(&fontpointer[(n*fontsize)+x]));
@@ -277,18 +315,29 @@ ISR (TIMER1_COMPA_vect)
 {
 	
 		ms10++;
+		if(entprell)entprell--;
 			
-	if(ms10==10)	//10ms
+	if(ms10==10)	//100ms
 	{
 		ms10=0;
 		ms100++;
 	
 		
 	}
-    if(ms100==10)	//100ms
+    if(ms100==10)	//sec
 	{
 		ms100=0;
 		sec++;
+		//change display screen in fixed time
+		screentoggle++;
+		if(screentoggle==TOGGLEMAX)
+		{
+			screentoggle=0;
+			if(toggle==0)
+			{
+				toggle = 1;
+			}else toggle =0;
+		}
 	}
 	if(sec==60)	//Minute
 	{
