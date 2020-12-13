@@ -62,12 +62,12 @@ void Write_String(uint8_t fontsize, uint8_t row, uint8_t pos, const char str[]);
 //TIMER
 ISR (TIMER1_COMPA_vect);
 
-enum state {START, MEASURE};
+enum state {GREETER, ZERO, MEASURE};
 uint8_t state;
 
 
 volatile uint8_t ms10,ms100,sec,min, entprell;
-volatile uint8_t screentoggle, toggle;
+volatile uint8_t screentoggle, toggle, toggle_alt;
 char buffer[20]; // buffer to store string
 
 int main(void)
@@ -106,14 +106,15 @@ int main(void)
     entprell=0;
     screentoggle=3;
     toggle=0;
+    toggle_alt=toggle;
 		
 	Display_Init();
 	Display_Clear();
 	Set_Page_Address(0);
     Set_Column_Address(0);
     
-   char test=0;
-   state = START;
+  
+   state = GREETER;
  
 	//sprintf(buffer,"sec=%d",sec);
 	
@@ -124,26 +125,41 @@ int main(void)
 		
 		switch(state)
 		{
-			case START: if(toggle)
-						{
-							Write_String(14,0,0,"If found");
-							Write_String(14,1,0,"please  ");
-							Write_String(14,2,0, "contact ");
-						}else
-						{
-							Write_String(14,0,0,"rgroener");
-							Write_String(14,1,0,"@mailbox");
-							Write_String(14,2,0, ".org    ");	
-						}
-						break;
-			
-			
-		}	
-		if(BUTTON)
-		{
-			test++;
-			entprell= RELOAD_ENTPRELL; 
-		}
+			case GREETER:	if(BUTTON)
+							{
+								state=ZERO;
+								entprell=RELOAD_ENTPRELL;
+								Write_String(14,0,0," Button ");
+								Write_String(14,1,0,"   to   ");
+								Write_String(14,2,0, "  ZERO  ");
+								
+							}
+							if(toggle)
+							{
+									Write_String(14,0,0,"If found");
+									Write_String(14,1,0,"please  ");
+									Write_String(14,2,0, "contact ");
+							}else
+							{
+									Write_String(14,0,0,"rgroener");
+									Write_String(14,1,0,"@mailbox");
+									Write_String(14,2,0, ".org    ");	
+							}
+							break;
+			case ZERO:		if(BUTTON)
+							{
+								state=MEASURE;
+								entprell=RELOAD_ENTPRELL;
+								Write_String(14,0,0," Button ");
+								Write_String(14,1,0,"   to   ");
+								Write_String(14,2,0, "  ZERO  ");
+								
+							}
+							break;
+			case MEASURE:	
+							break;
+		}//End of switch(state)	
+		
 		
 		//sprintf(buffer,"sec=%d",test);
 		//Write_String(14,1,0,buffer);
