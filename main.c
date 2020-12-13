@@ -121,12 +121,8 @@ int main(void)
 	//Write_String(14,0,0,"test");
 	/*
 	 * 
-	 * 0xa0
-	 * 0xae
-	 * 0xde
-	 * 0xee
-	 * 0xef
-	 * 
+	 * SHT21 0x80 / 0x81
+	 * DPS310 0xee / 0xef
 	 * 
 	 * */
 	
