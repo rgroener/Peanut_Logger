@@ -112,11 +112,13 @@ int main(void)
 	Display_Clear();
 	Set_Page_Address(0);
     Set_Column_Address(0);
-    
+    TWIInit();
+	//sht21_init();
   
-   state = GREETER;
+   state = MEASURE;
  
 	//sprintf(buffer,"sec=%d",sec);
+	Write_String(14,0,0,"test");
 	
 	
 

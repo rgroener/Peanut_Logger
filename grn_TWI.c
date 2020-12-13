@@ -10,53 +10,53 @@
 uint8_t TWIInit(void)
 {
  /* initialize TWI clock: 100 kHz clock, TWPS = 0 => prescaler = 1 */
-  PRR =0x00;
+  PRR0 =0x00;
  // TWSR |= (1<<TWPS0);                          /* no prescaler */
  
   
   //set sck to 400khz
-	TWSR = 0x02;
+	TWSR0 = 0x02;
 	//TWBR = 0x0C;
-	 TWBR = ((16000000/400000)-16)/2;  /* (F_CPU / F_TWI) must be > 10 for stable operation */
+	 TWBR0 = ((16000000/400000)-16)/2;  /* (F_CPU / F_TWI) must be > 10 for stable operation */
 	//enable TWI
-	TWCR = (1<<TWEN);
+	TWCR0 = (1<<TWEN);
 	return 0;
 }
  
 uint8_t TWIStart(void)
 {
-	TWCR = ((1<<TWINT) | (1<<TWSTA) | (1<<TWEN));
-	while((TWCR & (1<<TWINT)) == 0);
+	TWCR0 = ((1<<TWINT) | (1<<TWSTA) | (1<<TWEN));
+	while((TWCR0 & (1<<TWINT)) == 0);
 	return 0;
 }
 
 uint8_t TWIStop(void)
 {
-	TWCR = ((1<<TWINT) | (1<<TWSTO) | (1<<TWEN));
+	TWCR0 = ((1<<TWINT) | (1<<TWSTO) | (1<<TWEN));
 	return 0;
 } 
 
 uint8_t TWIWrite(uint8_t u8data)
 {
-	TWDR = u8data;
-	TWCR = ((1<<TWINT) | (1<<TWEN));
-	while((TWCR & (1<<TWINT)) == 0);
+	TWDR0 = u8data;
+	TWCR0 = ((1<<TWINT) | (1<<TWEN));
+	while((TWCR0 & (1<<TWINT)) == 0);
 	return 0;
 }
 
 uint8_t TWIReadACK(void)
 {
-	TWCR = ((1<<TWINT) | (1<<TWEN) | (1<<TWEA));
-	while((TWCR & (1<<TWINT)) == 0);
-	return TWDR;
+	TWCR0 = ((1<<TWINT) | (1<<TWEN) | (1<<TWEA));
+	while((TWCR0 & (1<<TWINT)) == 0);
+	return TWDR0;
 	return 0;
 }
 
 uint8_t TWIReadNACK(void)
 {
-	TWCR = ((1<<TWINT) | (1<<TWEN));
-	while((TWCR & (1<<TWINT)) == 0);
-	return TWDR;
+	TWCR0 = ((1<<TWINT) | (1<<TWEN));
+	while((TWCR0 & (1<<TWINT)) == 0);
+	return TWDR0;
 	return 0;
 }
 
@@ -73,6 +73,6 @@ uint8_t TWIGetStatus(void)
 	 
 	uint8_t status;
 	//mask status
-	status = TWSR & 0xF8;
+	status = TWSR0 & 0xF8;
 	return status;
 }
