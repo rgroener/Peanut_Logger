@@ -22,8 +22,6 @@
 #define RELOAD_ENTPRELL 40
 #define TOGGLEMAX 4
  
-
-
 //TIMER
 ISR (TIMER1_COMPA_vect);
 
@@ -41,8 +39,10 @@ int main(void)
 	DDRC |= (1<<PC5);	//SCL
 	PORTC |= (1<<PC5);
 	PORTC &= ~(1<<PC5);
-	
-	DDRD &= ~(1<<PD3);	//Button
+	DDRD |= (1<<PD1);//set TX0 as output
+	PORTD |= (1<<PD1);
+
+	DDRD &= ~(1<<PD3) | (1<<PD0);	//Button and RX0 as input(red LED)
 	PORTD |= (1<<PD3);	//activate Pullup
 	
 	//init SPI as master without interrupt
@@ -92,6 +92,7 @@ int main(void)
 uint16_t temp=0;
 	while(1)
 	{ 	
+		
 		switch(state)
 		{
 			case GREETER:	if(BUTTON)
