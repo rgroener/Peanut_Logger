@@ -5,7 +5,6 @@
  * 
  * avrdude: safemode: Fuses OK (E:F7, H:D9, L:62)
  * */
- 
 #define F_CPU 8000000UL// set the CPU clock
 #include <util/delay.h>
 #include <avr/interrupt.h>
