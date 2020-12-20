@@ -21,7 +21,15 @@
 #define BUTTON	(!(PIND & (1<<PD3))) && (entprell==0) //read button input
 #define RELOAD_ENTPRELL 40
 #define TOGGLEMAX 4
- 
+#define TEMPERATURE 0
+#define HUMIDITY 1
+
+uint16_t vor_komma(uint32_t value);
+uint8_t nach_komma(uint32_t value);
+float temp=0;
+uint16_t test=0;
+uint16_t roman=0;
+
 //TIMER
 ISR (TIMER1_COMPA_vect);
 
@@ -39,8 +47,9 @@ int main(void)
 	DDRC |= (1<<PC5);	//SCL
 	PORTC |= (1<<PC5);
 	PORTC &= ~(1<<PC5);
-	DDRD |= (1<<PD1);//set TX0 as output
+	DDRD |= (1<<PD1)|(1<<PD2);//set TX0 and SDO as output
 	PORTD |= (1<<PD1);
+	PORTD &= ~(1<<PD2);
 
 	DDRD &= ~(1<<PD3) | (1<<PD0);	//Button and RX0 as input(red LED)
 	PORTD |= (1<<PD3);	//activate Pullup
@@ -77,9 +86,8 @@ int main(void)
     Set_Column_Address(0);
     TWIInit();
 	sht21_init();
-  
+	//DPS310_init(LOW);
    state = MEASURE;
- 
 	//sprintf(buffer,"sec=%d",sec);
 	//Write_String(14,0,0,"test");
 	/*
@@ -88,11 +96,8 @@ int main(void)
 	 * DPS310 0xee / 0xef
 	 * 
 	 * */
-	
-uint16_t temp=0;
 	while(1)
 	{ 	
-		
 		switch(state)
 		{
 			case GREETER:	if(BUTTON)
@@ -102,7 +107,6 @@ uint16_t temp=0;
 								Write_String(14,0,0," Button ");
 								Write_String(14,1,0,"   to   ");
 								Write_String(14,2,0, "  ZERO  ");
-								
 							}
 							if(toggle)
 							{
@@ -123,12 +127,16 @@ uint16_t temp=0;
 								Write_String(14,0,0," Button ");
 								Write_String(14,1,0,"   to   ");
 								Write_String(14,2,0, "  ZERO  ");
-								
 							}
 							break;
-			case MEASURE:	temp = (sht21_measure(0));
-							sprintf(buffer,"T: %d*",temp);
+			case MEASURE:	temp = (sht21_measure(TEMPERATURE));
+							sprintf(buffer,"%f",temp);
 							Write_String(14,0,0,buffer);
+							
+							sprintf(buffer,"%d",test);
+							Write_String(14,1,0,buffer);
+							test++;
+							
 							break;
 		}//End of switch(state)	
 			
