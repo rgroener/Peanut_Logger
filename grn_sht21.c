@@ -72,28 +72,28 @@ int16_t sht21_measure(uint8_t measure_mode)
 
 		
 	TWIStart();							//start TWI
-	if(TWIGetStatus() != 0x08)return 4; //kontrolle ob erfolgreich sonst Abbruch mit Error Code
+	if(TWIGetStatus() != 0x08)return 11; //kontrolle ob erfolgreich sonst Abbruch mit Error Code
 	TWIWrite(SHT21_W);					//Adresse und Schreiben
-	if(TWIGetStatus() != 0x18)return 5;	//kontrolle ob erfolgreich sonst Abbruch mit Error Code
+	if(TWIGetStatus() != 0x18)return 22;	//kontrolle ob erfolgreich sonst Abbruch mit Error Code
 	switch(measure_mode)
 	{
 		case T_HOLD:	TWIWrite(SHT21_TEMP_HOLDMASTER);break;	//Modus = Temperatur master hold = on
 		case RH_HOLD:	TWIWrite(SHT21_HUM_HOLDMASTER);break;	//Modus = Temperatur master hold = on
 	}
-	if(TWIGetStatus() != 0x28)return 6;	//kontrolle ob erfolgreich sonst Abbruch mit Error Code
+	if(TWIGetStatus() != 0x28)return 33;	//kontrolle ob erfolgreich sonst Abbruch mit Error Code
 
 	DDRC &= ~(1<<PC5);					//set SCL as Input
 	while(!(PINC &= ~(1<<PC5)));		//wait to end conversion (Master hold mode)
 	DDRC |= (1<<PC5);					//set SCL as Output
 
 	TWIStart();							//restart TWI
-	if(TWIGetStatus() != 0x10)return 7; //kontrolle ob erfolgreich sonst Abbruch mit Error Code
+	if(TWIGetStatus() != 0x10)return 44; //kontrolle ob erfolgreich sonst Abbruch mit Error Code
 	TWIWrite(SHT21_R);					//Adresse und lesen
-	if(TWIGetStatus() != 0x40)return 8;	//kontrolle ob erfolgreich sonst Abbruch mit Error Code
+	if(TWIGetStatus() != 0x40)return 55;	//kontrolle ob erfolgreich sonst Abbruch mit Error Code
 	raw[0] = TWIReadACK();				//empfange MSB
-	if(TWIGetStatus() != 0x50)return 9;	//kontrolle ob erfolgreich sonst Abbruch mit Error Code
+	if(TWIGetStatus() != 0x50)return 66;	//kontrolle ob erfolgreich sonst Abbruch mit Error Code
 	raw[1] = TWIReadACK();				//empfange LSB / durch NACK wird checksumme nicht empfangen
-	if(TWIGetStatus() != 0x50)return 9;	//kontrolle ob erfolgreich sonst Abbruch mit Error Code
+	if(TWIGetStatus() != 0x50)return 77;	//kontrolle ob erfolgreich sonst Abbruch mit Error Code
 	raw[2] = TWIReadNACK();				//receive checksum
 	TWIStop();							//close TWI
 	
@@ -101,8 +101,8 @@ int16_t sht21_measure(uint8_t measure_mode)
 	messwert &= ~0x003;								//Loescht letzte 2 Bits (Status Bits)
 	switch(measure_mode)
 	{
-		case T_HOLD:	rueckgabewert = (-46.85 + 175.72/65536 * messwert);break;
-		case RH_HOLD:	rueckgabewert = (-6.0 + 125.0/65536 * messwert);break; // return relative humidity;break;	//Modus = Temperatur master hold = on
+		case T_HOLD:	rueckgabewert = 100*(-46.85 + 175.72/65536 * messwert);break;
+		case RH_HOLD:	rueckgabewert = 100*(-6.0 + 125.0/65536 * messwert);break; // return relative humidity;break;	//Modus = Temperatur master hold = on
 	}
 	 
 	if(sht21_checksum(raw,2,raw[2])) 	//check result with checksum

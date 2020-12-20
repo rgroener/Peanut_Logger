@@ -33,6 +33,9 @@ uint16_t roman=0;
 
 //TIMER
 ISR (TIMER1_COMPA_vect);
+uint16_t vor_komma(uint32_t value);
+uint8_t nach_komma(uint32_t value);
+
 
 enum state {GREETER, ZERO, MEASURE};
 uint8_t state;
@@ -131,7 +134,7 @@ int main(void)
 							}
 							break;
 			case MEASURE:	temp = (sht21_measure(0));
-							sprintf(buffer,"%d",temp);
+							sprintf(buffer,"%d.%d*",vor_komma(temp),nach_komma(temp));
 							Write_String(14,0,0,buffer);
 							
 							sprintf(buffer,"%d",test);
@@ -181,4 +184,17 @@ ISR (TIMER1_COMPA_vect)
 		sec=0;
 		min++;
 	}
+}
+uint16_t vor_komma(uint32_t value)
+{
+	return value/100;
+	
+}
+uint8_t nach_komma(uint32_t value)
+{
+	uint8_t temp;
+	temp = value/100;
+	return value-(temp*100);
+	
+	
 }

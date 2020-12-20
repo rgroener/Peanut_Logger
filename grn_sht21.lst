@@ -1,0 +1,1359 @@
+   1               		.file	"grn_sht21.c"
+   2               	__SP_H__ = 0x3e
+   3               	__SP_L__ = 0x3d
+   4               	__SREG__ = 0x3f
+   5               	__tmp_reg__ = 0
+   6               	__zero_reg__ = 1
+   7               		.text
+   8               	.Ltext0:
+   9               		.cfi_sections	.debug_frame
+  10               	.global	sht21_init
+  12               	sht21_init:
+  13               	.LFB7:
+  14               		.file 1 "grn_sht21.c"
+   1:grn_sht21.c   **** /*	Library File
+   2:grn_sht21.c   ****  * 
+   3:grn_sht21.c   ****  * 	Sensirion SHT21 Sensor (Temperature / Humidity)
+   4:grn_sht21.c   ****  *
+   5:grn_sht21.c   ****  * 	grn; Apr 15
+   6:grn_sht21.c   ****  */
+   7:grn_sht21.c   ****  #define F_CPU 8000000UL                 // set the CPU clock
+   8:grn_sht21.c   **** #include <stdio.h>
+   9:grn_sht21.c   **** #include <avr/io.h>
+  10:grn_sht21.c   **** #include <util/delay.h>
+  11:grn_sht21.c   **** #include "grn_TWI.h"
+  12:grn_sht21.c   **** #include "grn_sht21.h"
+  13:grn_sht21.c   **** 
+  14:grn_sht21.c   **** #define SHT21_W 0x80				//SHT21 Adresse und schreiben 	0x80
+  15:grn_sht21.c   **** #define SHT21_R 0x81				//SHT21 Adresse und lesen		0x81
+  16:grn_sht21.c   **** #define SHT21_TEMP_HOLDMASTER 0xE3		//Tempreature hold master = on =>0b11100011
+  17:grn_sht21.c   **** #define SHT21_HUM_HOLDMASTER 0xF3		//Humidity hold master = on => 0b11100101
+  18:grn_sht21.c   **** #define SHT21_SOFTRESET 0xFE				//Softreset
+  19:grn_sht21.c   **** #define POLYNOMINAL 0x131				//P(x) = x^8+x^5+x^4+1 = 0b100110001
+  20:grn_sht21.c   **** 
+  21:grn_sht21.c   **** #define T_HOLD 	0
+  22:grn_sht21.c   **** #define RH_HOLD 	1
+  23:grn_sht21.c   **** 
+  24:grn_sht21.c   **** typedef float ft;						//Float VAriable zur Umrechnung vor Rueckgabe
+  25:grn_sht21.c   **** uint8_t sht21_init(void)
+  26:grn_sht21.c   **** {
+  15               		.loc 1 26 1 view -0
+  16               		.cfi_startproc
+  17               	/* prologue: function */
+  18               	/* frame size = 0 */
+  19               	/* stack size = 0 */
+  20               	.L__stack_usage = 0
+  27:grn_sht21.c   **** 	/*	
+  28:grn_sht21.c   **** 	 * Softreset Sensor
+  29:grn_sht21.c   **** 	 */
+  30:grn_sht21.c   **** 	TWIStart();
+  21               		.loc 1 30 2 view .LVU1
+  22 0000 0E94 0000 		call TWIStart
+  23               	.LVL0:
+  31:grn_sht21.c   **** 	if(TWIGetStatus() != 0x08)return 1; 
+  24               		.loc 1 31 2 view .LVU2
+  25               		.loc 1 31 5 is_stmt 0 view .LVU3
+  26 0004 0E94 0000 		call TWIGetStatus
+  27               	.LVL1:
+  28               		.loc 1 31 4 view .LVU4
+  29 0008 8830      		cpi r24,lo8(8)
+  30 000a 01F0      		breq .L7
+  31               		.loc 1 31 35 view .LVU5
+  32 000c 81E0      		ldi r24,lo8(1)
+  33 000e 0895      		ret
+  34               	.L7:
+  32:grn_sht21.c   **** 	TWIWrite(SHT21_W);
+  35               		.loc 1 32 2 is_stmt 1 view .LVU6
+  36 0010 80E8      		ldi r24,lo8(-128)
+  37 0012 0E94 0000 		call TWIWrite
+  38               	.LVL2:
+  33:grn_sht21.c   **** 	if(TWIGetStatus() != 0x18)return 2;
+  39               		.loc 1 33 2 view .LVU7
+  40               		.loc 1 33 5 is_stmt 0 view .LVU8
+  41 0016 0E94 0000 		call TWIGetStatus
+  42               	.LVL3:
+  43               		.loc 1 33 4 view .LVU9
+  44 001a 8831      		cpi r24,lo8(24)
+  45 001c 01F0      		breq .L8
+  46               		.loc 1 33 35 view .LVU10
+  47 001e 82E0      		ldi r24,lo8(2)
+  48 0020 0895      		ret
+  49               	.L8:
+  34:grn_sht21.c   **** 	TWIWrite(SHT21_SOFTRESET);
+  50               		.loc 1 34 2 is_stmt 1 view .LVU11
+  51 0022 8EEF      		ldi r24,lo8(-2)
+  52 0024 0E94 0000 		call TWIWrite
+  53               	.LVL4:
+  35:grn_sht21.c   **** 	if(TWIGetStatus() != 0x28)return 3;
+  54               		.loc 1 35 2 view .LVU12
+  55               		.loc 1 35 5 is_stmt 0 view .LVU13
+  56 0028 0E94 0000 		call TWIGetStatus
+  57               	.LVL5:
+  58               		.loc 1 35 4 view .LVU14
+  59 002c 8832      		cpi r24,lo8(40)
+  60 002e 01F4      		brne .L5
+  36:grn_sht21.c   **** 	TWIStop();
+  61               		.loc 1 36 2 is_stmt 1 view .LVU15
+  62 0030 0E94 0000 		call TWIStop
+  63               	.LVL6:
+  37:grn_sht21.c   **** 	_delay_ms(15);	//Startuptime after Reset <15ms (Datasheet)
+  64               		.loc 1 37 2 view .LVU16
+  65               	.LBB12:
+  66               	.LBI12:
+  67               		.file 2 "/usr/avr/include/util/delay.h"
+   1:/usr/avr/include/util/delay.h **** /* Copyright (c) 2002, Marek Michalkiewicz
+   2:/usr/avr/include/util/delay.h ****    Copyright (c) 2004,2005,2007 Joerg Wunsch
+   3:/usr/avr/include/util/delay.h ****    Copyright (c) 2007  Florin-Viorel Petrov
+   4:/usr/avr/include/util/delay.h ****    All rights reserved.
+   5:/usr/avr/include/util/delay.h **** 
+   6:/usr/avr/include/util/delay.h ****    Redistribution and use in source and binary forms, with or without
+   7:/usr/avr/include/util/delay.h ****    modification, are permitted provided that the following conditions are met:
+   8:/usr/avr/include/util/delay.h **** 
+   9:/usr/avr/include/util/delay.h ****    * Redistributions of source code must retain the above copyright
+  10:/usr/avr/include/util/delay.h ****      notice, this list of conditions and the following disclaimer.
+  11:/usr/avr/include/util/delay.h **** 
+  12:/usr/avr/include/util/delay.h ****    * Redistributions in binary form must reproduce the above copyright
+  13:/usr/avr/include/util/delay.h ****      notice, this list of conditions and the following disclaimer in
+  14:/usr/avr/include/util/delay.h ****      the documentation and/or other materials provided with the
+  15:/usr/avr/include/util/delay.h ****      distribution.
+  16:/usr/avr/include/util/delay.h **** 
+  17:/usr/avr/include/util/delay.h ****    * Neither the name of the copyright holders nor the names of
+  18:/usr/avr/include/util/delay.h ****      contributors may be used to endorse or promote products derived
+  19:/usr/avr/include/util/delay.h ****      from this software without specific prior written permission.
+  20:/usr/avr/include/util/delay.h **** 
+  21:/usr/avr/include/util/delay.h ****   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+  22:/usr/avr/include/util/delay.h ****   AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+  23:/usr/avr/include/util/delay.h ****   IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+  24:/usr/avr/include/util/delay.h ****   ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+  25:/usr/avr/include/util/delay.h ****   LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+  26:/usr/avr/include/util/delay.h ****   CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+  27:/usr/avr/include/util/delay.h ****   SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+  28:/usr/avr/include/util/delay.h ****   INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+  29:/usr/avr/include/util/delay.h ****   CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+  30:/usr/avr/include/util/delay.h ****   ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+  31:/usr/avr/include/util/delay.h ****   POSSIBILITY OF SUCH DAMAGE. */
+  32:/usr/avr/include/util/delay.h **** 
+  33:/usr/avr/include/util/delay.h **** /* $Id: delay.h.in 2506 2016-02-08 10:05:45Z joerg_wunsch $ */
+  34:/usr/avr/include/util/delay.h **** 
+  35:/usr/avr/include/util/delay.h **** #ifndef _UTIL_DELAY_H_
+  36:/usr/avr/include/util/delay.h **** #define _UTIL_DELAY_H_ 1
+  37:/usr/avr/include/util/delay.h **** 
+  38:/usr/avr/include/util/delay.h **** #ifndef __DOXYGEN__
+  39:/usr/avr/include/util/delay.h **** #  ifndef __HAS_DELAY_CYCLES
+  40:/usr/avr/include/util/delay.h **** #    define __HAS_DELAY_CYCLES 1
+  41:/usr/avr/include/util/delay.h **** #  endif
+  42:/usr/avr/include/util/delay.h **** #endif  /* __DOXYGEN__ */
+  43:/usr/avr/include/util/delay.h **** 
+  44:/usr/avr/include/util/delay.h **** #include <inttypes.h>
+  45:/usr/avr/include/util/delay.h **** #include <util/delay_basic.h>
+  46:/usr/avr/include/util/delay.h **** #include <math.h>
+  47:/usr/avr/include/util/delay.h **** 
+  48:/usr/avr/include/util/delay.h **** /** \file */
+  49:/usr/avr/include/util/delay.h **** /** \defgroup util_delay <util/delay.h>: Convenience functions for busy-wait delay loops
+  50:/usr/avr/include/util/delay.h ****     \code
+  51:/usr/avr/include/util/delay.h ****     #define F_CPU 1000000UL  // 1 MHz
+  52:/usr/avr/include/util/delay.h ****     //#define F_CPU 14.7456E6
+  53:/usr/avr/include/util/delay.h ****     #include <util/delay.h>
+  54:/usr/avr/include/util/delay.h ****     \endcode
+  55:/usr/avr/include/util/delay.h **** 
+  56:/usr/avr/include/util/delay.h ****     \note As an alternative method, it is possible to pass the
+  57:/usr/avr/include/util/delay.h ****     F_CPU macro down to the compiler from the Makefile.
+  58:/usr/avr/include/util/delay.h ****     Obviously, in that case, no \c \#define statement should be
+  59:/usr/avr/include/util/delay.h ****     used.
+  60:/usr/avr/include/util/delay.h **** 
+  61:/usr/avr/include/util/delay.h ****     The functions in this header file are wrappers around the basic
+  62:/usr/avr/include/util/delay.h ****     busy-wait functions from <util/delay_basic.h>.  They are meant as
+  63:/usr/avr/include/util/delay.h ****     convenience functions where actual time values can be specified
+  64:/usr/avr/include/util/delay.h ****     rather than a number of cycles to wait for.  The idea behind is
+  65:/usr/avr/include/util/delay.h ****     that compile-time constant expressions will be eliminated by
+  66:/usr/avr/include/util/delay.h ****     compiler optimization so floating-point expressions can be used
+  67:/usr/avr/include/util/delay.h ****     to calculate the number of delay cycles needed based on the CPU
+  68:/usr/avr/include/util/delay.h ****     frequency passed by the macro F_CPU.
+  69:/usr/avr/include/util/delay.h **** 
+  70:/usr/avr/include/util/delay.h ****     \note In order for these functions to work as intended, compiler
+  71:/usr/avr/include/util/delay.h ****     optimizations <em>must</em> be enabled, and the delay time
+  72:/usr/avr/include/util/delay.h ****     <em>must</em> be an expression that is a known constant at
+  73:/usr/avr/include/util/delay.h ****     compile-time.  If these requirements are not met, the resulting
+  74:/usr/avr/include/util/delay.h ****     delay will be much longer (and basically unpredictable), and
+  75:/usr/avr/include/util/delay.h ****     applications that otherwise do not use floating-point calculations
+  76:/usr/avr/include/util/delay.h ****     will experience severe code bloat by the floating-point library
+  77:/usr/avr/include/util/delay.h ****     routines linked into the application.
+  78:/usr/avr/include/util/delay.h **** 
+  79:/usr/avr/include/util/delay.h ****     The functions available allow the specification of microsecond, and
+  80:/usr/avr/include/util/delay.h ****     millisecond delays directly, using the application-supplied macro
+  81:/usr/avr/include/util/delay.h ****     F_CPU as the CPU clock frequency (in Hertz).
+  82:/usr/avr/include/util/delay.h **** 
+  83:/usr/avr/include/util/delay.h **** */
+  84:/usr/avr/include/util/delay.h **** 
+  85:/usr/avr/include/util/delay.h **** #if !defined(__DOXYGEN__)
+  86:/usr/avr/include/util/delay.h **** static __inline__ void _delay_us(double __us) __attribute__((__always_inline__));
+  87:/usr/avr/include/util/delay.h **** static __inline__ void _delay_ms(double __ms) __attribute__((__always_inline__));
+  88:/usr/avr/include/util/delay.h **** #endif
+  89:/usr/avr/include/util/delay.h **** 
+  90:/usr/avr/include/util/delay.h **** #ifndef F_CPU
+  91:/usr/avr/include/util/delay.h **** /* prevent compiler error by supplying a default */
+  92:/usr/avr/include/util/delay.h **** # warning "F_CPU not defined for <util/delay.h>"
+  93:/usr/avr/include/util/delay.h **** /** \ingroup util_delay
+  94:/usr/avr/include/util/delay.h ****     \def F_CPU
+  95:/usr/avr/include/util/delay.h ****     \brief CPU frequency in Hz
+  96:/usr/avr/include/util/delay.h **** 
+  97:/usr/avr/include/util/delay.h ****     The macro F_CPU specifies the CPU frequency to be considered by
+  98:/usr/avr/include/util/delay.h ****     the delay macros.  This macro is normally supplied by the
+  99:/usr/avr/include/util/delay.h ****     environment (e.g. from within a project header, or the project's
+ 100:/usr/avr/include/util/delay.h ****     Makefile).  The value 1 MHz here is only provided as a "vanilla"
+ 101:/usr/avr/include/util/delay.h ****     fallback if no such user-provided definition could be found.
+ 102:/usr/avr/include/util/delay.h **** 
+ 103:/usr/avr/include/util/delay.h ****     In terms of the delay functions, the CPU frequency can be given as
+ 104:/usr/avr/include/util/delay.h ****     a floating-point constant (e.g. 3.6864E6 for 3.6864 MHz).
+ 105:/usr/avr/include/util/delay.h ****     However, the macros in <util/setbaud.h> require it to be an
+ 106:/usr/avr/include/util/delay.h ****     integer value.
+ 107:/usr/avr/include/util/delay.h ****  */
+ 108:/usr/avr/include/util/delay.h **** # define F_CPU 1000000UL
+ 109:/usr/avr/include/util/delay.h **** #endif
+ 110:/usr/avr/include/util/delay.h **** 
+ 111:/usr/avr/include/util/delay.h **** #ifndef __OPTIMIZE__
+ 112:/usr/avr/include/util/delay.h **** # warning "Compiler optimizations disabled; functions from <util/delay.h> won't work as designed"
+ 113:/usr/avr/include/util/delay.h **** #endif
+ 114:/usr/avr/include/util/delay.h **** 
+ 115:/usr/avr/include/util/delay.h **** #if __HAS_DELAY_CYCLES && defined(__OPTIMIZE__) && \
+ 116:/usr/avr/include/util/delay.h ****   !defined(__DELAY_BACKWARD_COMPATIBLE__) &&	   \
+ 117:/usr/avr/include/util/delay.h ****   __STDC_HOSTED__
+ 118:/usr/avr/include/util/delay.h **** #  include <math.h>
+ 119:/usr/avr/include/util/delay.h **** #endif
+ 120:/usr/avr/include/util/delay.h **** 
+ 121:/usr/avr/include/util/delay.h **** /**
+ 122:/usr/avr/include/util/delay.h ****    \ingroup util_delay
+ 123:/usr/avr/include/util/delay.h **** 
+ 124:/usr/avr/include/util/delay.h ****    Perform a delay of \c __ms milliseconds, using _delay_loop_2().
+ 125:/usr/avr/include/util/delay.h **** 
+ 126:/usr/avr/include/util/delay.h ****    The macro F_CPU is supposed to be defined to a
+ 127:/usr/avr/include/util/delay.h ****    constant defining the CPU clock frequency (in Hertz).
+ 128:/usr/avr/include/util/delay.h **** 
+ 129:/usr/avr/include/util/delay.h ****    The maximal possible delay is 262.14 ms / F_CPU in MHz.
+ 130:/usr/avr/include/util/delay.h **** 
+ 131:/usr/avr/include/util/delay.h ****    When the user request delay which exceed the maximum possible one,
+ 132:/usr/avr/include/util/delay.h ****    _delay_ms() provides a decreased resolution functionality. In this
+ 133:/usr/avr/include/util/delay.h ****    mode _delay_ms() will work with a resolution of 1/10 ms, providing
+ 134:/usr/avr/include/util/delay.h ****    delays up to 6.5535 seconds (independent from CPU frequency).  The
+ 135:/usr/avr/include/util/delay.h ****    user will not be informed about decreased resolution.
+ 136:/usr/avr/include/util/delay.h **** 
+ 137:/usr/avr/include/util/delay.h ****    If the avr-gcc toolchain has __builtin_avr_delay_cycles()
+ 138:/usr/avr/include/util/delay.h ****    support, maximal possible delay is 4294967.295 ms/ F_CPU in MHz. For
+ 139:/usr/avr/include/util/delay.h ****    values greater than the maximal possible delay, overflows results in
+ 140:/usr/avr/include/util/delay.h ****    no delay i.e., 0ms.
+ 141:/usr/avr/include/util/delay.h **** 
+ 142:/usr/avr/include/util/delay.h ****    Conversion of \c __ms into clock cycles may not always result in
+ 143:/usr/avr/include/util/delay.h ****    integer.  By default, the clock cycles rounded up to next
+ 144:/usr/avr/include/util/delay.h ****    integer. This ensures that the user gets at least \c __ms
+ 145:/usr/avr/include/util/delay.h ****    microseconds of delay.
+ 146:/usr/avr/include/util/delay.h **** 
+ 147:/usr/avr/include/util/delay.h ****    Alternatively, by defining the macro \c __DELAY_ROUND_DOWN__, or
+ 148:/usr/avr/include/util/delay.h ****    \c __DELAY_ROUND_CLOSEST__, before including this header file, the
+ 149:/usr/avr/include/util/delay.h ****    algorithm can be made to round down, or round to closest integer,
+ 150:/usr/avr/include/util/delay.h ****    respectively.
+ 151:/usr/avr/include/util/delay.h **** 
+ 152:/usr/avr/include/util/delay.h ****    \note
+ 153:/usr/avr/include/util/delay.h **** 
+ 154:/usr/avr/include/util/delay.h ****    The implementation of _delay_ms() based on
+ 155:/usr/avr/include/util/delay.h ****    __builtin_avr_delay_cycles() is not backward compatible with older
+ 156:/usr/avr/include/util/delay.h ****    implementations.  In order to get functionality backward compatible
+ 157:/usr/avr/include/util/delay.h ****    with previous versions, the macro \c "__DELAY_BACKWARD_COMPATIBLE__"
+ 158:/usr/avr/include/util/delay.h ****    must be defined before including this header file. Also, the
+ 159:/usr/avr/include/util/delay.h ****    backward compatible algorithm will be chosen if the code is
+ 160:/usr/avr/include/util/delay.h ****    compiled in a <em>freestanding environment</em> (GCC option
+ 161:/usr/avr/include/util/delay.h ****    \c -ffreestanding), as the math functions required for rounding are
+ 162:/usr/avr/include/util/delay.h ****    not available to the compiler then.
+ 163:/usr/avr/include/util/delay.h **** 
+ 164:/usr/avr/include/util/delay.h ****  */
+ 165:/usr/avr/include/util/delay.h **** void
+ 166:/usr/avr/include/util/delay.h **** _delay_ms(double __ms)
+  68               		.loc 2 166 1 view .LVU17
+  69               	.LBB13:
+ 167:/usr/avr/include/util/delay.h **** {
+ 168:/usr/avr/include/util/delay.h **** 	double __tmp ;
+  70               		.loc 2 168 2 view .LVU18
+ 169:/usr/avr/include/util/delay.h **** #if __HAS_DELAY_CYCLES && defined(__OPTIMIZE__) && \
+ 170:/usr/avr/include/util/delay.h ****   !defined(__DELAY_BACKWARD_COMPATIBLE__) &&	   \
+ 171:/usr/avr/include/util/delay.h ****   __STDC_HOSTED__
+ 172:/usr/avr/include/util/delay.h **** 	uint32_t __ticks_dc;
+ 173:/usr/avr/include/util/delay.h **** 	extern void __builtin_avr_delay_cycles(unsigned long);
+ 174:/usr/avr/include/util/delay.h **** 	__tmp = ((F_CPU) / 1e3) * __ms;
+ 175:/usr/avr/include/util/delay.h **** 
+ 176:/usr/avr/include/util/delay.h **** 	#if defined(__DELAY_ROUND_DOWN__)
+ 177:/usr/avr/include/util/delay.h **** 		__ticks_dc = (uint32_t)fabs(__tmp);
+ 178:/usr/avr/include/util/delay.h **** 
+ 179:/usr/avr/include/util/delay.h **** 	#elif defined(__DELAY_ROUND_CLOSEST__)
+ 180:/usr/avr/include/util/delay.h **** 		__ticks_dc = (uint32_t)(fabs(__tmp)+0.5);
+ 181:/usr/avr/include/util/delay.h **** 
+ 182:/usr/avr/include/util/delay.h **** 	#else
+ 183:/usr/avr/include/util/delay.h **** 		//round up by default
+ 184:/usr/avr/include/util/delay.h **** 		__ticks_dc = (uint32_t)(ceil(fabs(__tmp)));
+ 185:/usr/avr/include/util/delay.h **** 	#endif
+ 186:/usr/avr/include/util/delay.h **** 
+ 187:/usr/avr/include/util/delay.h **** 	__builtin_avr_delay_cycles(__ticks_dc);
+ 188:/usr/avr/include/util/delay.h **** 
+ 189:/usr/avr/include/util/delay.h **** #else
+ 190:/usr/avr/include/util/delay.h **** 	uint16_t __ticks;
+  71               		.loc 2 190 2 view .LVU19
+ 191:/usr/avr/include/util/delay.h **** 	__tmp = ((F_CPU) / 4e3) * __ms;
+  72               		.loc 2 191 2 view .LVU20
+ 192:/usr/avr/include/util/delay.h **** 	if (__tmp < 1.0)
+  73               		.loc 2 192 2 view .LVU21
+ 193:/usr/avr/include/util/delay.h **** 		__ticks = 1;
+ 194:/usr/avr/include/util/delay.h **** 	else if (__tmp > 65535)
+  74               		.loc 2 194 7 view .LVU22
+ 195:/usr/avr/include/util/delay.h **** 	{
+ 196:/usr/avr/include/util/delay.h **** 		//	__ticks = requested delay in 1/10 ms
+ 197:/usr/avr/include/util/delay.h **** 		__ticks = (uint16_t) (__ms * 10.0);
+ 198:/usr/avr/include/util/delay.h **** 		while(__ticks)
+ 199:/usr/avr/include/util/delay.h **** 		{
+ 200:/usr/avr/include/util/delay.h **** 			// wait 1/10 ms
+ 201:/usr/avr/include/util/delay.h **** 			_delay_loop_2(((F_CPU) / 4e3) / 10);
+ 202:/usr/avr/include/util/delay.h **** 			__ticks --;
+ 203:/usr/avr/include/util/delay.h **** 		}
+ 204:/usr/avr/include/util/delay.h **** 		return;
+ 205:/usr/avr/include/util/delay.h **** 	}
+ 206:/usr/avr/include/util/delay.h **** 	else
+ 207:/usr/avr/include/util/delay.h **** 		__ticks = (uint16_t)__tmp;
+  75               		.loc 2 207 3 view .LVU23
+ 208:/usr/avr/include/util/delay.h **** 	_delay_loop_2(__ticks);
+  76               		.loc 2 208 2 view .LVU24
+  77               	.LBB14:
+  78               	.LBI14:
+  79               		.file 3 "/usr/avr/include/util/delay_basic.h"
+   1:/usr/avr/include/util/delay_basic.h **** /* Copyright (c) 2002, Marek Michalkiewicz
+   2:/usr/avr/include/util/delay_basic.h ****    Copyright (c) 2007 Joerg Wunsch
+   3:/usr/avr/include/util/delay_basic.h ****    All rights reserved.
+   4:/usr/avr/include/util/delay_basic.h **** 
+   5:/usr/avr/include/util/delay_basic.h ****    Redistribution and use in source and binary forms, with or without
+   6:/usr/avr/include/util/delay_basic.h ****    modification, are permitted provided that the following conditions are met:
+   7:/usr/avr/include/util/delay_basic.h **** 
+   8:/usr/avr/include/util/delay_basic.h ****    * Redistributions of source code must retain the above copyright
+   9:/usr/avr/include/util/delay_basic.h ****      notice, this list of conditions and the following disclaimer.
+  10:/usr/avr/include/util/delay_basic.h **** 
+  11:/usr/avr/include/util/delay_basic.h ****    * Redistributions in binary form must reproduce the above copyright
+  12:/usr/avr/include/util/delay_basic.h ****      notice, this list of conditions and the following disclaimer in
+  13:/usr/avr/include/util/delay_basic.h ****      the documentation and/or other materials provided with the
+  14:/usr/avr/include/util/delay_basic.h ****      distribution.
+  15:/usr/avr/include/util/delay_basic.h **** 
+  16:/usr/avr/include/util/delay_basic.h ****    * Neither the name of the copyright holders nor the names of
+  17:/usr/avr/include/util/delay_basic.h ****      contributors may be used to endorse or promote products derived
+  18:/usr/avr/include/util/delay_basic.h ****      from this software without specific prior written permission.
+  19:/usr/avr/include/util/delay_basic.h **** 
+  20:/usr/avr/include/util/delay_basic.h ****   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+  21:/usr/avr/include/util/delay_basic.h ****   AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+  22:/usr/avr/include/util/delay_basic.h ****   IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+  23:/usr/avr/include/util/delay_basic.h ****   ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+  24:/usr/avr/include/util/delay_basic.h ****   LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+  25:/usr/avr/include/util/delay_basic.h ****   CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+  26:/usr/avr/include/util/delay_basic.h ****   SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+  27:/usr/avr/include/util/delay_basic.h ****   INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+  28:/usr/avr/include/util/delay_basic.h ****   CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+  29:/usr/avr/include/util/delay_basic.h ****   ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+  30:/usr/avr/include/util/delay_basic.h ****   POSSIBILITY OF SUCH DAMAGE. */
+  31:/usr/avr/include/util/delay_basic.h **** 
+  32:/usr/avr/include/util/delay_basic.h **** /* $Id: delay_basic.h 2453 2014-10-19 08:18:11Z saaadhu $ */
+  33:/usr/avr/include/util/delay_basic.h **** 
+  34:/usr/avr/include/util/delay_basic.h **** #ifndef _UTIL_DELAY_BASIC_H_
+  35:/usr/avr/include/util/delay_basic.h **** #define _UTIL_DELAY_BASIC_H_ 1
+  36:/usr/avr/include/util/delay_basic.h **** 
+  37:/usr/avr/include/util/delay_basic.h **** #include <inttypes.h>
+  38:/usr/avr/include/util/delay_basic.h **** 
+  39:/usr/avr/include/util/delay_basic.h **** #if !defined(__DOXYGEN__)
+  40:/usr/avr/include/util/delay_basic.h **** static __inline__ void _delay_loop_1(uint8_t __count) __attribute__((__always_inline__));
+  41:/usr/avr/include/util/delay_basic.h **** static __inline__ void _delay_loop_2(uint16_t __count) __attribute__((__always_inline__));
+  42:/usr/avr/include/util/delay_basic.h **** #endif
+  43:/usr/avr/include/util/delay_basic.h **** 
+  44:/usr/avr/include/util/delay_basic.h **** /** \file */
+  45:/usr/avr/include/util/delay_basic.h **** /** \defgroup util_delay_basic <util/delay_basic.h>: Basic busy-wait delay loops
+  46:/usr/avr/include/util/delay_basic.h ****     \code
+  47:/usr/avr/include/util/delay_basic.h ****     #include <util/delay_basic.h>
+  48:/usr/avr/include/util/delay_basic.h ****     \endcode
+  49:/usr/avr/include/util/delay_basic.h **** 
+  50:/usr/avr/include/util/delay_basic.h ****     The functions in this header file implement simple delay loops
+  51:/usr/avr/include/util/delay_basic.h ****     that perform a busy-waiting.  They are typically used to
+  52:/usr/avr/include/util/delay_basic.h ****     facilitate short delays in the program execution.  They are
+  53:/usr/avr/include/util/delay_basic.h ****     implemented as count-down loops with a well-known CPU cycle
+  54:/usr/avr/include/util/delay_basic.h ****     count per loop iteration.  As such, no other processing can
+  55:/usr/avr/include/util/delay_basic.h ****     occur simultaneously.  It should be kept in mind that the
+  56:/usr/avr/include/util/delay_basic.h ****     functions described here do not disable interrupts.
+  57:/usr/avr/include/util/delay_basic.h **** 
+  58:/usr/avr/include/util/delay_basic.h ****     In general, for long delays, the use of hardware timers is
+  59:/usr/avr/include/util/delay_basic.h ****     much preferrable, as they free the CPU, and allow for
+  60:/usr/avr/include/util/delay_basic.h ****     concurrent processing of other events while the timer is
+  61:/usr/avr/include/util/delay_basic.h ****     running.  However, in particular for very short delays, the
+  62:/usr/avr/include/util/delay_basic.h ****     overhead of setting up a hardware timer is too much compared
+  63:/usr/avr/include/util/delay_basic.h ****     to the overall delay time.
+  64:/usr/avr/include/util/delay_basic.h **** 
+  65:/usr/avr/include/util/delay_basic.h ****     Two inline functions are provided for the actual delay algorithms.
+  66:/usr/avr/include/util/delay_basic.h **** 
+  67:/usr/avr/include/util/delay_basic.h **** */
+  68:/usr/avr/include/util/delay_basic.h **** 
+  69:/usr/avr/include/util/delay_basic.h **** /** \ingroup util_delay_basic
+  70:/usr/avr/include/util/delay_basic.h **** 
+  71:/usr/avr/include/util/delay_basic.h ****     Delay loop using an 8-bit counter \c __count, so up to 256
+  72:/usr/avr/include/util/delay_basic.h ****     iterations are possible.  (The value 256 would have to be passed
+  73:/usr/avr/include/util/delay_basic.h ****     as 0.)  The loop executes three CPU cycles per iteration, not
+  74:/usr/avr/include/util/delay_basic.h ****     including the overhead the compiler needs to setup the counter
+  75:/usr/avr/include/util/delay_basic.h ****     register.
+  76:/usr/avr/include/util/delay_basic.h **** 
+  77:/usr/avr/include/util/delay_basic.h ****     Thus, at a CPU speed of 1 MHz, delays of up to 768 microseconds
+  78:/usr/avr/include/util/delay_basic.h ****     can be achieved.
+  79:/usr/avr/include/util/delay_basic.h **** */
+  80:/usr/avr/include/util/delay_basic.h **** void
+  81:/usr/avr/include/util/delay_basic.h **** _delay_loop_1(uint8_t __count)
+  82:/usr/avr/include/util/delay_basic.h **** {
+  83:/usr/avr/include/util/delay_basic.h **** 	__asm__ volatile (
+  84:/usr/avr/include/util/delay_basic.h **** 		"1: dec %0" "\n\t"
+  85:/usr/avr/include/util/delay_basic.h **** 		"brne 1b"
+  86:/usr/avr/include/util/delay_basic.h **** 		: "=r" (__count)
+  87:/usr/avr/include/util/delay_basic.h **** 		: "0" (__count)
+  88:/usr/avr/include/util/delay_basic.h **** 	);
+  89:/usr/avr/include/util/delay_basic.h **** }
+  90:/usr/avr/include/util/delay_basic.h **** 
+  91:/usr/avr/include/util/delay_basic.h **** /** \ingroup util_delay_basic
+  92:/usr/avr/include/util/delay_basic.h **** 
+  93:/usr/avr/include/util/delay_basic.h ****     Delay loop using a 16-bit counter \c __count, so up to 65536
+  94:/usr/avr/include/util/delay_basic.h ****     iterations are possible.  (The value 65536 would have to be
+  95:/usr/avr/include/util/delay_basic.h ****     passed as 0.)  The loop executes four CPU cycles per iteration,
+  96:/usr/avr/include/util/delay_basic.h ****     not including the overhead the compiler requires to setup the
+  97:/usr/avr/include/util/delay_basic.h ****     counter register pair.
+  98:/usr/avr/include/util/delay_basic.h **** 
+  99:/usr/avr/include/util/delay_basic.h ****     Thus, at a CPU speed of 1 MHz, delays of up to about 262.1
+ 100:/usr/avr/include/util/delay_basic.h ****     milliseconds can be achieved.
+ 101:/usr/avr/include/util/delay_basic.h ****  */
+ 102:/usr/avr/include/util/delay_basic.h **** void
+ 103:/usr/avr/include/util/delay_basic.h **** _delay_loop_2(uint16_t __count)
+  80               		.loc 3 103 1 view .LVU25
+  81               	.LBB15:
+ 104:/usr/avr/include/util/delay_basic.h **** {
+ 105:/usr/avr/include/util/delay_basic.h **** 	__asm__ volatile (
+  82               		.loc 3 105 2 view .LVU26
+  83 0034 80E3      		ldi r24,lo8(48)
+  84 0036 95E7      		ldi r25,lo8(117)
+  85               	/* #APP */
+  86               	 ;  105 "/usr/avr/include/util/delay_basic.h" 1
+  87 0038 0197      		1: sbiw r24,1
+  88 003a 01F4      		brne 1b
+  89               	 ;  0 "" 2
+  90               	.LVL7:
+  91               		.loc 3 105 2 is_stmt 0 view .LVU27
+  92               	/* #NOAPP */
+  93               	.LBE15:
+  94               	.LBE14:
+  95               	.LBE13:
+  96               	.LBE12:
+  38:grn_sht21.c   **** 	return 0;
+  97               		.loc 1 38 9 view .LVU28
+  98 003c 80E0      		ldi r24,0
+  99               	.LBB19:
+ 100               	.LBB18:
+ 101               	.LBB17:
+ 102               	.LBB16:
+ 106:/usr/avr/include/util/delay_basic.h **** 		"1: sbiw %0,1" "\n\t"
+ 107:/usr/avr/include/util/delay_basic.h **** 		"brne 1b"
+ 108:/usr/avr/include/util/delay_basic.h **** 		: "=w" (__count)
+ 109:/usr/avr/include/util/delay_basic.h **** 		: "0" (__count)
+ 110:/usr/avr/include/util/delay_basic.h **** 	);
+ 111:/usr/avr/include/util/delay_basic.h **** }
+ 103               		.loc 3 111 1 view .LVU29
+ 104 003e 0895      		ret
+ 105               	.LVL8:
+ 106               	.L5:
+ 107               		.loc 3 111 1 view .LVU30
+ 108               	.LBE16:
+ 109               	.LBE17:
+ 110               	.LBE18:
+ 111               	.LBE19:
+  35:grn_sht21.c   **** 	TWIStop();
+ 112               		.loc 1 35 35 view .LVU31
+ 113 0040 83E0      		ldi r24,lo8(3)
+ 114               	/* epilogue start */
+  39:grn_sht21.c   **** }
+ 115               		.loc 1 39 1 view .LVU32
+ 116 0042 0895      		ret
+ 117               		.cfi_endproc
+ 118               	.LFE7:
+ 120               	.global	__floatunsisf
+ 121               	.global	__mulsf3
+ 122               	.global	__subsf3
+ 123               	.global	__fixsfsi
+ 124               	.global	sht21_measure
+ 126               	sht21_measure:
+ 127               	.LVL9:
+ 128               	.LFB8:
+  40:grn_sht21.c   **** int16_t sht21_measure(uint8_t measure_mode)
+  41:grn_sht21.c   **** {
+ 129               		.loc 1 41 1 is_stmt 1 view -0
+ 130               		.cfi_startproc
+ 131               		.loc 1 41 1 is_stmt 0 view .LVU34
+ 132 0044 FF92      		push r15
+ 133               	.LCFI0:
+ 134               		.cfi_def_cfa_offset 3
+ 135               		.cfi_offset 15, -2
+ 136 0046 0F93      		push r16
+ 137               	.LCFI1:
+ 138               		.cfi_def_cfa_offset 4
+ 139               		.cfi_offset 16, -3
+ 140 0048 1F93      		push r17
+ 141               	.LCFI2:
+ 142               		.cfi_def_cfa_offset 5
+ 143               		.cfi_offset 17, -4
+ 144 004a CF93      		push r28
+ 145               	.LCFI3:
+ 146               		.cfi_def_cfa_offset 6
+ 147               		.cfi_offset 28, -5
+ 148 004c DF93      		push r29
+ 149               	.LCFI4:
+ 150               		.cfi_def_cfa_offset 7
+ 151               		.cfi_offset 29, -6
+ 152 004e 00D0      		rcall .
+ 153 0050 00D0      		rcall .
+ 154 0052 0F92      		push __tmp_reg__
+ 155               	.LCFI5:
+ 156               		.cfi_def_cfa_offset 12
+ 157 0054 CDB7      		in r28,__SP_L__
+ 158 0056 DEB7      		in r29,__SP_H__
+ 159               	.LCFI6:
+ 160               		.cfi_def_cfa_register 28
+ 161               	/* prologue: function */
+ 162               	/* frame size = 5 */
+ 163               	/* stack size = 10 */
+ 164               	.L__stack_usage = 10
+ 165 0058 8983      		std Y+1,r24
+  42:grn_sht21.c   **** 	/*
+  43:grn_sht21.c   **** 	 * 	Temperaturmessung / Überprüfung der Checksumme	
+  44:grn_sht21.c   **** 	 * 
+  45:grn_sht21.c   **** 	 * 	Rückgabewert: 	16 bit Temperaturwert x 100 
+  46:grn_sht21.c   **** 	 * 					(letzte 2 Stellen sind Nachkommastellen)
+  47:grn_sht21.c   **** 	 * 
+  48:grn_sht21.c   **** 	 * For float as return value, you have to change the following line in 
+  49:grn_sht21.c   **** 	 * the Makefile and add mat.h library since only a minimalistic sprintf library is included
+  50:grn_sht21.c   **** 	 * by default. To add the full float library add/change the following 
+  51:grn_sht21.c   **** 	 * line to the Makefile.
+  52:grn_sht21.c   **** 	 * 
+  53:grn_sht21.c   **** 	 * # Minimalistic printf version
+  54:grn_sht21.c   **** 		PRINTF_LIB_MIN = -Wl,-u,vfprintf -lprintf_min
+  55:grn_sht21.c   **** 
+  56:grn_sht21.c   **** 		# Floating point printf version (requires MATH_LIB = -lm below)
+  57:grn_sht21.c   **** 		PRINTF_LIB_FLOAT = -Wl,-u,vfprintf -lprintf_flt
+  58:grn_sht21.c   **** 
+  59:grn_sht21.c   **** 
+  60:grn_sht21.c   **** 		PRINTF_LIB = $(PRINTF_LIB_FLOAT) 
+  61:grn_sht21.c   **** 	 * 
+  62:grn_sht21.c   **** 	 * 
+  63:grn_sht21.c   **** 	 * 	Checksum error: Rückgabewert = 99;
+  64:grn_sht21.c   **** 	 */ 
+  65:grn_sht21.c   **** 	 
+  66:grn_sht21.c   **** 	uint8_t raw[]={0,0,0};
+ 166               		.loc 1 66 2 is_stmt 1 view .LVU35
+ 167               	.LVL10:
+  67:grn_sht21.c   **** 	uint16_t messwert;
+ 168               		.loc 1 67 2 view .LVU36
+  68:grn_sht21.c   **** 	int16_t rueckgabewert;
+ 169               		.loc 1 68 2 view .LVU37
+  69:grn_sht21.c   **** 	
+  70:grn_sht21.c   **** 	messwert=0;
+ 170               		.loc 1 70 2 view .LVU38
+  71:grn_sht21.c   **** 	rueckgabewert=0;
+ 171               		.loc 1 71 2 view .LVU39
+  72:grn_sht21.c   **** 
+  73:grn_sht21.c   **** 		
+  74:grn_sht21.c   **** 	TWIStart();							//start TWI
+ 172               		.loc 1 74 2 view .LVU40
+ 173 005a 0E94 0000 		call TWIStart
+ 174               	.LVL11:
+  75:grn_sht21.c   **** 	if(TWIGetStatus() != 0x08)return 11; //kontrolle ob erfolgreich sonst Abbruch mit Error Code
+ 175               		.loc 1 75 2 view .LVU41
+ 176               		.loc 1 75 5 is_stmt 0 view .LVU42
+ 177 005e 0E94 0000 		call TWIGetStatus
+ 178               	.LVL12:
+ 179 0062 8D83      		std Y+5,r24
+ 180               		.loc 1 75 4 view .LVU43
+ 181 0064 8830      		cpi r24,lo8(8)
+ 182 0066 01F0      		breq .L45
+ 183               		.loc 1 75 35 view .LVU44
+ 184 0068 8BE0      		ldi r24,lo8(11)
+ 185 006a 90E0      		ldi r25,0
+ 186               	.LVL13:
+ 187               	.L9:
+ 188               	/* epilogue start */
+  76:grn_sht21.c   **** 	TWIWrite(SHT21_W);					//Adresse und Schreiben
+  77:grn_sht21.c   **** 	if(TWIGetStatus() != 0x18)return 22;	//kontrolle ob erfolgreich sonst Abbruch mit Error Code
+  78:grn_sht21.c   **** 	switch(measure_mode)
+  79:grn_sht21.c   **** 	{
+  80:grn_sht21.c   **** 		case T_HOLD:	TWIWrite(SHT21_TEMP_HOLDMASTER);break;	//Modus = Temperatur master hold = on
+  81:grn_sht21.c   **** 		case RH_HOLD:	TWIWrite(SHT21_HUM_HOLDMASTER);break;	//Modus = Temperatur master hold = on
+  82:grn_sht21.c   **** 	}
+  83:grn_sht21.c   **** 	if(TWIGetStatus() != 0x28)return 33;	//kontrolle ob erfolgreich sonst Abbruch mit Error Code
+  84:grn_sht21.c   **** 
+  85:grn_sht21.c   **** 	DDRC &= ~(1<<PC5);					//set SCL as Input
+  86:grn_sht21.c   **** 	while(!(PINC &= ~(1<<PC5)));		//wait to end conversion (Master hold mode)
+  87:grn_sht21.c   **** 	DDRC |= (1<<PC5);					//set SCL as Output
+  88:grn_sht21.c   **** 
+  89:grn_sht21.c   **** 	TWIStart();							//restart TWI
+  90:grn_sht21.c   **** 	if(TWIGetStatus() != 0x10)return 44; //kontrolle ob erfolgreich sonst Abbruch mit Error Code
+  91:grn_sht21.c   **** 	TWIWrite(SHT21_R);					//Adresse und lesen
+  92:grn_sht21.c   **** 	if(TWIGetStatus() != 0x40)return 55;	//kontrolle ob erfolgreich sonst Abbruch mit Error Code
+  93:grn_sht21.c   **** 	raw[0] = TWIReadACK();				//empfange MSB
+  94:grn_sht21.c   **** 	if(TWIGetStatus() != 0x50)return 66;	//kontrolle ob erfolgreich sonst Abbruch mit Error Code
+  95:grn_sht21.c   **** 	raw[1] = TWIReadACK();				//empfange LSB / durch NACK wird checksumme nicht empfangen
+  96:grn_sht21.c   **** 	if(TWIGetStatus() != 0x50)return 77;	//kontrolle ob erfolgreich sonst Abbruch mit Error Code
+  97:grn_sht21.c   **** 	raw[2] = TWIReadNACK();				//receive checksum
+  98:grn_sht21.c   **** 	TWIStop();							//close TWI
+  99:grn_sht21.c   **** 	
+ 100:grn_sht21.c   **** 	messwert=(raw[0]<<8)|raw[1];						//8 bit werte zu 16bit Wert zusammensetzen
+ 101:grn_sht21.c   **** 	messwert &= ~0x003;								//Loescht letzte 2 Bits (Status Bits)
+ 102:grn_sht21.c   **** 	switch(measure_mode)
+ 103:grn_sht21.c   **** 	{
+ 104:grn_sht21.c   **** 		case T_HOLD:	rueckgabewert = 100*(-46.85 + 175.72/65536 * messwert);break;
+ 105:grn_sht21.c   **** 		case RH_HOLD:	rueckgabewert = 100*(-6.0 + 125.0/65536 * messwert);break; // return relative humid
+ 106:grn_sht21.c   **** 	}
+ 107:grn_sht21.c   **** 	 
+ 108:grn_sht21.c   **** 	if(sht21_checksum(raw,2,raw[2])) 	//check result with checksum
+ 109:grn_sht21.c   **** 	{
+ 110:grn_sht21.c   **** 		return 1;
+ 111:grn_sht21.c   **** 	}else return rueckgabewert;	
+ 112:grn_sht21.c   **** }//End of SHT21_read_temp
+ 189               		.loc 1 112 1 view .LVU45
+ 190 006c 0F90      		pop __tmp_reg__
+ 191 006e 0F90      		pop __tmp_reg__
+ 192 0070 0F90      		pop __tmp_reg__
+ 193 0072 0F90      		pop __tmp_reg__
+ 194 0074 0F90      		pop __tmp_reg__
+ 195 0076 DF91      		pop r29
+ 196 0078 CF91      		pop r28
+ 197 007a 1F91      		pop r17
+ 198 007c 0F91      		pop r16
+ 199 007e FF90      		pop r15
+ 200 0080 0895      		ret
+ 201               	.LVL14:
+ 202               	.L45:
+  76:grn_sht21.c   **** 	TWIWrite(SHT21_W);					//Adresse und Schreiben
+ 203               		.loc 1 76 2 is_stmt 1 view .LVU46
+ 204 0082 80E8      		ldi r24,lo8(-128)
+ 205 0084 0E94 0000 		call TWIWrite
+ 206               	.LVL15:
+  77:grn_sht21.c   **** 	switch(measure_mode)
+ 207               		.loc 1 77 2 view .LVU47
+  77:grn_sht21.c   **** 	switch(measure_mode)
+ 208               		.loc 1 77 5 is_stmt 0 view .LVU48
+ 209 0088 0E94 0000 		call TWIGetStatus
+ 210               	.LVL16:
+  77:grn_sht21.c   **** 	switch(measure_mode)
+ 211               		.loc 1 77 4 view .LVU49
+ 212 008c 8831      		cpi r24,lo8(24)
+ 213 008e 01F4      		brne .L29
+  78:grn_sht21.c   **** 	{
+ 214               		.loc 1 78 2 is_stmt 1 view .LVU50
+ 215 0090 2981      		ldd r18,Y+1
+ 216 0092 2223      		tst r18
+ 217 0094 01F0      		breq .L11
+ 218 0096 2130      		cpi r18,lo8(1)
+ 219 0098 01F0      		breq .L12
+ 220               	.L13:
+  83:grn_sht21.c   **** 
+ 221               		.loc 1 83 2 view .LVU51
+  83:grn_sht21.c   **** 
+ 222               		.loc 1 83 5 is_stmt 0 view .LVU52
+ 223 009a 0E94 0000 		call TWIGetStatus
+ 224               	.LVL17:
+  83:grn_sht21.c   **** 
+ 225               		.loc 1 83 4 view .LVU53
+ 226 009e 8832      		cpi r24,lo8(40)
+ 227 00a0 01F4      		brne .L30
+ 228               	.L47:
+  85:grn_sht21.c   **** 	while(!(PINC &= ~(1<<PC5)));		//wait to end conversion (Master hold mode)
+ 229               		.loc 1 85 2 is_stmt 1 view .LVU54
+  85:grn_sht21.c   **** 	while(!(PINC &= ~(1<<PC5)));		//wait to end conversion (Master hold mode)
+ 230               		.loc 1 85 7 is_stmt 0 view .LVU55
+ 231 00a2 3D98      		cbi 0x7,5
+  86:grn_sht21.c   **** 	DDRC |= (1<<PC5);					//set SCL as Output
+ 232               		.loc 1 86 2 is_stmt 1 view .LVU56
+ 233               	.L14:
+  86:grn_sht21.c   **** 	DDRC |= (1<<PC5);					//set SCL as Output
+ 234               		.loc 1 86 29 discriminator 1 view .LVU57
+  86:grn_sht21.c   **** 	DDRC |= (1<<PC5);					//set SCL as Output
+ 235               		.loc 1 86 7 discriminator 1 view .LVU58
+  86:grn_sht21.c   **** 	DDRC |= (1<<PC5);					//set SCL as Output
+ 236               		.loc 1 86 15 is_stmt 0 discriminator 1 view .LVU59
+ 237 00a4 96B1      		in r25,0x6
+ 238 00a6 9F7D      		andi r25,lo8(-33)
+ 239 00a8 96B9      		out 0x6,r25
+  86:grn_sht21.c   **** 	DDRC |= (1<<PC5);					//set SCL as Output
+ 240               		.loc 1 86 7 discriminator 1 view .LVU60
+ 241 00aa 9923      		tst r25
+ 242 00ac 01F0      		breq .L14
+  87:grn_sht21.c   **** 
+ 243               		.loc 1 87 2 is_stmt 1 view .LVU61
+  87:grn_sht21.c   **** 
+ 244               		.loc 1 87 7 is_stmt 0 view .LVU62
+ 245 00ae 3D9A      		sbi 0x7,5
+  89:grn_sht21.c   **** 	if(TWIGetStatus() != 0x10)return 44; //kontrolle ob erfolgreich sonst Abbruch mit Error Code
+ 246               		.loc 1 89 2 is_stmt 1 view .LVU63
+ 247 00b0 0E94 0000 		call TWIStart
+ 248               	.LVL18:
+  90:grn_sht21.c   **** 	TWIWrite(SHT21_R);					//Adresse und lesen
+ 249               		.loc 1 90 2 view .LVU64
+  90:grn_sht21.c   **** 	TWIWrite(SHT21_R);					//Adresse und lesen
+ 250               		.loc 1 90 5 is_stmt 0 view .LVU65
+ 251 00b4 0E94 0000 		call TWIGetStatus
+ 252               	.LVL19:
+  90:grn_sht21.c   **** 	TWIWrite(SHT21_R);					//Adresse und lesen
+ 253               		.loc 1 90 4 view .LVU66
+ 254 00b8 8031      		cpi r24,lo8(16)
+ 255 00ba 01F0      		breq .L46
+  90:grn_sht21.c   **** 	TWIWrite(SHT21_R);					//Adresse und lesen
+ 256               		.loc 1 90 35 view .LVU67
+ 257 00bc 8CE2      		ldi r24,lo8(44)
+ 258 00be 90E0      		ldi r25,0
+ 259 00c0 00C0      		rjmp .L9
+ 260               	.L12:
+  81:grn_sht21.c   **** 	}
+ 261               		.loc 1 81 17 is_stmt 1 view .LVU68
+ 262 00c2 83EF      		ldi r24,lo8(-13)
+ 263 00c4 0E94 0000 		call TWIWrite
+ 264               	.LVL20:
+  81:grn_sht21.c   **** 	}
+ 265               		.loc 1 81 48 view .LVU69
+  83:grn_sht21.c   **** 
+ 266               		.loc 1 83 2 view .LVU70
+  83:grn_sht21.c   **** 
+ 267               		.loc 1 83 5 is_stmt 0 view .LVU71
+ 268 00c8 0E94 0000 		call TWIGetStatus
+ 269               	.LVL21:
+  83:grn_sht21.c   **** 
+ 270               		.loc 1 83 4 view .LVU72
+ 271 00cc 8832      		cpi r24,lo8(40)
+ 272 00ce 01F0      		breq .L47
+ 273               	.L30:
+  83:grn_sht21.c   **** 
+ 274               		.loc 1 83 35 view .LVU73
+ 275 00d0 81E2      		ldi r24,lo8(33)
+ 276 00d2 90E0      		ldi r25,0
+ 277 00d4 00C0      		rjmp .L9
+ 278               	.L46:
+  91:grn_sht21.c   **** 	if(TWIGetStatus() != 0x40)return 55;	//kontrolle ob erfolgreich sonst Abbruch mit Error Code
+ 279               		.loc 1 91 2 is_stmt 1 view .LVU74
+ 280 00d6 81E8      		ldi r24,lo8(-127)
+ 281 00d8 0E94 0000 		call TWIWrite
+ 282               	.LVL22:
+  92:grn_sht21.c   **** 	raw[0] = TWIReadACK();				//empfange MSB
+ 283               		.loc 1 92 2 view .LVU75
+  92:grn_sht21.c   **** 	raw[0] = TWIReadACK();				//empfange MSB
+ 284               		.loc 1 92 5 is_stmt 0 view .LVU76
+ 285 00dc 0E94 0000 		call TWIGetStatus
+ 286               	.LVL23:
+  92:grn_sht21.c   **** 	raw[0] = TWIReadACK();				//empfange MSB
+ 287               		.loc 1 92 4 view .LVU77
+ 288 00e0 8034      		cpi r24,lo8(64)
+ 289 00e2 01F0      		breq .L48
+  92:grn_sht21.c   **** 	raw[0] = TWIReadACK();				//empfange MSB
+ 290               		.loc 1 92 35 view .LVU78
+ 291 00e4 87E3      		ldi r24,lo8(55)
+ 292 00e6 90E0      		ldi r25,0
+ 293 00e8 00C0      		rjmp .L9
+ 294               	.L29:
+  77:grn_sht21.c   **** 	switch(measure_mode)
+ 295               		.loc 1 77 35 view .LVU79
+ 296 00ea 86E1      		ldi r24,lo8(22)
+ 297 00ec 90E0      		ldi r25,0
+ 298 00ee 00C0      		rjmp .L9
+ 299               	.L11:
+  80:grn_sht21.c   **** 		case RH_HOLD:	TWIWrite(SHT21_HUM_HOLDMASTER);break;	//Modus = Temperatur master hold = on
+ 300               		.loc 1 80 16 is_stmt 1 view .LVU80
+ 301 00f0 83EE      		ldi r24,lo8(-29)
+ 302 00f2 0E94 0000 		call TWIWrite
+ 303               	.LVL24:
+  80:grn_sht21.c   **** 		case RH_HOLD:	TWIWrite(SHT21_HUM_HOLDMASTER);break;	//Modus = Temperatur master hold = on
+ 304               		.loc 1 80 48 view .LVU81
+  80:grn_sht21.c   **** 		case RH_HOLD:	TWIWrite(SHT21_HUM_HOLDMASTER);break;	//Modus = Temperatur master hold = on
+ 305               		.loc 1 80 3 is_stmt 0 view .LVU82
+ 306 00f6 00C0      		rjmp .L13
+ 307               	.L48:
+  93:grn_sht21.c   **** 	if(TWIGetStatus() != 0x50)return 66;	//kontrolle ob erfolgreich sonst Abbruch mit Error Code
+ 308               		.loc 1 93 2 is_stmt 1 view .LVU83
+  93:grn_sht21.c   **** 	if(TWIGetStatus() != 0x50)return 66;	//kontrolle ob erfolgreich sonst Abbruch mit Error Code
+ 309               		.loc 1 93 11 is_stmt 0 view .LVU84
+ 310 00f8 0E94 0000 		call TWIReadACK
+ 311               	.LVL25:
+ 312 00fc 182F      		mov r17,r24
+ 313               	.LVL26:
+  94:grn_sht21.c   **** 	raw[1] = TWIReadACK();				//empfange LSB / durch NACK wird checksumme nicht empfangen
+ 314               		.loc 1 94 2 is_stmt 1 view .LVU85
+  94:grn_sht21.c   **** 	raw[1] = TWIReadACK();				//empfange LSB / durch NACK wird checksumme nicht empfangen
+ 315               		.loc 1 94 5 is_stmt 0 view .LVU86
+ 316 00fe 0E94 0000 		call TWIGetStatus
+ 317               	.LVL27:
+  94:grn_sht21.c   **** 	raw[1] = TWIReadACK();				//empfange LSB / durch NACK wird checksumme nicht empfangen
+ 318               		.loc 1 94 4 view .LVU87
+ 319 0102 8035      		cpi r24,lo8(80)
+ 320 0104 01F0      		breq .+2
+ 321 0106 00C0      		rjmp .L33
+  95:grn_sht21.c   **** 	if(TWIGetStatus() != 0x50)return 77;	//kontrolle ob erfolgreich sonst Abbruch mit Error Code
+ 322               		.loc 1 95 2 is_stmt 1 view .LVU88
+  95:grn_sht21.c   **** 	if(TWIGetStatus() != 0x50)return 77;	//kontrolle ob erfolgreich sonst Abbruch mit Error Code
+ 323               		.loc 1 95 11 is_stmt 0 view .LVU89
+ 324 0108 0E94 0000 		call TWIReadACK
+ 325               	.LVL28:
+ 326 010c 082F      		mov r16,r24
+ 327               	.LVL29:
+  96:grn_sht21.c   **** 	raw[2] = TWIReadNACK();				//receive checksum
+ 328               		.loc 1 96 2 is_stmt 1 view .LVU90
+  96:grn_sht21.c   **** 	raw[2] = TWIReadNACK();				//receive checksum
+ 329               		.loc 1 96 5 is_stmt 0 view .LVU91
+ 330 010e 0E94 0000 		call TWIGetStatus
+ 331               	.LVL30:
+  96:grn_sht21.c   **** 	raw[2] = TWIReadNACK();				//receive checksum
+ 332               		.loc 1 96 4 view .LVU92
+ 333 0112 8035      		cpi r24,lo8(80)
+ 334 0114 01F0      		breq .+2
+ 335 0116 00C0      		rjmp .L34
+  97:grn_sht21.c   **** 	TWIStop();							//close TWI
+ 336               		.loc 1 97 2 is_stmt 1 view .LVU93
+  97:grn_sht21.c   **** 	TWIStop();							//close TWI
+ 337               		.loc 1 97 11 is_stmt 0 view .LVU94
+ 338 0118 0E94 0000 		call TWIReadNACK
+ 339               	.LVL31:
+ 340 011c F82E      		mov r15,r24
+ 341               	.LVL32:
+  98:grn_sht21.c   **** 	
+ 342               		.loc 1 98 2 is_stmt 1 view .LVU95
+ 343 011e 0E94 0000 		call TWIStop
+ 344               	.LVL33:
+ 100:grn_sht21.c   **** 	messwert &= ~0x003;								//Loescht letzte 2 Bits (Status Bits)
+ 345               		.loc 1 100 2 view .LVU96
+ 100:grn_sht21.c   **** 	messwert &= ~0x003;								//Loescht letzte 2 Bits (Status Bits)
+ 346               		.loc 1 100 22 is_stmt 0 view .LVU97
+ 347 0122 C801      		movw r24,r16
+ 348               	.LVL34:
+ 101:grn_sht21.c   **** 	switch(measure_mode)
+ 349               		.loc 1 101 2 is_stmt 1 view .LVU98
+ 101:grn_sht21.c   **** 	switch(measure_mode)
+ 350               		.loc 1 101 11 is_stmt 0 view .LVU99
+ 351 0124 8C7F      		andi r24,252
+ 352               	.LVL35:
+ 102:grn_sht21.c   **** 	{
+ 353               		.loc 1 102 2 is_stmt 1 view .LVU100
+ 354 0126 3981      		ldd r19,Y+1
+ 355 0128 3323      		tst r19
+ 356 012a 01F4      		brne .+2
+ 357 012c 00C0      		rjmp .L15
+ 358 012e 3130      		cpi r19,lo8(1)
+ 359 0130 01F0      		breq .+2
+ 360 0132 00C0      		rjmp .L49
+ 105:grn_sht21.c   **** 	}
+ 361               		.loc 1 105 17 view .LVU101
+ 105:grn_sht21.c   **** 	}
+ 362               		.loc 1 105 57 is_stmt 0 view .LVU102
+ 363 0134 9C01      		movw r18,r24
+ 364 0136 50E0      		ldi r21,0
+ 365 0138 40E0      		ldi r20,0
+ 366 013a 2983      		std Y+1,r18
+ 367 013c 3A83      		std Y+2,r19
+ 368 013e 4B83      		std Y+3,r20
+ 369 0140 5C83      		std Y+4,r21
+ 370 0142 CA01      		movw r24,r20
+ 371               	.LVL36:
+ 105:grn_sht21.c   **** 	}
+ 372               		.loc 1 105 57 view .LVU103
+ 373 0144 B901      		movw r22,r18
+ 374 0146 0E94 0000 		call __floatunsisf
+ 375               	.LVL37:
+ 105:grn_sht21.c   **** 	}
+ 376               		.loc 1 105 57 view .LVU104
+ 377 014a E62F      		mov r30,r22
+ 378 014c 20E0      		ldi r18,0
+ 379 014e 30E0      		ldi r19,0
+ 380 0150 4AEF      		ldi r20,lo8(-6)
+ 381 0152 5AE3      		ldi r21,lo8(58)
+ 382 0154 E983      		std Y+1,r30
+ 383 0156 7A83      		std Y+2,r23
+ 384 0158 8B83      		std Y+3,r24
+ 385 015a 9C83      		std Y+4,r25
+ 386 015c 6981      		ldd r22,Y+1
+ 387 015e 7A81      		ldd r23,Y+2
+ 388 0160 8B81      		ldd r24,Y+3
+ 389 0162 9C81      		ldd r25,Y+4
+ 390 0164 0E94 0000 		call __mulsf3
+ 391               	.LVL38:
+ 392 0168 E62F      		mov r30,r22
+ 393 016a 682F      		mov r22,r24
+ 394 016c 892F      		mov r24,r25
+ 105:grn_sht21.c   **** 	}
+ 395               		.loc 1 105 43 view .LVU105
+ 396 016e 20E0      		ldi r18,0
+ 397 0170 30E0      		ldi r19,0
+ 398 0172 40EC      		ldi r20,lo8(-64)
+ 399 0174 50E4      		ldi r21,lo8(64)
+ 400               	.L44:
+ 401 0176 E983      		std Y+1,r30
+ 402 0178 7A83      		std Y+2,r23
+ 403 017a 6B83      		std Y+3,r22
+ 404 017c 8C83      		std Y+4,r24
+ 405 017e 6981      		ldd r22,Y+1
+ 406 0180 7A81      		ldd r23,Y+2
+ 407 0182 8B81      		ldd r24,Y+3
+ 408 0184 9C81      		ldd r25,Y+4
+ 409 0186 0E94 0000 		call __subsf3
+ 410               	.LVL39:
+ 411 018a E62F      		mov r30,r22
+ 105:grn_sht21.c   **** 	}
+ 412               		.loc 1 105 36 view .LVU106
+ 413 018c 20E0      		ldi r18,0
+ 414 018e 30E0      		ldi r19,0
+ 415 0190 48EC      		ldi r20,lo8(-56)
+ 416 0192 52E4      		ldi r21,lo8(66)
+ 417 0194 E983      		std Y+1,r30
+ 418 0196 7A83      		std Y+2,r23
+ 419 0198 8B83      		std Y+3,r24
+ 420 019a 9C83      		std Y+4,r25
+ 421 019c 6981      		ldd r22,Y+1
+ 422 019e 7A81      		ldd r23,Y+2
+ 423 01a0 8B81      		ldd r24,Y+3
+ 424 01a2 9C81      		ldd r25,Y+4
+ 425 01a4 0E94 0000 		call __mulsf3
+ 426               	.LVL40:
+ 105:grn_sht21.c   **** 	}
+ 427               		.loc 1 105 31 view .LVU107
+ 428 01a8 6983      		std Y+1,r22
+ 429 01aa 7A83      		std Y+2,r23
+ 430 01ac 8B83      		std Y+3,r24
+ 431 01ae 9C83      		std Y+4,r25
+ 432 01b0 6981      		ldd r22,Y+1
+ 433 01b2 7A81      		ldd r23,Y+2
+ 434 01b4 8B81      		ldd r24,Y+3
+ 435 01b6 9C81      		ldd r25,Y+4
+ 436 01b8 0E94 0000 		call __fixsfsi
+ 437               	.LVL41:
+ 438 01bc CB01      		movw r24,r22
+ 439               	.LVL42:
+ 105:grn_sht21.c   **** 	}
+ 440               		.loc 1 105 69 is_stmt 1 view .LVU108
+ 441               	.L17:
+ 108:grn_sht21.c   **** 	{
+ 442               		.loc 1 108 2 view .LVU109
+ 443               	.LBB23:
+ 444               	.LBI23:
+ 113:grn_sht21.c   **** 
+ 114:grn_sht21.c   **** uint8_t sht21_checksum(uint8_t data[], uint8_t no_of_bytes, uint8_t checksum) 
+ 445               		.loc 1 114 9 view .LVU110
+ 446               	.LBB24:
+ 115:grn_sht21.c   **** {
+ 116:grn_sht21.c   **** 	uint8_t crc = 0;	
+ 447               		.loc 1 116 2 view .LVU111
+ 117:grn_sht21.c   ****   	uint8_t byteCtr;
+ 448               		.loc 1 117 4 view .LVU112
+ 118:grn_sht21.c   **** 
+ 119:grn_sht21.c   ****  	 //calculates 8-Bit checksum with given polynomial
+ 120:grn_sht21.c   ****   	for (byteCtr = 0; byteCtr < no_of_bytes; ++byteCtr)
+ 449               		.loc 1 120 4 view .LVU113
+ 450               		.loc 1 120 22 view .LVU114
+ 121:grn_sht21.c   ****  	 { crc ^= (data[byteCtr]);
+ 451               		.loc 1 121 6 view .LVU115
+ 122:grn_sht21.c   ****  	   for (uint8_t bit = 8; bit > 0; --bit)
+ 452               		.loc 1 122 6 view .LVU116
+ 453               	.LBB25:
+ 454               		.loc 1 122 11 view .LVU117
+ 455               		.loc 1 122 28 view .LVU118
+ 456               	.LBE25:
+ 457               	.LBE24:
+ 458               	.LBE23:
+ 102:grn_sht21.c   **** 	{
+ 459               		.loc 1 102 2 is_stmt 0 view .LVU119
+ 460 01be 28E0      		ldi r18,lo8(8)
+ 461               	.LBB30:
+ 462               	.LBB28:
+ 463               	.LBB26:
+ 123:grn_sht21.c   ****  	   { if (crc & 0x80) crc = (crc << 1) ^ POLYNOMINAL;
+ 464               		.loc 1 123 41 view .LVU120
+ 465 01c0 31E3      		ldi r19,lo8(49)
+ 466 01c2 00C0      		rjmp .L20
+ 467               	.LVL43:
+ 468               	.L40:
+ 124:grn_sht21.c   ****  	     else crc = (crc << 1);
+ 469               		.loc 1 124 13 is_stmt 1 view .LVU121
+ 470               		.loc 1 124 17 is_stmt 0 view .LVU122
+ 471 01c4 110F      		lsl r17
+ 472               	.LVL44:
+ 473               	.L22:
+ 122:grn_sht21.c   ****  	   { if (crc & 0x80) crc = (crc << 1) ^ POLYNOMINAL;
+ 474               		.loc 1 122 37 is_stmt 1 view .LVU123
+ 122:grn_sht21.c   ****  	   { if (crc & 0x80) crc = (crc << 1) ^ POLYNOMINAL;
+ 475               		.loc 1 122 28 view .LVU124
+ 122:grn_sht21.c   ****  	   { if (crc & 0x80) crc = (crc << 1) ^ POLYNOMINAL;
+ 476               		.loc 1 122 6 is_stmt 0 view .LVU125
+ 477 01c6 2150      		subi r18,lo8(-(-1))
+ 478               	.LVL45:
+ 122:grn_sht21.c   ****  	   { if (crc & 0x80) crc = (crc << 1) ^ POLYNOMINAL;
+ 479               		.loc 1 122 6 view .LVU126
+ 480 01c8 01F0      		breq .L50
+ 481               	.LVL46:
+ 482               	.L20:
+ 123:grn_sht21.c   ****  	   { if (crc & 0x80) crc = (crc << 1) ^ POLYNOMINAL;
+ 483               		.loc 1 123 8 is_stmt 1 view .LVU127
+ 123:grn_sht21.c   ****  	   { if (crc & 0x80) crc = (crc << 1) ^ POLYNOMINAL;
+ 484               		.loc 1 123 11 is_stmt 0 view .LVU128
+ 485 01ca 17FF      		sbrs r17,7
+ 486 01cc 00C0      		rjmp .L40
+ 123:grn_sht21.c   ****  	   { if (crc & 0x80) crc = (crc << 1) ^ POLYNOMINAL;
+ 487               		.loc 1 123 24 is_stmt 1 view .LVU129
+ 123:grn_sht21.c   ****  	   { if (crc & 0x80) crc = (crc << 1) ^ POLYNOMINAL;
+ 488               		.loc 1 123 35 is_stmt 0 view .LVU130
+ 489 01ce 110F      		lsl r17
+ 490               	.LVL47:
+ 123:grn_sht21.c   ****  	   { if (crc & 0x80) crc = (crc << 1) ^ POLYNOMINAL;
+ 491               		.loc 1 123 41 view .LVU131
+ 492 01d0 1327      		eor r17,r19
+ 493               	.LVL48:
+ 123:grn_sht21.c   ****  	   { if (crc & 0x80) crc = (crc << 1) ^ POLYNOMINAL;
+ 494               		.loc 1 123 41 view .LVU132
+ 495 01d2 00C0      		rjmp .L22
+ 496               	.LVL49:
+ 497               	.L33:
+ 123:grn_sht21.c   ****  	   { if (crc & 0x80) crc = (crc << 1) ^ POLYNOMINAL;
+ 498               		.loc 1 123 41 view .LVU133
+ 499               	.LBE26:
+ 500               	.LBE28:
+ 501               	.LBE30:
+  94:grn_sht21.c   **** 	raw[1] = TWIReadACK();				//empfange LSB / durch NACK wird checksumme nicht empfangen
+ 502               		.loc 1 94 35 view .LVU134
+ 503 01d4 82E4      		ldi r24,lo8(66)
+ 504 01d6 90E0      		ldi r25,0
+ 505 01d8 00C0      		rjmp .L9
+ 506               	.LVL50:
+ 507               	.L34:
+  96:grn_sht21.c   **** 	raw[2] = TWIReadNACK();				//receive checksum
+ 508               		.loc 1 96 35 view .LVU135
+ 509 01da 8DE4      		ldi r24,lo8(77)
+ 510 01dc 90E0      		ldi r25,0
+ 511 01de 00C0      		rjmp .L9
+ 512               	.LVL51:
+ 513               	.L50:
+ 514               	.LBB31:
+ 515               	.LBB29:
+ 120:grn_sht21.c   ****  	 { crc ^= (data[byteCtr]);
+ 516               		.loc 1 120 45 is_stmt 1 view .LVU136
+ 120:grn_sht21.c   ****  	 { crc ^= (data[byteCtr]);
+ 517               		.loc 1 120 22 view .LVU137
+ 121:grn_sht21.c   ****  	   for (uint8_t bit = 8; bit > 0; --bit)
+ 518               		.loc 1 121 6 view .LVU138
+ 121:grn_sht21.c   ****  	   for (uint8_t bit = 8; bit > 0; --bit)
+ 519               		.loc 1 121 10 is_stmt 0 view .LVU139
+ 520 01e0 1027      		eor r17,r16
+ 521               	.LVL52:
+ 122:grn_sht21.c   ****  	   { if (crc & 0x80) crc = (crc << 1) ^ POLYNOMINAL;
+ 522               		.loc 1 122 6 is_stmt 1 view .LVU140
+ 523               	.LBB27:
+ 122:grn_sht21.c   ****  	   { if (crc & 0x80) crc = (crc << 1) ^ POLYNOMINAL;
+ 524               		.loc 1 122 11 view .LVU141
+ 122:grn_sht21.c   ****  	   { if (crc & 0x80) crc = (crc << 1) ^ POLYNOMINAL;
+ 525               		.loc 1 122 28 view .LVU142
+ 123:grn_sht21.c   ****  	     else crc = (crc << 1);
+ 526               		.loc 1 123 41 is_stmt 0 view .LVU143
+ 527 01e2 21E3      		ldi r18,lo8(49)
+ 528 01e4 00C0      		rjmp .L25
+ 529               	.LVL53:
+ 530               	.L42:
+ 531               		.loc 1 124 13 is_stmt 1 view .LVU144
+ 532               		.loc 1 124 17 is_stmt 0 view .LVU145
+ 533 01e6 110F      		lsl r17
+ 534               	.LVL54:
+ 535               	.L27:
+ 122:grn_sht21.c   ****  	   { if (crc & 0x80) crc = (crc << 1) ^ POLYNOMINAL;
+ 536               		.loc 1 122 37 is_stmt 1 view .LVU146
+ 122:grn_sht21.c   ****  	   { if (crc & 0x80) crc = (crc << 1) ^ POLYNOMINAL;
+ 537               		.loc 1 122 28 view .LVU147
+ 122:grn_sht21.c   ****  	   { if (crc & 0x80) crc = (crc << 1) ^ POLYNOMINAL;
+ 538               		.loc 1 122 6 is_stmt 0 view .LVU148
+ 539 01e8 3D81      		ldd r19,Y+5
+ 540 01ea 3150      		subi r19,lo8(-(-1))
+ 541               	.LVL55:
+ 122:grn_sht21.c   ****  	   { if (crc & 0x80) crc = (crc << 1) ^ POLYNOMINAL;
+ 542               		.loc 1 122 6 view .LVU149
+ 543 01ec 3D83      		std Y+5,r19
+ 544 01ee 3323      		tst r19
+ 545 01f0 01F0      		breq .L51
+ 546               	.LVL56:
+ 547               	.L25:
+ 123:grn_sht21.c   ****  	     else crc = (crc << 1);
+ 548               		.loc 1 123 8 is_stmt 1 view .LVU150
+ 123:grn_sht21.c   ****  	     else crc = (crc << 1);
+ 549               		.loc 1 123 11 is_stmt 0 view .LVU151
+ 550 01f2 17FF      		sbrs r17,7
+ 551 01f4 00C0      		rjmp .L42
+ 123:grn_sht21.c   ****  	     else crc = (crc << 1);
+ 552               		.loc 1 123 24 is_stmt 1 view .LVU152
+ 123:grn_sht21.c   ****  	     else crc = (crc << 1);
+ 553               		.loc 1 123 35 is_stmt 0 view .LVU153
+ 554 01f6 110F      		lsl r17
+ 555               	.LVL57:
+ 123:grn_sht21.c   ****  	     else crc = (crc << 1);
+ 556               		.loc 1 123 41 view .LVU154
+ 557 01f8 1227      		eor r17,r18
+ 558               	.LVL58:
+ 123:grn_sht21.c   ****  	     else crc = (crc << 1);
+ 559               		.loc 1 123 41 view .LVU155
+ 560 01fa 00C0      		rjmp .L27
+ 561               	.LVL59:
+ 562               	.L51:
+ 123:grn_sht21.c   ****  	     else crc = (crc << 1);
+ 563               		.loc 1 123 41 view .LVU156
+ 564               	.LBE27:
+ 120:grn_sht21.c   ****  	 { crc ^= (data[byteCtr]);
+ 565               		.loc 1 120 45 is_stmt 1 view .LVU157
+ 120:grn_sht21.c   ****  	 { crc ^= (data[byteCtr]);
+ 566               		.loc 1 120 22 view .LVU158
+ 125:grn_sht21.c   ****  	   }
+ 126:grn_sht21.c   ****  	 }
+ 127:grn_sht21.c   ****  	 if (crc != checksum) return 1;
+ 567               		.loc 1 127 4 view .LVU159
+ 568               		.loc 1 127 7 is_stmt 0 view .LVU160
+ 569 01fc F116      		cp r15,r17
+ 570 01fe 01F4      		brne .+2
+ 571 0200 00C0      		rjmp .L9
+ 572               	.LBE29:
+ 573               	.LBE31:
+ 110:grn_sht21.c   **** 	}else return rueckgabewert;	
+ 574               		.loc 1 110 10 view .LVU161
+ 575 0202 81E0      		ldi r24,lo8(1)
+ 576 0204 90E0      		ldi r25,0
+ 577               	.LVL60:
+ 110:grn_sht21.c   **** 	}else return rueckgabewert;	
+ 578               		.loc 1 110 10 view .LVU162
+ 579 0206 00C0      		rjmp .L9
+ 580               	.LVL61:
+ 581               	.L49:
+ 102:grn_sht21.c   **** 	{
+ 582               		.loc 1 102 2 view .LVU163
+ 583 0208 90E0      		ldi r25,0
+ 584 020a 80E0      		ldi r24,0
+ 585               	.LVL62:
+ 102:grn_sht21.c   **** 	{
+ 586               		.loc 1 102 2 view .LVU164
+ 587 020c 00C0      		rjmp .L17
+ 588               	.LVL63:
+ 589               	.L15:
+ 104:grn_sht21.c   **** 		case RH_HOLD:	rueckgabewert = 100*(-6.0 + 125.0/65536 * messwert);break; // return relative humid
+ 590               		.loc 1 104 16 is_stmt 1 view .LVU165
+ 104:grn_sht21.c   **** 		case RH_HOLD:	rueckgabewert = 100*(-6.0 + 125.0/65536 * messwert);break; // return relative humid
+ 591               		.loc 1 104 59 is_stmt 0 view .LVU166
+ 592 020e 9C01      		movw r18,r24
+ 593 0210 50E0      		ldi r21,0
+ 594 0212 40E0      		ldi r20,0
+ 595 0214 2983      		std Y+1,r18
+ 596 0216 3A83      		std Y+2,r19
+ 597 0218 4B83      		std Y+3,r20
+ 598 021a 5C83      		std Y+4,r21
+ 599 021c CA01      		movw r24,r20
+ 600               	.LVL64:
+ 104:grn_sht21.c   **** 		case RH_HOLD:	rueckgabewert = 100*(-6.0 + 125.0/65536 * messwert);break; // return relative humid
+ 601               		.loc 1 104 59 view .LVU167
+ 602 021e B901      		movw r22,r18
+ 603 0220 0E94 0000 		call __floatunsisf
+ 604               	.LVL65:
+ 104:grn_sht21.c   **** 		case RH_HOLD:	rueckgabewert = 100*(-6.0 + 125.0/65536 * messwert);break; // return relative humid
+ 605               		.loc 1 104 59 view .LVU168
+ 606 0224 E62F      		mov r30,r22
+ 607 0226 22E5      		ldi r18,lo8(82)
+ 608 0228 38EB      		ldi r19,lo8(-72)
+ 609 022a 4FE2      		ldi r20,lo8(47)
+ 610 022c 5BE3      		ldi r21,lo8(59)
+ 611 022e E983      		std Y+1,r30
+ 612 0230 7A83      		std Y+2,r23
+ 613 0232 8B83      		std Y+3,r24
+ 614 0234 9C83      		std Y+4,r25
+ 615 0236 6981      		ldd r22,Y+1
+ 616 0238 7A81      		ldd r23,Y+2
+ 617 023a 8B81      		ldd r24,Y+3
+ 618 023c 9C81      		ldd r25,Y+4
+ 619 023e 0E94 0000 		call __mulsf3
+ 620               	.LVL66:
+ 621 0242 E62F      		mov r30,r22
+ 622 0244 682F      		mov r22,r24
+ 623 0246 892F      		mov r24,r25
+ 104:grn_sht21.c   **** 		case RH_HOLD:	rueckgabewert = 100*(-6.0 + 125.0/65536 * messwert);break; // return relative humid
+ 624               		.loc 1 104 44 view .LVU169
+ 625 0248 26E6      		ldi r18,lo8(102)
+ 626 024a 36E6      		ldi r19,lo8(102)
+ 627 024c 4BE3      		ldi r20,lo8(59)
+ 628 024e 52E4      		ldi r21,lo8(66)
+ 629 0250 00C0      		rjmp .L44
+ 630               		.cfi_endproc
+ 631               	.LFE8:
+ 633               	.global	sht21_checksum
+ 635               	sht21_checksum:
+ 636               	.LVL67:
+ 637               	.LFB9:
+ 115:grn_sht21.c   **** 	uint8_t crc = 0;	
+ 638               		.loc 1 115 1 is_stmt 1 view -0
+ 639               		.cfi_startproc
+ 640               	/* prologue: function */
+ 641               	/* frame size = 0 */
+ 642               	/* stack size = 0 */
+ 643               	.L__stack_usage = 0
+ 116:grn_sht21.c   ****   	uint8_t byteCtr;
+ 644               		.loc 1 116 2 view .LVU171
+ 117:grn_sht21.c   **** 
+ 645               		.loc 1 117 4 view .LVU172
+ 120:grn_sht21.c   ****  	 { crc ^= (data[byteCtr]);
+ 646               		.loc 1 120 4 view .LVU173
+ 120:grn_sht21.c   ****  	 { crc ^= (data[byteCtr]);
+ 647               		.loc 1 120 22 view .LVU174
+ 120:grn_sht21.c   ****  	 { crc ^= (data[byteCtr]);
+ 648               		.loc 1 120 4 is_stmt 0 view .LVU175
+ 649 0252 6623      		tst r22
+ 650 0254 01F0      		breq .L53
+ 651 0256 FC01      		movw r30,r24
+ 652 0258 9C01      		movw r18,r24
+ 653 025a 2F5F      		subi r18,-1
+ 654 025c 3F4F      		sbci r19,-1
+ 655 025e 6150      		subi r22,lo8(-(-1))
+ 656               	.LVL68:
+ 120:grn_sht21.c   ****  	 { crc ^= (data[byteCtr]);
+ 657               		.loc 1 120 4 view .LVU176
+ 658 0260 260F      		add r18,r22
+ 659 0262 311D      		adc r19,__zero_reg__
+ 116:grn_sht21.c   ****   	uint8_t byteCtr;
+ 660               		.loc 1 116 10 view .LVU177
+ 661 0264 60E0      		ldi r22,0
+ 662               	.LVL69:
+ 663               	.LBB32:
+ 123:grn_sht21.c   ****  	     else crc = (crc << 1);
+ 664               		.loc 1 123 41 view .LVU178
+ 665 0266 91E3      		ldi r25,lo8(49)
+ 666               	.LVL70:
+ 667               	.L57:
+ 123:grn_sht21.c   ****  	     else crc = (crc << 1);
+ 668               		.loc 1 123 41 view .LVU179
+ 669               	.LBE32:
+ 121:grn_sht21.c   ****  	   for (uint8_t bit = 8; bit > 0; --bit)
+ 670               		.loc 1 121 6 is_stmt 1 view .LVU180
+ 121:grn_sht21.c   ****  	   for (uint8_t bit = 8; bit > 0; --bit)
+ 671               		.loc 1 121 18 is_stmt 0 view .LVU181
+ 672 0268 8191      		ld r24,Z+
+ 673               	.LVL71:
+ 121:grn_sht21.c   ****  	   for (uint8_t bit = 8; bit > 0; --bit)
+ 674               		.loc 1 121 10 view .LVU182
+ 675 026a 6827      		eor r22,r24
+ 676               	.LVL72:
+ 122:grn_sht21.c   ****  	   { if (crc & 0x80) crc = (crc << 1) ^ POLYNOMINAL;
+ 677               		.loc 1 122 6 is_stmt 1 view .LVU183
+ 678               	.LBB33:
+ 122:grn_sht21.c   ****  	   { if (crc & 0x80) crc = (crc << 1) ^ POLYNOMINAL;
+ 679               		.loc 1 122 11 view .LVU184
+ 122:grn_sht21.c   ****  	   { if (crc & 0x80) crc = (crc << 1) ^ POLYNOMINAL;
+ 680               		.loc 1 122 28 view .LVU185
+ 681               	.LBE33:
+ 121:grn_sht21.c   ****  	   for (uint8_t bit = 8; bit > 0; --bit)
+ 682               		.loc 1 121 10 is_stmt 0 view .LVU186
+ 683 026c 88E0      		ldi r24,lo8(8)
+ 684 026e 00C0      		rjmp .L56
+ 685               	.LVL73:
+ 686               	.L54:
+ 687               	.LBB34:
+ 124:grn_sht21.c   ****  	   }
+ 688               		.loc 1 124 13 is_stmt 1 view .LVU187
+ 124:grn_sht21.c   ****  	   }
+ 689               		.loc 1 124 17 is_stmt 0 view .LVU188
+ 690 0270 660F      		lsl r22
+ 691               	.LVL74:
+ 122:grn_sht21.c   ****  	   { if (crc & 0x80) crc = (crc << 1) ^ POLYNOMINAL;
+ 692               		.loc 1 122 37 is_stmt 1 view .LVU189
+ 122:grn_sht21.c   ****  	   { if (crc & 0x80) crc = (crc << 1) ^ POLYNOMINAL;
+ 693               		.loc 1 122 28 view .LVU190
+ 122:grn_sht21.c   ****  	   { if (crc & 0x80) crc = (crc << 1) ^ POLYNOMINAL;
+ 694               		.loc 1 122 6 is_stmt 0 view .LVU191
+ 695 0272 8150      		subi r24,lo8(-(-1))
+ 696               	.LVL75:
+ 122:grn_sht21.c   ****  	   { if (crc & 0x80) crc = (crc << 1) ^ POLYNOMINAL;
+ 697               		.loc 1 122 6 view .LVU192
+ 698 0274 01F0      		breq .L64
+ 699               	.LVL76:
+ 700               	.L56:
+ 123:grn_sht21.c   ****  	     else crc = (crc << 1);
+ 701               		.loc 1 123 8 is_stmt 1 view .LVU193
+ 123:grn_sht21.c   ****  	     else crc = (crc << 1);
+ 702               		.loc 1 123 11 is_stmt 0 view .LVU194
+ 703 0276 67FF      		sbrs r22,7
+ 704 0278 00C0      		rjmp .L54
+ 123:grn_sht21.c   ****  	     else crc = (crc << 1);
+ 705               		.loc 1 123 24 is_stmt 1 discriminator 1 view .LVU195
+ 123:grn_sht21.c   ****  	     else crc = (crc << 1);
+ 706               		.loc 1 123 35 is_stmt 0 discriminator 1 view .LVU196
+ 707 027a 660F      		lsl r22
+ 708               	.LVL77:
+ 123:grn_sht21.c   ****  	     else crc = (crc << 1);
+ 709               		.loc 1 123 41 discriminator 1 view .LVU197
+ 710 027c 6927      		eor r22,r25
+ 711               	.LVL78:
+ 122:grn_sht21.c   ****  	   { if (crc & 0x80) crc = (crc << 1) ^ POLYNOMINAL;
+ 712               		.loc 1 122 37 is_stmt 1 discriminator 1 view .LVU198
+ 122:grn_sht21.c   ****  	   { if (crc & 0x80) crc = (crc << 1) ^ POLYNOMINAL;
+ 713               		.loc 1 122 28 discriminator 1 view .LVU199
+ 122:grn_sht21.c   ****  	   { if (crc & 0x80) crc = (crc << 1) ^ POLYNOMINAL;
+ 714               		.loc 1 122 6 is_stmt 0 discriminator 1 view .LVU200
+ 715 027e 8150      		subi r24,lo8(-(-1))
+ 716               	.LVL79:
+ 122:grn_sht21.c   ****  	   { if (crc & 0x80) crc = (crc << 1) ^ POLYNOMINAL;
+ 717               		.loc 1 122 6 discriminator 1 view .LVU201
+ 718 0280 01F4      		brne .L56
+ 719               	.L64:
+ 122:grn_sht21.c   ****  	   { if (crc & 0x80) crc = (crc << 1) ^ POLYNOMINAL;
+ 720               		.loc 1 122 6 discriminator 1 view .LVU202
+ 721               	.LBE34:
+ 120:grn_sht21.c   ****  	 { crc ^= (data[byteCtr]);
+ 722               		.loc 1 120 45 is_stmt 1 discriminator 2 view .LVU203
+ 723               	.LVL80:
+ 120:grn_sht21.c   ****  	 { crc ^= (data[byteCtr]);
+ 724               		.loc 1 120 22 discriminator 2 view .LVU204
+ 120:grn_sht21.c   ****  	 { crc ^= (data[byteCtr]);
+ 725               		.loc 1 120 4 is_stmt 0 discriminator 2 view .LVU205
+ 726 0282 E217      		cp r30,r18
+ 727 0284 F307      		cpc r31,r19
+ 728 0286 01F4      		brne .L57
+ 729               	.LVL81:
+ 730               	.L53:
+ 731               		.loc 1 127 4 is_stmt 1 view .LVU206
+ 732               		.loc 1 127 7 is_stmt 0 view .LVU207
+ 733 0288 81E0      		ldi r24,lo8(1)
+ 734 028a 4613      		cpse r20,r22
+ 735               	/* epilogue start */
+ 128:grn_sht21.c   ****  	 else return 0;
+ 129:grn_sht21.c   **** }
+ 736               		.loc 1 129 1 view .LVU208
+ 737 028c 0895      		ret
+ 738               	.L65:
+ 127:grn_sht21.c   ****  	 else return 0;
+ 739               		.loc 1 127 7 view .LVU209
+ 740 028e 80E0      		ldi r24,0
+ 741               	/* epilogue start */
+ 742               		.loc 1 129 1 view .LVU210
+ 743 0290 0895      		ret
+ 744               		.cfi_endproc
+ 745               	.LFE9:
+ 747               	.Letext0:
+ 748               		.file 4 "/usr/avr/include/stdint.h"
+ 749               		.file 5 "grn_TWI.h"
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 grn_sht21.c
+     /tmp/ccn7isKN.s:2      *ABS*:000000000000003e __SP_H__
+     /tmp/ccn7isKN.s:3      *ABS*:000000000000003d __SP_L__
+     /tmp/ccn7isKN.s:4      *ABS*:000000000000003f __SREG__
+     /tmp/ccn7isKN.s:5      *ABS*:0000000000000000 __tmp_reg__
+     /tmp/ccn7isKN.s:6      *ABS*:0000000000000001 __zero_reg__
+     /tmp/ccn7isKN.s:12     .text:0000000000000000 sht21_init
+     /tmp/ccn7isKN.s:126    .text:0000000000000044 sht21_measure
+     /tmp/ccn7isKN.s:635    .text:0000000000000252 sht21_checksum
+
+UNDEFINED SYMBOLS
+TWIStart
+TWIGetStatus
+TWIWrite
+TWIStop
+__floatunsisf
+__mulsf3
+__subsf3
+__fixsfsi
+TWIReadACK
+TWIReadNACK

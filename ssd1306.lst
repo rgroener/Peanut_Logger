@@ -1,0 +1,2754 @@
+   1               		.file	"ssd1306.c"
+   2               	__SP_H__ = 0x3e
+   3               	__SP_L__ = 0x3d
+   4               	__SREG__ = 0x3f
+   5               	__tmp_reg__ = 0
+   6               	__zero_reg__ = 1
+   7               		.text
+   8               	.Ltext0:
+   9               		.cfi_sections	.debug_frame
+  10               	.global	Display_Init
+  12               	Display_Init:
+  13               	.LFB12:
+  14               		.file 1 "ssd1306.c"
+   1:ssd1306.c     **** #include "ssd1306.h"
+   2:ssd1306.c     **** 
+   3:ssd1306.c     **** void Display_Init(void)
+   4:ssd1306.c     **** {
+  15               		.loc 1 4 1 view -0
+  16               		.cfi_startproc
+  17               	/* prologue: function */
+  18               	/* frame size = 0 */
+  19               	/* stack size = 0 */
+  20               	.L__stack_usage = 0
+   5:ssd1306.c     **** 	/*Init session according datasheet and sample code:
+   6:ssd1306.c     **** 	 *https://www.buydisplay.com/serial-spi-0-71-inch-white-48x64-graphic-oled-display-ssd1306
+   7:ssd1306.c     **** 	 * */
+   8:ssd1306.c     **** 	DISP_RST_1;
+  21               		.loc 1 8 2 view .LVU1
+  22 0000 299A      		sbi 0x5,1
+   9:ssd1306.c     **** 	_delay_ms(10);
+  23               		.loc 1 9 2 view .LVU2
+  24               	.LVL0:
+  25               	.LBB95:
+  26               	.LBI95:
+  27               		.file 2 "/usr/avr/include/util/delay.h"
+   1:/usr/avr/include/util/delay.h **** /* Copyright (c) 2002, Marek Michalkiewicz
+   2:/usr/avr/include/util/delay.h ****    Copyright (c) 2004,2005,2007 Joerg Wunsch
+   3:/usr/avr/include/util/delay.h ****    Copyright (c) 2007  Florin-Viorel Petrov
+   4:/usr/avr/include/util/delay.h ****    All rights reserved.
+   5:/usr/avr/include/util/delay.h **** 
+   6:/usr/avr/include/util/delay.h ****    Redistribution and use in source and binary forms, with or without
+   7:/usr/avr/include/util/delay.h ****    modification, are permitted provided that the following conditions are met:
+   8:/usr/avr/include/util/delay.h **** 
+   9:/usr/avr/include/util/delay.h ****    * Redistributions of source code must retain the above copyright
+  10:/usr/avr/include/util/delay.h ****      notice, this list of conditions and the following disclaimer.
+  11:/usr/avr/include/util/delay.h **** 
+  12:/usr/avr/include/util/delay.h ****    * Redistributions in binary form must reproduce the above copyright
+  13:/usr/avr/include/util/delay.h ****      notice, this list of conditions and the following disclaimer in
+  14:/usr/avr/include/util/delay.h ****      the documentation and/or other materials provided with the
+  15:/usr/avr/include/util/delay.h ****      distribution.
+  16:/usr/avr/include/util/delay.h **** 
+  17:/usr/avr/include/util/delay.h ****    * Neither the name of the copyright holders nor the names of
+  18:/usr/avr/include/util/delay.h ****      contributors may be used to endorse or promote products derived
+  19:/usr/avr/include/util/delay.h ****      from this software without specific prior written permission.
+  20:/usr/avr/include/util/delay.h **** 
+  21:/usr/avr/include/util/delay.h ****   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+  22:/usr/avr/include/util/delay.h ****   AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+  23:/usr/avr/include/util/delay.h ****   IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+  24:/usr/avr/include/util/delay.h ****   ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+  25:/usr/avr/include/util/delay.h ****   LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+  26:/usr/avr/include/util/delay.h ****   CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+  27:/usr/avr/include/util/delay.h ****   SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+  28:/usr/avr/include/util/delay.h ****   INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+  29:/usr/avr/include/util/delay.h ****   CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+  30:/usr/avr/include/util/delay.h ****   ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+  31:/usr/avr/include/util/delay.h ****   POSSIBILITY OF SUCH DAMAGE. */
+  32:/usr/avr/include/util/delay.h **** 
+  33:/usr/avr/include/util/delay.h **** /* $Id: delay.h.in 2506 2016-02-08 10:05:45Z joerg_wunsch $ */
+  34:/usr/avr/include/util/delay.h **** 
+  35:/usr/avr/include/util/delay.h **** #ifndef _UTIL_DELAY_H_
+  36:/usr/avr/include/util/delay.h **** #define _UTIL_DELAY_H_ 1
+  37:/usr/avr/include/util/delay.h **** 
+  38:/usr/avr/include/util/delay.h **** #ifndef __DOXYGEN__
+  39:/usr/avr/include/util/delay.h **** #  ifndef __HAS_DELAY_CYCLES
+  40:/usr/avr/include/util/delay.h **** #    define __HAS_DELAY_CYCLES 1
+  41:/usr/avr/include/util/delay.h **** #  endif
+  42:/usr/avr/include/util/delay.h **** #endif  /* __DOXYGEN__ */
+  43:/usr/avr/include/util/delay.h **** 
+  44:/usr/avr/include/util/delay.h **** #include <inttypes.h>
+  45:/usr/avr/include/util/delay.h **** #include <util/delay_basic.h>
+  46:/usr/avr/include/util/delay.h **** #include <math.h>
+  47:/usr/avr/include/util/delay.h **** 
+  48:/usr/avr/include/util/delay.h **** /** \file */
+  49:/usr/avr/include/util/delay.h **** /** \defgroup util_delay <util/delay.h>: Convenience functions for busy-wait delay loops
+  50:/usr/avr/include/util/delay.h ****     \code
+  51:/usr/avr/include/util/delay.h ****     #define F_CPU 1000000UL  // 1 MHz
+  52:/usr/avr/include/util/delay.h ****     //#define F_CPU 14.7456E6
+  53:/usr/avr/include/util/delay.h ****     #include <util/delay.h>
+  54:/usr/avr/include/util/delay.h ****     \endcode
+  55:/usr/avr/include/util/delay.h **** 
+  56:/usr/avr/include/util/delay.h ****     \note As an alternative method, it is possible to pass the
+  57:/usr/avr/include/util/delay.h ****     F_CPU macro down to the compiler from the Makefile.
+  58:/usr/avr/include/util/delay.h ****     Obviously, in that case, no \c \#define statement should be
+  59:/usr/avr/include/util/delay.h ****     used.
+  60:/usr/avr/include/util/delay.h **** 
+  61:/usr/avr/include/util/delay.h ****     The functions in this header file are wrappers around the basic
+  62:/usr/avr/include/util/delay.h ****     busy-wait functions from <util/delay_basic.h>.  They are meant as
+  63:/usr/avr/include/util/delay.h ****     convenience functions where actual time values can be specified
+  64:/usr/avr/include/util/delay.h ****     rather than a number of cycles to wait for.  The idea behind is
+  65:/usr/avr/include/util/delay.h ****     that compile-time constant expressions will be eliminated by
+  66:/usr/avr/include/util/delay.h ****     compiler optimization so floating-point expressions can be used
+  67:/usr/avr/include/util/delay.h ****     to calculate the number of delay cycles needed based on the CPU
+  68:/usr/avr/include/util/delay.h ****     frequency passed by the macro F_CPU.
+  69:/usr/avr/include/util/delay.h **** 
+  70:/usr/avr/include/util/delay.h ****     \note In order for these functions to work as intended, compiler
+  71:/usr/avr/include/util/delay.h ****     optimizations <em>must</em> be enabled, and the delay time
+  72:/usr/avr/include/util/delay.h ****     <em>must</em> be an expression that is a known constant at
+  73:/usr/avr/include/util/delay.h ****     compile-time.  If these requirements are not met, the resulting
+  74:/usr/avr/include/util/delay.h ****     delay will be much longer (and basically unpredictable), and
+  75:/usr/avr/include/util/delay.h ****     applications that otherwise do not use floating-point calculations
+  76:/usr/avr/include/util/delay.h ****     will experience severe code bloat by the floating-point library
+  77:/usr/avr/include/util/delay.h ****     routines linked into the application.
+  78:/usr/avr/include/util/delay.h **** 
+  79:/usr/avr/include/util/delay.h ****     The functions available allow the specification of microsecond, and
+  80:/usr/avr/include/util/delay.h ****     millisecond delays directly, using the application-supplied macro
+  81:/usr/avr/include/util/delay.h ****     F_CPU as the CPU clock frequency (in Hertz).
+  82:/usr/avr/include/util/delay.h **** 
+  83:/usr/avr/include/util/delay.h **** */
+  84:/usr/avr/include/util/delay.h **** 
+  85:/usr/avr/include/util/delay.h **** #if !defined(__DOXYGEN__)
+  86:/usr/avr/include/util/delay.h **** static __inline__ void _delay_us(double __us) __attribute__((__always_inline__));
+  87:/usr/avr/include/util/delay.h **** static __inline__ void _delay_ms(double __ms) __attribute__((__always_inline__));
+  88:/usr/avr/include/util/delay.h **** #endif
+  89:/usr/avr/include/util/delay.h **** 
+  90:/usr/avr/include/util/delay.h **** #ifndef F_CPU
+  91:/usr/avr/include/util/delay.h **** /* prevent compiler error by supplying a default */
+  92:/usr/avr/include/util/delay.h **** # warning "F_CPU not defined for <util/delay.h>"
+  93:/usr/avr/include/util/delay.h **** /** \ingroup util_delay
+  94:/usr/avr/include/util/delay.h ****     \def F_CPU
+  95:/usr/avr/include/util/delay.h ****     \brief CPU frequency in Hz
+  96:/usr/avr/include/util/delay.h **** 
+  97:/usr/avr/include/util/delay.h ****     The macro F_CPU specifies the CPU frequency to be considered by
+  98:/usr/avr/include/util/delay.h ****     the delay macros.  This macro is normally supplied by the
+  99:/usr/avr/include/util/delay.h ****     environment (e.g. from within a project header, or the project's
+ 100:/usr/avr/include/util/delay.h ****     Makefile).  The value 1 MHz here is only provided as a "vanilla"
+ 101:/usr/avr/include/util/delay.h ****     fallback if no such user-provided definition could be found.
+ 102:/usr/avr/include/util/delay.h **** 
+ 103:/usr/avr/include/util/delay.h ****     In terms of the delay functions, the CPU frequency can be given as
+ 104:/usr/avr/include/util/delay.h ****     a floating-point constant (e.g. 3.6864E6 for 3.6864 MHz).
+ 105:/usr/avr/include/util/delay.h ****     However, the macros in <util/setbaud.h> require it to be an
+ 106:/usr/avr/include/util/delay.h ****     integer value.
+ 107:/usr/avr/include/util/delay.h ****  */
+ 108:/usr/avr/include/util/delay.h **** # define F_CPU 1000000UL
+ 109:/usr/avr/include/util/delay.h **** #endif
+ 110:/usr/avr/include/util/delay.h **** 
+ 111:/usr/avr/include/util/delay.h **** #ifndef __OPTIMIZE__
+ 112:/usr/avr/include/util/delay.h **** # warning "Compiler optimizations disabled; functions from <util/delay.h> won't work as designed"
+ 113:/usr/avr/include/util/delay.h **** #endif
+ 114:/usr/avr/include/util/delay.h **** 
+ 115:/usr/avr/include/util/delay.h **** #if __HAS_DELAY_CYCLES && defined(__OPTIMIZE__) && \
+ 116:/usr/avr/include/util/delay.h ****   !defined(__DELAY_BACKWARD_COMPATIBLE__) &&	   \
+ 117:/usr/avr/include/util/delay.h ****   __STDC_HOSTED__
+ 118:/usr/avr/include/util/delay.h **** #  include <math.h>
+ 119:/usr/avr/include/util/delay.h **** #endif
+ 120:/usr/avr/include/util/delay.h **** 
+ 121:/usr/avr/include/util/delay.h **** /**
+ 122:/usr/avr/include/util/delay.h ****    \ingroup util_delay
+ 123:/usr/avr/include/util/delay.h **** 
+ 124:/usr/avr/include/util/delay.h ****    Perform a delay of \c __ms milliseconds, using _delay_loop_2().
+ 125:/usr/avr/include/util/delay.h **** 
+ 126:/usr/avr/include/util/delay.h ****    The macro F_CPU is supposed to be defined to a
+ 127:/usr/avr/include/util/delay.h ****    constant defining the CPU clock frequency (in Hertz).
+ 128:/usr/avr/include/util/delay.h **** 
+ 129:/usr/avr/include/util/delay.h ****    The maximal possible delay is 262.14 ms / F_CPU in MHz.
+ 130:/usr/avr/include/util/delay.h **** 
+ 131:/usr/avr/include/util/delay.h ****    When the user request delay which exceed the maximum possible one,
+ 132:/usr/avr/include/util/delay.h ****    _delay_ms() provides a decreased resolution functionality. In this
+ 133:/usr/avr/include/util/delay.h ****    mode _delay_ms() will work with a resolution of 1/10 ms, providing
+ 134:/usr/avr/include/util/delay.h ****    delays up to 6.5535 seconds (independent from CPU frequency).  The
+ 135:/usr/avr/include/util/delay.h ****    user will not be informed about decreased resolution.
+ 136:/usr/avr/include/util/delay.h **** 
+ 137:/usr/avr/include/util/delay.h ****    If the avr-gcc toolchain has __builtin_avr_delay_cycles()
+ 138:/usr/avr/include/util/delay.h ****    support, maximal possible delay is 4294967.295 ms/ F_CPU in MHz. For
+ 139:/usr/avr/include/util/delay.h ****    values greater than the maximal possible delay, overflows results in
+ 140:/usr/avr/include/util/delay.h ****    no delay i.e., 0ms.
+ 141:/usr/avr/include/util/delay.h **** 
+ 142:/usr/avr/include/util/delay.h ****    Conversion of \c __ms into clock cycles may not always result in
+ 143:/usr/avr/include/util/delay.h ****    integer.  By default, the clock cycles rounded up to next
+ 144:/usr/avr/include/util/delay.h ****    integer. This ensures that the user gets at least \c __ms
+ 145:/usr/avr/include/util/delay.h ****    microseconds of delay.
+ 146:/usr/avr/include/util/delay.h **** 
+ 147:/usr/avr/include/util/delay.h ****    Alternatively, by defining the macro \c __DELAY_ROUND_DOWN__, or
+ 148:/usr/avr/include/util/delay.h ****    \c __DELAY_ROUND_CLOSEST__, before including this header file, the
+ 149:/usr/avr/include/util/delay.h ****    algorithm can be made to round down, or round to closest integer,
+ 150:/usr/avr/include/util/delay.h ****    respectively.
+ 151:/usr/avr/include/util/delay.h **** 
+ 152:/usr/avr/include/util/delay.h ****    \note
+ 153:/usr/avr/include/util/delay.h **** 
+ 154:/usr/avr/include/util/delay.h ****    The implementation of _delay_ms() based on
+ 155:/usr/avr/include/util/delay.h ****    __builtin_avr_delay_cycles() is not backward compatible with older
+ 156:/usr/avr/include/util/delay.h ****    implementations.  In order to get functionality backward compatible
+ 157:/usr/avr/include/util/delay.h ****    with previous versions, the macro \c "__DELAY_BACKWARD_COMPATIBLE__"
+ 158:/usr/avr/include/util/delay.h ****    must be defined before including this header file. Also, the
+ 159:/usr/avr/include/util/delay.h ****    backward compatible algorithm will be chosen if the code is
+ 160:/usr/avr/include/util/delay.h ****    compiled in a <em>freestanding environment</em> (GCC option
+ 161:/usr/avr/include/util/delay.h ****    \c -ffreestanding), as the math functions required for rounding are
+ 162:/usr/avr/include/util/delay.h ****    not available to the compiler then.
+ 163:/usr/avr/include/util/delay.h **** 
+ 164:/usr/avr/include/util/delay.h ****  */
+ 165:/usr/avr/include/util/delay.h **** void
+ 166:/usr/avr/include/util/delay.h **** _delay_ms(double __ms)
+  28               		.loc 2 166 1 view .LVU3
+  29               	.LBB96:
+ 167:/usr/avr/include/util/delay.h **** {
+ 168:/usr/avr/include/util/delay.h **** 	double __tmp ;
+  30               		.loc 2 168 2 view .LVU4
+ 169:/usr/avr/include/util/delay.h **** #if __HAS_DELAY_CYCLES && defined(__OPTIMIZE__) && \
+ 170:/usr/avr/include/util/delay.h ****   !defined(__DELAY_BACKWARD_COMPATIBLE__) &&	   \
+ 171:/usr/avr/include/util/delay.h ****   __STDC_HOSTED__
+ 172:/usr/avr/include/util/delay.h **** 	uint32_t __ticks_dc;
+ 173:/usr/avr/include/util/delay.h **** 	extern void __builtin_avr_delay_cycles(unsigned long);
+ 174:/usr/avr/include/util/delay.h **** 	__tmp = ((F_CPU) / 1e3) * __ms;
+ 175:/usr/avr/include/util/delay.h **** 
+ 176:/usr/avr/include/util/delay.h **** 	#if defined(__DELAY_ROUND_DOWN__)
+ 177:/usr/avr/include/util/delay.h **** 		__ticks_dc = (uint32_t)fabs(__tmp);
+ 178:/usr/avr/include/util/delay.h **** 
+ 179:/usr/avr/include/util/delay.h **** 	#elif defined(__DELAY_ROUND_CLOSEST__)
+ 180:/usr/avr/include/util/delay.h **** 		__ticks_dc = (uint32_t)(fabs(__tmp)+0.5);
+ 181:/usr/avr/include/util/delay.h **** 
+ 182:/usr/avr/include/util/delay.h **** 	#else
+ 183:/usr/avr/include/util/delay.h **** 		//round up by default
+ 184:/usr/avr/include/util/delay.h **** 		__ticks_dc = (uint32_t)(ceil(fabs(__tmp)));
+ 185:/usr/avr/include/util/delay.h **** 	#endif
+ 186:/usr/avr/include/util/delay.h **** 
+ 187:/usr/avr/include/util/delay.h **** 	__builtin_avr_delay_cycles(__ticks_dc);
+ 188:/usr/avr/include/util/delay.h **** 
+ 189:/usr/avr/include/util/delay.h **** #else
+ 190:/usr/avr/include/util/delay.h **** 	uint16_t __ticks;
+  31               		.loc 2 190 2 view .LVU5
+ 191:/usr/avr/include/util/delay.h **** 	__tmp = ((F_CPU) / 4e3) * __ms;
+  32               		.loc 2 191 2 view .LVU6
+ 192:/usr/avr/include/util/delay.h **** 	if (__tmp < 1.0)
+  33               		.loc 2 192 2 view .LVU7
+ 193:/usr/avr/include/util/delay.h **** 		__ticks = 1;
+ 194:/usr/avr/include/util/delay.h **** 	else if (__tmp > 65535)
+  34               		.loc 2 194 7 view .LVU8
+ 195:/usr/avr/include/util/delay.h **** 	{
+ 196:/usr/avr/include/util/delay.h **** 		//	__ticks = requested delay in 1/10 ms
+ 197:/usr/avr/include/util/delay.h **** 		__ticks = (uint16_t) (__ms * 10.0);
+ 198:/usr/avr/include/util/delay.h **** 		while(__ticks)
+ 199:/usr/avr/include/util/delay.h **** 		{
+ 200:/usr/avr/include/util/delay.h **** 			// wait 1/10 ms
+ 201:/usr/avr/include/util/delay.h **** 			_delay_loop_2(((F_CPU) / 4e3) / 10);
+ 202:/usr/avr/include/util/delay.h **** 			__ticks --;
+ 203:/usr/avr/include/util/delay.h **** 		}
+ 204:/usr/avr/include/util/delay.h **** 		return;
+ 205:/usr/avr/include/util/delay.h **** 	}
+ 206:/usr/avr/include/util/delay.h **** 	else
+ 207:/usr/avr/include/util/delay.h **** 		__ticks = (uint16_t)__tmp;
+  35               		.loc 2 207 3 view .LVU9
+ 208:/usr/avr/include/util/delay.h **** 	_delay_loop_2(__ticks);
+  36               		.loc 2 208 2 view .LVU10
+  37               	.LBB97:
+  38               	.LBI97:
+  39               		.file 3 "/usr/avr/include/util/delay_basic.h"
+   1:/usr/avr/include/util/delay_basic.h **** /* Copyright (c) 2002, Marek Michalkiewicz
+   2:/usr/avr/include/util/delay_basic.h ****    Copyright (c) 2007 Joerg Wunsch
+   3:/usr/avr/include/util/delay_basic.h ****    All rights reserved.
+   4:/usr/avr/include/util/delay_basic.h **** 
+   5:/usr/avr/include/util/delay_basic.h ****    Redistribution and use in source and binary forms, with or without
+   6:/usr/avr/include/util/delay_basic.h ****    modification, are permitted provided that the following conditions are met:
+   7:/usr/avr/include/util/delay_basic.h **** 
+   8:/usr/avr/include/util/delay_basic.h ****    * Redistributions of source code must retain the above copyright
+   9:/usr/avr/include/util/delay_basic.h ****      notice, this list of conditions and the following disclaimer.
+  10:/usr/avr/include/util/delay_basic.h **** 
+  11:/usr/avr/include/util/delay_basic.h ****    * Redistributions in binary form must reproduce the above copyright
+  12:/usr/avr/include/util/delay_basic.h ****      notice, this list of conditions and the following disclaimer in
+  13:/usr/avr/include/util/delay_basic.h ****      the documentation and/or other materials provided with the
+  14:/usr/avr/include/util/delay_basic.h ****      distribution.
+  15:/usr/avr/include/util/delay_basic.h **** 
+  16:/usr/avr/include/util/delay_basic.h ****    * Neither the name of the copyright holders nor the names of
+  17:/usr/avr/include/util/delay_basic.h ****      contributors may be used to endorse or promote products derived
+  18:/usr/avr/include/util/delay_basic.h ****      from this software without specific prior written permission.
+  19:/usr/avr/include/util/delay_basic.h **** 
+  20:/usr/avr/include/util/delay_basic.h ****   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+  21:/usr/avr/include/util/delay_basic.h ****   AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+  22:/usr/avr/include/util/delay_basic.h ****   IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+  23:/usr/avr/include/util/delay_basic.h ****   ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+  24:/usr/avr/include/util/delay_basic.h ****   LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+  25:/usr/avr/include/util/delay_basic.h ****   CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+  26:/usr/avr/include/util/delay_basic.h ****   SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+  27:/usr/avr/include/util/delay_basic.h ****   INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+  28:/usr/avr/include/util/delay_basic.h ****   CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+  29:/usr/avr/include/util/delay_basic.h ****   ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+  30:/usr/avr/include/util/delay_basic.h ****   POSSIBILITY OF SUCH DAMAGE. */
+  31:/usr/avr/include/util/delay_basic.h **** 
+  32:/usr/avr/include/util/delay_basic.h **** /* $Id: delay_basic.h 2453 2014-10-19 08:18:11Z saaadhu $ */
+  33:/usr/avr/include/util/delay_basic.h **** 
+  34:/usr/avr/include/util/delay_basic.h **** #ifndef _UTIL_DELAY_BASIC_H_
+  35:/usr/avr/include/util/delay_basic.h **** #define _UTIL_DELAY_BASIC_H_ 1
+  36:/usr/avr/include/util/delay_basic.h **** 
+  37:/usr/avr/include/util/delay_basic.h **** #include <inttypes.h>
+  38:/usr/avr/include/util/delay_basic.h **** 
+  39:/usr/avr/include/util/delay_basic.h **** #if !defined(__DOXYGEN__)
+  40:/usr/avr/include/util/delay_basic.h **** static __inline__ void _delay_loop_1(uint8_t __count) __attribute__((__always_inline__));
+  41:/usr/avr/include/util/delay_basic.h **** static __inline__ void _delay_loop_2(uint16_t __count) __attribute__((__always_inline__));
+  42:/usr/avr/include/util/delay_basic.h **** #endif
+  43:/usr/avr/include/util/delay_basic.h **** 
+  44:/usr/avr/include/util/delay_basic.h **** /** \file */
+  45:/usr/avr/include/util/delay_basic.h **** /** \defgroup util_delay_basic <util/delay_basic.h>: Basic busy-wait delay loops
+  46:/usr/avr/include/util/delay_basic.h ****     \code
+  47:/usr/avr/include/util/delay_basic.h ****     #include <util/delay_basic.h>
+  48:/usr/avr/include/util/delay_basic.h ****     \endcode
+  49:/usr/avr/include/util/delay_basic.h **** 
+  50:/usr/avr/include/util/delay_basic.h ****     The functions in this header file implement simple delay loops
+  51:/usr/avr/include/util/delay_basic.h ****     that perform a busy-waiting.  They are typically used to
+  52:/usr/avr/include/util/delay_basic.h ****     facilitate short delays in the program execution.  They are
+  53:/usr/avr/include/util/delay_basic.h ****     implemented as count-down loops with a well-known CPU cycle
+  54:/usr/avr/include/util/delay_basic.h ****     count per loop iteration.  As such, no other processing can
+  55:/usr/avr/include/util/delay_basic.h ****     occur simultaneously.  It should be kept in mind that the
+  56:/usr/avr/include/util/delay_basic.h ****     functions described here do not disable interrupts.
+  57:/usr/avr/include/util/delay_basic.h **** 
+  58:/usr/avr/include/util/delay_basic.h ****     In general, for long delays, the use of hardware timers is
+  59:/usr/avr/include/util/delay_basic.h ****     much preferrable, as they free the CPU, and allow for
+  60:/usr/avr/include/util/delay_basic.h ****     concurrent processing of other events while the timer is
+  61:/usr/avr/include/util/delay_basic.h ****     running.  However, in particular for very short delays, the
+  62:/usr/avr/include/util/delay_basic.h ****     overhead of setting up a hardware timer is too much compared
+  63:/usr/avr/include/util/delay_basic.h ****     to the overall delay time.
+  64:/usr/avr/include/util/delay_basic.h **** 
+  65:/usr/avr/include/util/delay_basic.h ****     Two inline functions are provided for the actual delay algorithms.
+  66:/usr/avr/include/util/delay_basic.h **** 
+  67:/usr/avr/include/util/delay_basic.h **** */
+  68:/usr/avr/include/util/delay_basic.h **** 
+  69:/usr/avr/include/util/delay_basic.h **** /** \ingroup util_delay_basic
+  70:/usr/avr/include/util/delay_basic.h **** 
+  71:/usr/avr/include/util/delay_basic.h ****     Delay loop using an 8-bit counter \c __count, so up to 256
+  72:/usr/avr/include/util/delay_basic.h ****     iterations are possible.  (The value 256 would have to be passed
+  73:/usr/avr/include/util/delay_basic.h ****     as 0.)  The loop executes three CPU cycles per iteration, not
+  74:/usr/avr/include/util/delay_basic.h ****     including the overhead the compiler needs to setup the counter
+  75:/usr/avr/include/util/delay_basic.h ****     register.
+  76:/usr/avr/include/util/delay_basic.h **** 
+  77:/usr/avr/include/util/delay_basic.h ****     Thus, at a CPU speed of 1 MHz, delays of up to 768 microseconds
+  78:/usr/avr/include/util/delay_basic.h ****     can be achieved.
+  79:/usr/avr/include/util/delay_basic.h **** */
+  80:/usr/avr/include/util/delay_basic.h **** void
+  81:/usr/avr/include/util/delay_basic.h **** _delay_loop_1(uint8_t __count)
+  82:/usr/avr/include/util/delay_basic.h **** {
+  83:/usr/avr/include/util/delay_basic.h **** 	__asm__ volatile (
+  84:/usr/avr/include/util/delay_basic.h **** 		"1: dec %0" "\n\t"
+  85:/usr/avr/include/util/delay_basic.h **** 		"brne 1b"
+  86:/usr/avr/include/util/delay_basic.h **** 		: "=r" (__count)
+  87:/usr/avr/include/util/delay_basic.h **** 		: "0" (__count)
+  88:/usr/avr/include/util/delay_basic.h **** 	);
+  89:/usr/avr/include/util/delay_basic.h **** }
+  90:/usr/avr/include/util/delay_basic.h **** 
+  91:/usr/avr/include/util/delay_basic.h **** /** \ingroup util_delay_basic
+  92:/usr/avr/include/util/delay_basic.h **** 
+  93:/usr/avr/include/util/delay_basic.h ****     Delay loop using a 16-bit counter \c __count, so up to 65536
+  94:/usr/avr/include/util/delay_basic.h ****     iterations are possible.  (The value 65536 would have to be
+  95:/usr/avr/include/util/delay_basic.h ****     passed as 0.)  The loop executes four CPU cycles per iteration,
+  96:/usr/avr/include/util/delay_basic.h ****     not including the overhead the compiler requires to setup the
+  97:/usr/avr/include/util/delay_basic.h ****     counter register pair.
+  98:/usr/avr/include/util/delay_basic.h **** 
+  99:/usr/avr/include/util/delay_basic.h ****     Thus, at a CPU speed of 1 MHz, delays of up to about 262.1
+ 100:/usr/avr/include/util/delay_basic.h ****     milliseconds can be achieved.
+ 101:/usr/avr/include/util/delay_basic.h ****  */
+ 102:/usr/avr/include/util/delay_basic.h **** void
+ 103:/usr/avr/include/util/delay_basic.h **** _delay_loop_2(uint16_t __count)
+  40               		.loc 3 103 1 view .LVU11
+  41               	.LBB98:
+ 104:/usr/avr/include/util/delay_basic.h **** {
+ 105:/usr/avr/include/util/delay_basic.h **** 	__asm__ volatile (
+  42               		.loc 3 105 2 view .LVU12
+  43 0002 80E2      		ldi r24,lo8(32)
+  44 0004 9EE4      		ldi r25,lo8(78)
+  45 0006 FC01      		movw r30,r24
+  46               	/* #APP */
+  47               	 ;  105 "/usr/avr/include/util/delay_basic.h" 1
+  48 0008 3197      		1: sbiw r30,1
+  49 000a 01F4      		brne 1b
+  50               	 ;  0 "" 2
+  51               	.LVL1:
+  52               		.loc 3 105 2 is_stmt 0 view .LVU13
+  53               	/* #NOAPP */
+  54               	.LBE98:
+  55               	.LBE97:
+  56               	.LBE96:
+  57               	.LBE95:
+  10:ssd1306.c     **** 	DISP_RST_0;
+  58               		.loc 1 10 2 is_stmt 1 view .LVU14
+  59 000c 2998      		cbi 0x5,1
+  11:ssd1306.c     **** 	_delay_ms(20);
+  60               		.loc 1 11 2 view .LVU15
+  61               	.LVL2:
+  62               	.LBB99:
+  63               	.LBI99:
+ 166:/usr/avr/include/util/delay.h **** {
+  64               		.loc 2 166 1 view .LVU16
+  65               	.LBB100:
+ 168:/usr/avr/include/util/delay.h **** #if __HAS_DELAY_CYCLES && defined(__OPTIMIZE__) && \
+  66               		.loc 2 168 2 view .LVU17
+ 190:/usr/avr/include/util/delay.h **** 	__tmp = ((F_CPU) / 4e3) * __ms;
+  67               		.loc 2 190 2 view .LVU18
+ 191:/usr/avr/include/util/delay.h **** 	if (__tmp < 1.0)
+  68               		.loc 2 191 2 view .LVU19
+ 192:/usr/avr/include/util/delay.h **** 		__ticks = 1;
+  69               		.loc 2 192 2 view .LVU20
+ 194:/usr/avr/include/util/delay.h **** 	{
+  70               		.loc 2 194 7 view .LVU21
+ 207:/usr/avr/include/util/delay.h **** 	_delay_loop_2(__ticks);
+  71               		.loc 2 207 3 view .LVU22
+  72               		.loc 2 208 2 view .LVU23
+  73               	.LBB101:
+  74               	.LBI101:
+ 103:/usr/avr/include/util/delay_basic.h **** {
+  75               		.loc 3 103 1 view .LVU24
+  76               	.LBB102:
+  77               		.loc 3 105 2 view .LVU25
+  78 000e E0E4      		ldi r30,lo8(64)
+  79 0010 FCE9      		ldi r31,lo8(-100)
+  80               	/* #APP */
+  81               	 ;  105 "/usr/avr/include/util/delay_basic.h" 1
+  82 0012 3197      		1: sbiw r30,1
+  83 0014 01F4      		brne 1b
+  84               	 ;  0 "" 2
+  85               	.LVL3:
+  86               		.loc 3 105 2 is_stmt 0 view .LVU26
+  87               	/* #NOAPP */
+  88               	.LBE102:
+  89               	.LBE101:
+  90               	.LBE100:
+  91               	.LBE99:
+  12:ssd1306.c     **** 	DISP_RST_1;
+  92               		.loc 1 12 2 is_stmt 1 view .LVU27
+  93 0016 299A      		sbi 0x5,1
+  13:ssd1306.c     **** 	_delay_ms(10);
+  94               		.loc 1 13 2 view .LVU28
+  95               	.LVL4:
+  96               	.LBB103:
+  97               	.LBI103:
+ 166:/usr/avr/include/util/delay.h **** {
+  98               		.loc 2 166 1 view .LVU29
+  99               	.LBB104:
+ 168:/usr/avr/include/util/delay.h **** #if __HAS_DELAY_CYCLES && defined(__OPTIMIZE__) && \
+ 100               		.loc 2 168 2 view .LVU30
+ 190:/usr/avr/include/util/delay.h **** 	__tmp = ((F_CPU) / 4e3) * __ms;
+ 101               		.loc 2 190 2 view .LVU31
+ 191:/usr/avr/include/util/delay.h **** 	if (__tmp < 1.0)
+ 102               		.loc 2 191 2 view .LVU32
+ 192:/usr/avr/include/util/delay.h **** 		__ticks = 1;
+ 103               		.loc 2 192 2 view .LVU33
+ 194:/usr/avr/include/util/delay.h **** 	{
+ 104               		.loc 2 194 7 view .LVU34
+ 207:/usr/avr/include/util/delay.h **** 	_delay_loop_2(__ticks);
+ 105               		.loc 2 207 3 view .LVU35
+ 106               		.loc 2 208 2 view .LVU36
+ 107               	.LBB105:
+ 108               	.LBI105:
+ 103:/usr/avr/include/util/delay_basic.h **** {
+ 109               		.loc 3 103 1 view .LVU37
+ 110               	.LBB106:
+ 111               		.loc 3 105 2 view .LVU38
+ 112               	/* #APP */
+ 113               	 ;  105 "/usr/avr/include/util/delay_basic.h" 1
+ 114 0018 0197      		1: sbiw r24,1
+ 115 001a 01F4      		brne 1b
+ 116               	 ;  0 "" 2
+ 117               	.LVL5:
+ 118               		.loc 3 105 2 is_stmt 0 view .LVU39
+ 119               	/* #NOAPP */
+ 120               	.LBE106:
+ 121               	.LBE105:
+ 122               	.LBE104:
+ 123               	.LBE103:
+  14:ssd1306.c     **** 	DISP_COMM;
+ 124               		.loc 1 14 2 is_stmt 1 view .LVU40
+ 125 001c 2A98      		cbi 0x5,2
+  15:ssd1306.c     **** 	CS_DISP_0;		
+ 126               		.loc 1 15 2 view .LVU41
+ 127 001e 2898      		cbi 0x5,0
+  16:ssd1306.c     **** 	send_command(0xae);//--turn off oled panel
+ 128               		.loc 1 16 2 view .LVU42
+ 129               	.LVL6:
+ 130               	.LBB107:
+ 131               	.LBI107:
+  17:ssd1306.c     **** 	send_command(0xd5);//--set display clock divide ratio/oscillator frequency
+  18:ssd1306.c     **** 	send_command(0x80);//--set divide ratio
+  19:ssd1306.c     **** 	send_command(0xa8);//--set multiplex ratio(1 to 64)
+  20:ssd1306.c     **** 	send_command(0x3f);//--1/64 duty orig 3f
+  21:ssd1306.c     **** 	send_command(0xd3);//-set display offset
+  22:ssd1306.c     **** 	send_command(0x00);//-not offset
+  23:ssd1306.c     **** 	send_command(0x8d);//--set Charge Pump enable/disable
+  24:ssd1306.c     **** 	send_command(0x14);//--set(0x10) disable
+  25:ssd1306.c     **** 	send_command(0xa6);//--set normal display
+  26:ssd1306.c     **** 	send_command(0xa4);// Disable Entire Display On orig a4
+  27:ssd1306.c     **** 	send_command(0xa1);//--set segment re-map 128 to 0
+  28:ssd1306.c     **** 	send_command(0xC8);//--Set COM Output Scan Direction 64 to 0
+  29:ssd1306.c     **** 	send_command(0xda);//--set com pins hardware configuration
+  30:ssd1306.c     **** 	send_command(0x12);
+  31:ssd1306.c     **** 	send_command(0x81);//--set contrast control register
+  32:ssd1306.c     **** 	send_command(0x01);//orig 80
+  33:ssd1306.c     **** 	send_command(0xd9);//--set pre-charge period
+  34:ssd1306.c     **** 	send_command(0xf1);
+  35:ssd1306.c     **** 	send_command(0xdb);//--set vcomh
+  36:ssd1306.c     **** 	send_command(0x40);//--set start line address orig 40
+  37:ssd1306.c     **** 	send_command(0xaf);//--turn on oled panel
+  38:ssd1306.c     **** 	CS_DISP_1;		   //release chip select
+  39:ssd1306.c     **** 	DISP_DATA;
+  40:ssd1306.c     **** }
+  41:ssd1306.c     **** void send_data(char data)
+  42:ssd1306.c     **** {
+  43:ssd1306.c     **** 	DISP_DATA;
+  44:ssd1306.c     **** 	CS_DISP_0;
+  45:ssd1306.c     **** 	SPI_MasterTransmit(data);
+  46:ssd1306.c     **** 	CS_DISP_1;
+  47:ssd1306.c     **** }
+  48:ssd1306.c     **** void send_command(char command)
+ 132               		.loc 1 48 6 view .LVU43
+ 133               	.LBB108:
+  49:ssd1306.c     **** {
+  50:ssd1306.c     **** 	DISP_COMM;
+ 134               		.loc 1 50 2 view .LVU44
+ 135 0020 2A98      		cbi 0x5,2
+  51:ssd1306.c     **** 	CS_DISP_0;
+ 136               		.loc 1 51 2 view .LVU45
+ 137 0022 2898      		cbi 0x5,0
+  52:ssd1306.c     **** 	SPI_MasterTransmit(command);
+ 138               		.loc 1 52 2 view .LVU46
+ 139 0024 8EEA      		ldi r24,lo8(-82)
+ 140 0026 0E94 0000 		call SPI_MasterTransmit
+ 141               	.LVL7:
+  53:ssd1306.c     **** 	CS_DISP_1;
+ 142               		.loc 1 53 2 view .LVU47
+ 143 002a 289A      		sbi 0x5,0
+ 144               	.LVL8:
+ 145               		.loc 1 53 2 is_stmt 0 view .LVU48
+ 146               	.LBE108:
+ 147               	.LBE107:
+  17:ssd1306.c     **** 	send_command(0x80);//--set divide ratio
+ 148               		.loc 1 17 2 is_stmt 1 view .LVU49
+ 149               	.LBB109:
+ 150               	.LBI109:
+  48:ssd1306.c     **** {
+ 151               		.loc 1 48 6 view .LVU50
+ 152               	.LBB110:
+  50:ssd1306.c     **** 	CS_DISP_0;
+ 153               		.loc 1 50 2 view .LVU51
+ 154 002c 2A98      		cbi 0x5,2
+  51:ssd1306.c     **** 	SPI_MasterTransmit(command);
+ 155               		.loc 1 51 2 view .LVU52
+ 156 002e 2898      		cbi 0x5,0
+  52:ssd1306.c     **** 	CS_DISP_1;
+ 157               		.loc 1 52 2 view .LVU53
+ 158 0030 85ED      		ldi r24,lo8(-43)
+ 159 0032 0E94 0000 		call SPI_MasterTransmit
+ 160               	.LVL9:
+ 161               		.loc 1 53 2 view .LVU54
+ 162 0036 289A      		sbi 0x5,0
+ 163               	.LVL10:
+ 164               		.loc 1 53 2 is_stmt 0 view .LVU55
+ 165               	.LBE110:
+ 166               	.LBE109:
+  18:ssd1306.c     **** 	send_command(0xa8);//--set multiplex ratio(1 to 64)
+ 167               		.loc 1 18 2 is_stmt 1 view .LVU56
+ 168               	.LBB111:
+ 169               	.LBI111:
+  48:ssd1306.c     **** {
+ 170               		.loc 1 48 6 view .LVU57
+ 171               	.LBB112:
+  50:ssd1306.c     **** 	CS_DISP_0;
+ 172               		.loc 1 50 2 view .LVU58
+ 173 0038 2A98      		cbi 0x5,2
+  51:ssd1306.c     **** 	SPI_MasterTransmit(command);
+ 174               		.loc 1 51 2 view .LVU59
+ 175 003a 2898      		cbi 0x5,0
+  52:ssd1306.c     **** 	CS_DISP_1;
+ 176               		.loc 1 52 2 view .LVU60
+ 177 003c 80E8      		ldi r24,lo8(-128)
+ 178 003e 0E94 0000 		call SPI_MasterTransmit
+ 179               	.LVL11:
+ 180               		.loc 1 53 2 view .LVU61
+ 181 0042 289A      		sbi 0x5,0
+ 182               	.LVL12:
+ 183               		.loc 1 53 2 is_stmt 0 view .LVU62
+ 184               	.LBE112:
+ 185               	.LBE111:
+  19:ssd1306.c     **** 	send_command(0x3f);//--1/64 duty orig 3f
+ 186               		.loc 1 19 2 is_stmt 1 view .LVU63
+ 187               	.LBB113:
+ 188               	.LBI113:
+  48:ssd1306.c     **** {
+ 189               		.loc 1 48 6 view .LVU64
+ 190               	.LBB114:
+  50:ssd1306.c     **** 	CS_DISP_0;
+ 191               		.loc 1 50 2 view .LVU65
+ 192 0044 2A98      		cbi 0x5,2
+  51:ssd1306.c     **** 	SPI_MasterTransmit(command);
+ 193               		.loc 1 51 2 view .LVU66
+ 194 0046 2898      		cbi 0x5,0
+  52:ssd1306.c     **** 	CS_DISP_1;
+ 195               		.loc 1 52 2 view .LVU67
+ 196 0048 88EA      		ldi r24,lo8(-88)
+ 197 004a 0E94 0000 		call SPI_MasterTransmit
+ 198               	.LVL13:
+ 199               		.loc 1 53 2 view .LVU68
+ 200 004e 289A      		sbi 0x5,0
+ 201               	.LVL14:
+ 202               		.loc 1 53 2 is_stmt 0 view .LVU69
+ 203               	.LBE114:
+ 204               	.LBE113:
+  20:ssd1306.c     **** 	send_command(0xd3);//-set display offset
+ 205               		.loc 1 20 2 is_stmt 1 view .LVU70
+ 206               	.LBB115:
+ 207               	.LBI115:
+  48:ssd1306.c     **** {
+ 208               		.loc 1 48 6 view .LVU71
+ 209               	.LBB116:
+  50:ssd1306.c     **** 	CS_DISP_0;
+ 210               		.loc 1 50 2 view .LVU72
+ 211 0050 2A98      		cbi 0x5,2
+  51:ssd1306.c     **** 	SPI_MasterTransmit(command);
+ 212               		.loc 1 51 2 view .LVU73
+ 213 0052 2898      		cbi 0x5,0
+  52:ssd1306.c     **** 	CS_DISP_1;
+ 214               		.loc 1 52 2 view .LVU74
+ 215 0054 8FE3      		ldi r24,lo8(63)
+ 216 0056 0E94 0000 		call SPI_MasterTransmit
+ 217               	.LVL15:
+ 218               		.loc 1 53 2 view .LVU75
+ 219 005a 289A      		sbi 0x5,0
+ 220               	.LVL16:
+ 221               		.loc 1 53 2 is_stmt 0 view .LVU76
+ 222               	.LBE116:
+ 223               	.LBE115:
+  21:ssd1306.c     **** 	send_command(0x00);//-not offset
+ 224               		.loc 1 21 2 is_stmt 1 view .LVU77
+ 225               	.LBB117:
+ 226               	.LBI117:
+  48:ssd1306.c     **** {
+ 227               		.loc 1 48 6 view .LVU78
+ 228               	.LBB118:
+  50:ssd1306.c     **** 	CS_DISP_0;
+ 229               		.loc 1 50 2 view .LVU79
+ 230 005c 2A98      		cbi 0x5,2
+  51:ssd1306.c     **** 	SPI_MasterTransmit(command);
+ 231               		.loc 1 51 2 view .LVU80
+ 232 005e 2898      		cbi 0x5,0
+  52:ssd1306.c     **** 	CS_DISP_1;
+ 233               		.loc 1 52 2 view .LVU81
+ 234 0060 83ED      		ldi r24,lo8(-45)
+ 235 0062 0E94 0000 		call SPI_MasterTransmit
+ 236               	.LVL17:
+ 237               		.loc 1 53 2 view .LVU82
+ 238 0066 289A      		sbi 0x5,0
+ 239               	.LVL18:
+ 240               		.loc 1 53 2 is_stmt 0 view .LVU83
+ 241               	.LBE118:
+ 242               	.LBE117:
+  22:ssd1306.c     **** 	send_command(0x8d);//--set Charge Pump enable/disable
+ 243               		.loc 1 22 2 is_stmt 1 view .LVU84
+ 244               	.LBB119:
+ 245               	.LBI119:
+  48:ssd1306.c     **** {
+ 246               		.loc 1 48 6 view .LVU85
+ 247               	.LBB120:
+  50:ssd1306.c     **** 	CS_DISP_0;
+ 248               		.loc 1 50 2 view .LVU86
+ 249 0068 2A98      		cbi 0x5,2
+  51:ssd1306.c     **** 	SPI_MasterTransmit(command);
+ 250               		.loc 1 51 2 view .LVU87
+ 251 006a 2898      		cbi 0x5,0
+  52:ssd1306.c     **** 	CS_DISP_1;
+ 252               		.loc 1 52 2 view .LVU88
+ 253 006c 80E0      		ldi r24,0
+ 254 006e 0E94 0000 		call SPI_MasterTransmit
+ 255               	.LVL19:
+ 256               		.loc 1 53 2 view .LVU89
+ 257 0072 289A      		sbi 0x5,0
+ 258               	.LVL20:
+ 259               		.loc 1 53 2 is_stmt 0 view .LVU90
+ 260               	.LBE120:
+ 261               	.LBE119:
+  23:ssd1306.c     **** 	send_command(0x14);//--set(0x10) disable
+ 262               		.loc 1 23 2 is_stmt 1 view .LVU91
+ 263               	.LBB121:
+ 264               	.LBI121:
+  48:ssd1306.c     **** {
+ 265               		.loc 1 48 6 view .LVU92
+ 266               	.LBB122:
+  50:ssd1306.c     **** 	CS_DISP_0;
+ 267               		.loc 1 50 2 view .LVU93
+ 268 0074 2A98      		cbi 0x5,2
+  51:ssd1306.c     **** 	SPI_MasterTransmit(command);
+ 269               		.loc 1 51 2 view .LVU94
+ 270 0076 2898      		cbi 0x5,0
+  52:ssd1306.c     **** 	CS_DISP_1;
+ 271               		.loc 1 52 2 view .LVU95
+ 272 0078 8DE8      		ldi r24,lo8(-115)
+ 273 007a 0E94 0000 		call SPI_MasterTransmit
+ 274               	.LVL21:
+ 275               		.loc 1 53 2 view .LVU96
+ 276 007e 289A      		sbi 0x5,0
+ 277               	.LVL22:
+ 278               		.loc 1 53 2 is_stmt 0 view .LVU97
+ 279               	.LBE122:
+ 280               	.LBE121:
+  24:ssd1306.c     **** 	send_command(0xa6);//--set normal display
+ 281               		.loc 1 24 2 is_stmt 1 view .LVU98
+ 282               	.LBB123:
+ 283               	.LBI123:
+  48:ssd1306.c     **** {
+ 284               		.loc 1 48 6 view .LVU99
+ 285               	.LBB124:
+  50:ssd1306.c     **** 	CS_DISP_0;
+ 286               		.loc 1 50 2 view .LVU100
+ 287 0080 2A98      		cbi 0x5,2
+  51:ssd1306.c     **** 	SPI_MasterTransmit(command);
+ 288               		.loc 1 51 2 view .LVU101
+ 289 0082 2898      		cbi 0x5,0
+  52:ssd1306.c     **** 	CS_DISP_1;
+ 290               		.loc 1 52 2 view .LVU102
+ 291 0084 84E1      		ldi r24,lo8(20)
+ 292 0086 0E94 0000 		call SPI_MasterTransmit
+ 293               	.LVL23:
+ 294               		.loc 1 53 2 view .LVU103
+ 295 008a 289A      		sbi 0x5,0
+ 296               	.LVL24:
+ 297               		.loc 1 53 2 is_stmt 0 view .LVU104
+ 298               	.LBE124:
+ 299               	.LBE123:
+  25:ssd1306.c     **** 	send_command(0xa4);// Disable Entire Display On orig a4
+ 300               		.loc 1 25 2 is_stmt 1 view .LVU105
+ 301               	.LBB125:
+ 302               	.LBI125:
+  48:ssd1306.c     **** {
+ 303               		.loc 1 48 6 view .LVU106
+ 304               	.LBB126:
+  50:ssd1306.c     **** 	CS_DISP_0;
+ 305               		.loc 1 50 2 view .LVU107
+ 306 008c 2A98      		cbi 0x5,2
+  51:ssd1306.c     **** 	SPI_MasterTransmit(command);
+ 307               		.loc 1 51 2 view .LVU108
+ 308 008e 2898      		cbi 0x5,0
+  52:ssd1306.c     **** 	CS_DISP_1;
+ 309               		.loc 1 52 2 view .LVU109
+ 310 0090 86EA      		ldi r24,lo8(-90)
+ 311 0092 0E94 0000 		call SPI_MasterTransmit
+ 312               	.LVL25:
+ 313               		.loc 1 53 2 view .LVU110
+ 314 0096 289A      		sbi 0x5,0
+ 315               	.LVL26:
+ 316               		.loc 1 53 2 is_stmt 0 view .LVU111
+ 317               	.LBE126:
+ 318               	.LBE125:
+  26:ssd1306.c     **** 	send_command(0xa1);//--set segment re-map 128 to 0
+ 319               		.loc 1 26 2 is_stmt 1 view .LVU112
+ 320               	.LBB127:
+ 321               	.LBI127:
+  48:ssd1306.c     **** {
+ 322               		.loc 1 48 6 view .LVU113
+ 323               	.LBB128:
+  50:ssd1306.c     **** 	CS_DISP_0;
+ 324               		.loc 1 50 2 view .LVU114
+ 325 0098 2A98      		cbi 0x5,2
+  51:ssd1306.c     **** 	SPI_MasterTransmit(command);
+ 326               		.loc 1 51 2 view .LVU115
+ 327 009a 2898      		cbi 0x5,0
+  52:ssd1306.c     **** 	CS_DISP_1;
+ 328               		.loc 1 52 2 view .LVU116
+ 329 009c 84EA      		ldi r24,lo8(-92)
+ 330 009e 0E94 0000 		call SPI_MasterTransmit
+ 331               	.LVL27:
+ 332               		.loc 1 53 2 view .LVU117
+ 333 00a2 289A      		sbi 0x5,0
+ 334               	.LVL28:
+ 335               		.loc 1 53 2 is_stmt 0 view .LVU118
+ 336               	.LBE128:
+ 337               	.LBE127:
+  27:ssd1306.c     **** 	send_command(0xC8);//--Set COM Output Scan Direction 64 to 0
+ 338               		.loc 1 27 2 is_stmt 1 view .LVU119
+ 339               	.LBB129:
+ 340               	.LBI129:
+  48:ssd1306.c     **** {
+ 341               		.loc 1 48 6 view .LVU120
+ 342               	.LBB130:
+  50:ssd1306.c     **** 	CS_DISP_0;
+ 343               		.loc 1 50 2 view .LVU121
+ 344 00a4 2A98      		cbi 0x5,2
+  51:ssd1306.c     **** 	SPI_MasterTransmit(command);
+ 345               		.loc 1 51 2 view .LVU122
+ 346 00a6 2898      		cbi 0x5,0
+  52:ssd1306.c     **** 	CS_DISP_1;
+ 347               		.loc 1 52 2 view .LVU123
+ 348 00a8 81EA      		ldi r24,lo8(-95)
+ 349 00aa 0E94 0000 		call SPI_MasterTransmit
+ 350               	.LVL29:
+ 351               		.loc 1 53 2 view .LVU124
+ 352 00ae 289A      		sbi 0x5,0
+ 353               	.LVL30:
+ 354               		.loc 1 53 2 is_stmt 0 view .LVU125
+ 355               	.LBE130:
+ 356               	.LBE129:
+  28:ssd1306.c     **** 	send_command(0xda);//--set com pins hardware configuration
+ 357               		.loc 1 28 2 is_stmt 1 view .LVU126
+ 358               	.LBB131:
+ 359               	.LBI131:
+  48:ssd1306.c     **** {
+ 360               		.loc 1 48 6 view .LVU127
+ 361               	.LBB132:
+  50:ssd1306.c     **** 	CS_DISP_0;
+ 362               		.loc 1 50 2 view .LVU128
+ 363 00b0 2A98      		cbi 0x5,2
+  51:ssd1306.c     **** 	SPI_MasterTransmit(command);
+ 364               		.loc 1 51 2 view .LVU129
+ 365 00b2 2898      		cbi 0x5,0
+  52:ssd1306.c     **** 	CS_DISP_1;
+ 366               		.loc 1 52 2 view .LVU130
+ 367 00b4 88EC      		ldi r24,lo8(-56)
+ 368 00b6 0E94 0000 		call SPI_MasterTransmit
+ 369               	.LVL31:
+ 370               		.loc 1 53 2 view .LVU131
+ 371 00ba 289A      		sbi 0x5,0
+ 372               	.LVL32:
+ 373               		.loc 1 53 2 is_stmt 0 view .LVU132
+ 374               	.LBE132:
+ 375               	.LBE131:
+  29:ssd1306.c     **** 	send_command(0x12);
+ 376               		.loc 1 29 2 is_stmt 1 view .LVU133
+ 377               	.LBB133:
+ 378               	.LBI133:
+  48:ssd1306.c     **** {
+ 379               		.loc 1 48 6 view .LVU134
+ 380               	.LBB134:
+  50:ssd1306.c     **** 	CS_DISP_0;
+ 381               		.loc 1 50 2 view .LVU135
+ 382 00bc 2A98      		cbi 0x5,2
+  51:ssd1306.c     **** 	SPI_MasterTransmit(command);
+ 383               		.loc 1 51 2 view .LVU136
+ 384 00be 2898      		cbi 0x5,0
+  52:ssd1306.c     **** 	CS_DISP_1;
+ 385               		.loc 1 52 2 view .LVU137
+ 386 00c0 8AED      		ldi r24,lo8(-38)
+ 387 00c2 0E94 0000 		call SPI_MasterTransmit
+ 388               	.LVL33:
+ 389               		.loc 1 53 2 view .LVU138
+ 390 00c6 289A      		sbi 0x5,0
+ 391               	.LVL34:
+ 392               		.loc 1 53 2 is_stmt 0 view .LVU139
+ 393               	.LBE134:
+ 394               	.LBE133:
+  30:ssd1306.c     **** 	send_command(0x81);//--set contrast control register
+ 395               		.loc 1 30 2 is_stmt 1 view .LVU140
+ 396               	.LBB135:
+ 397               	.LBI135:
+  48:ssd1306.c     **** {
+ 398               		.loc 1 48 6 view .LVU141
+ 399               	.LBB136:
+  50:ssd1306.c     **** 	CS_DISP_0;
+ 400               		.loc 1 50 2 view .LVU142
+ 401 00c8 2A98      		cbi 0x5,2
+  51:ssd1306.c     **** 	SPI_MasterTransmit(command);
+ 402               		.loc 1 51 2 view .LVU143
+ 403 00ca 2898      		cbi 0x5,0
+  52:ssd1306.c     **** 	CS_DISP_1;
+ 404               		.loc 1 52 2 view .LVU144
+ 405 00cc 82E1      		ldi r24,lo8(18)
+ 406 00ce 0E94 0000 		call SPI_MasterTransmit
+ 407               	.LVL35:
+ 408               		.loc 1 53 2 view .LVU145
+ 409 00d2 289A      		sbi 0x5,0
+ 410               	.LVL36:
+ 411               		.loc 1 53 2 is_stmt 0 view .LVU146
+ 412               	.LBE136:
+ 413               	.LBE135:
+  31:ssd1306.c     **** 	send_command(0x01);//orig 80
+ 414               		.loc 1 31 2 is_stmt 1 view .LVU147
+ 415               	.LBB137:
+ 416               	.LBI137:
+  48:ssd1306.c     **** {
+ 417               		.loc 1 48 6 view .LVU148
+ 418               	.LBB138:
+  50:ssd1306.c     **** 	CS_DISP_0;
+ 419               		.loc 1 50 2 view .LVU149
+ 420 00d4 2A98      		cbi 0x5,2
+  51:ssd1306.c     **** 	SPI_MasterTransmit(command);
+ 421               		.loc 1 51 2 view .LVU150
+ 422 00d6 2898      		cbi 0x5,0
+  52:ssd1306.c     **** 	CS_DISP_1;
+ 423               		.loc 1 52 2 view .LVU151
+ 424 00d8 81E8      		ldi r24,lo8(-127)
+ 425 00da 0E94 0000 		call SPI_MasterTransmit
+ 426               	.LVL37:
+ 427               		.loc 1 53 2 view .LVU152
+ 428 00de 289A      		sbi 0x5,0
+ 429               	.LVL38:
+ 430               		.loc 1 53 2 is_stmt 0 view .LVU153
+ 431               	.LBE138:
+ 432               	.LBE137:
+  32:ssd1306.c     **** 	send_command(0xd9);//--set pre-charge period
+ 433               		.loc 1 32 2 is_stmt 1 view .LVU154
+ 434               	.LBB139:
+ 435               	.LBI139:
+  48:ssd1306.c     **** {
+ 436               		.loc 1 48 6 view .LVU155
+ 437               	.LBB140:
+  50:ssd1306.c     **** 	CS_DISP_0;
+ 438               		.loc 1 50 2 view .LVU156
+ 439 00e0 2A98      		cbi 0x5,2
+  51:ssd1306.c     **** 	SPI_MasterTransmit(command);
+ 440               		.loc 1 51 2 view .LVU157
+ 441 00e2 2898      		cbi 0x5,0
+  52:ssd1306.c     **** 	CS_DISP_1;
+ 442               		.loc 1 52 2 view .LVU158
+ 443 00e4 81E0      		ldi r24,lo8(1)
+ 444 00e6 0E94 0000 		call SPI_MasterTransmit
+ 445               	.LVL39:
+ 446               		.loc 1 53 2 view .LVU159
+ 447 00ea 289A      		sbi 0x5,0
+ 448               	.LVL40:
+ 449               		.loc 1 53 2 is_stmt 0 view .LVU160
+ 450               	.LBE140:
+ 451               	.LBE139:
+  33:ssd1306.c     **** 	send_command(0xf1);
+ 452               		.loc 1 33 2 is_stmt 1 view .LVU161
+ 453               	.LBB141:
+ 454               	.LBI141:
+  48:ssd1306.c     **** {
+ 455               		.loc 1 48 6 view .LVU162
+ 456               	.LBB142:
+  50:ssd1306.c     **** 	CS_DISP_0;
+ 457               		.loc 1 50 2 view .LVU163
+ 458 00ec 2A98      		cbi 0x5,2
+  51:ssd1306.c     **** 	SPI_MasterTransmit(command);
+ 459               		.loc 1 51 2 view .LVU164
+ 460 00ee 2898      		cbi 0x5,0
+  52:ssd1306.c     **** 	CS_DISP_1;
+ 461               		.loc 1 52 2 view .LVU165
+ 462 00f0 89ED      		ldi r24,lo8(-39)
+ 463 00f2 0E94 0000 		call SPI_MasterTransmit
+ 464               	.LVL41:
+ 465               		.loc 1 53 2 view .LVU166
+ 466 00f6 289A      		sbi 0x5,0
+ 467               	.LVL42:
+ 468               		.loc 1 53 2 is_stmt 0 view .LVU167
+ 469               	.LBE142:
+ 470               	.LBE141:
+  34:ssd1306.c     **** 	send_command(0xdb);//--set vcomh
+ 471               		.loc 1 34 2 is_stmt 1 view .LVU168
+ 472               	.LBB143:
+ 473               	.LBI143:
+  48:ssd1306.c     **** {
+ 474               		.loc 1 48 6 view .LVU169
+ 475               	.LBB144:
+  50:ssd1306.c     **** 	CS_DISP_0;
+ 476               		.loc 1 50 2 view .LVU170
+ 477 00f8 2A98      		cbi 0x5,2
+  51:ssd1306.c     **** 	SPI_MasterTransmit(command);
+ 478               		.loc 1 51 2 view .LVU171
+ 479 00fa 2898      		cbi 0x5,0
+  52:ssd1306.c     **** 	CS_DISP_1;
+ 480               		.loc 1 52 2 view .LVU172
+ 481 00fc 81EF      		ldi r24,lo8(-15)
+ 482 00fe 0E94 0000 		call SPI_MasterTransmit
+ 483               	.LVL43:
+ 484               		.loc 1 53 2 view .LVU173
+ 485 0102 289A      		sbi 0x5,0
+ 486               	.LVL44:
+ 487               		.loc 1 53 2 is_stmt 0 view .LVU174
+ 488               	.LBE144:
+ 489               	.LBE143:
+  35:ssd1306.c     **** 	send_command(0x40);//--set start line address orig 40
+ 490               		.loc 1 35 2 is_stmt 1 view .LVU175
+ 491               	.LBB145:
+ 492               	.LBI145:
+  48:ssd1306.c     **** {
+ 493               		.loc 1 48 6 view .LVU176
+ 494               	.LBB146:
+  50:ssd1306.c     **** 	CS_DISP_0;
+ 495               		.loc 1 50 2 view .LVU177
+ 496 0104 2A98      		cbi 0x5,2
+  51:ssd1306.c     **** 	SPI_MasterTransmit(command);
+ 497               		.loc 1 51 2 view .LVU178
+ 498 0106 2898      		cbi 0x5,0
+  52:ssd1306.c     **** 	CS_DISP_1;
+ 499               		.loc 1 52 2 view .LVU179
+ 500 0108 8BED      		ldi r24,lo8(-37)
+ 501 010a 0E94 0000 		call SPI_MasterTransmit
+ 502               	.LVL45:
+ 503               		.loc 1 53 2 view .LVU180
+ 504 010e 289A      		sbi 0x5,0
+ 505               	.LVL46:
+ 506               		.loc 1 53 2 is_stmt 0 view .LVU181
+ 507               	.LBE146:
+ 508               	.LBE145:
+  36:ssd1306.c     **** 	send_command(0xaf);//--turn on oled panel
+ 509               		.loc 1 36 2 is_stmt 1 view .LVU182
+ 510               	.LBB147:
+ 511               	.LBI147:
+  48:ssd1306.c     **** {
+ 512               		.loc 1 48 6 view .LVU183
+ 513               	.LBB148:
+  50:ssd1306.c     **** 	CS_DISP_0;
+ 514               		.loc 1 50 2 view .LVU184
+ 515 0110 2A98      		cbi 0x5,2
+  51:ssd1306.c     **** 	SPI_MasterTransmit(command);
+ 516               		.loc 1 51 2 view .LVU185
+ 517 0112 2898      		cbi 0x5,0
+  52:ssd1306.c     **** 	CS_DISP_1;
+ 518               		.loc 1 52 2 view .LVU186
+ 519 0114 80E4      		ldi r24,lo8(64)
+ 520 0116 0E94 0000 		call SPI_MasterTransmit
+ 521               	.LVL47:
+ 522               		.loc 1 53 2 view .LVU187
+ 523 011a 289A      		sbi 0x5,0
+ 524               	.LVL48:
+ 525               		.loc 1 53 2 is_stmt 0 view .LVU188
+ 526               	.LBE148:
+ 527               	.LBE147:
+  37:ssd1306.c     **** 	CS_DISP_1;		   //release chip select
+ 528               		.loc 1 37 2 is_stmt 1 view .LVU189
+ 529               	.LBB149:
+ 530               	.LBI149:
+  48:ssd1306.c     **** {
+ 531               		.loc 1 48 6 view .LVU190
+ 532               	.LBB150:
+  50:ssd1306.c     **** 	CS_DISP_0;
+ 533               		.loc 1 50 2 view .LVU191
+ 534 011c 2A98      		cbi 0x5,2
+  51:ssd1306.c     **** 	SPI_MasterTransmit(command);
+ 535               		.loc 1 51 2 view .LVU192
+ 536 011e 2898      		cbi 0x5,0
+  52:ssd1306.c     **** 	CS_DISP_1;
+ 537               		.loc 1 52 2 view .LVU193
+ 538 0120 8FEA      		ldi r24,lo8(-81)
+ 539 0122 0E94 0000 		call SPI_MasterTransmit
+ 540               	.LVL49:
+ 541               		.loc 1 53 2 view .LVU194
+ 542 0126 289A      		sbi 0x5,0
+ 543               	.LVL50:
+ 544               		.loc 1 53 2 is_stmt 0 view .LVU195
+ 545               	.LBE150:
+ 546               	.LBE149:
+  38:ssd1306.c     **** 	DISP_DATA;
+ 547               		.loc 1 38 2 is_stmt 1 view .LVU196
+ 548 0128 289A      		sbi 0x5,0
+  39:ssd1306.c     **** }
+ 549               		.loc 1 39 2 view .LVU197
+ 550 012a 2A9A      		sbi 0x5,2
+ 551               	/* epilogue start */
+  40:ssd1306.c     **** void send_data(char data)
+ 552               		.loc 1 40 1 is_stmt 0 view .LVU198
+ 553 012c 0895      		ret
+ 554               		.cfi_endproc
+ 555               	.LFE12:
+ 557               	.global	send_data
+ 559               	send_data:
+ 560               	.LVL51:
+ 561               	.LFB13:
+  42:ssd1306.c     **** 	DISP_DATA;
+ 562               		.loc 1 42 1 is_stmt 1 view -0
+ 563               		.cfi_startproc
+ 564               	/* prologue: function */
+ 565               	/* frame size = 0 */
+ 566               	/* stack size = 0 */
+ 567               	.L__stack_usage = 0
+  43:ssd1306.c     **** 	CS_DISP_0;
+ 568               		.loc 1 43 2 view .LVU200
+ 569 012e 2A9A      		sbi 0x5,2
+  44:ssd1306.c     **** 	SPI_MasterTransmit(data);
+ 570               		.loc 1 44 2 view .LVU201
+ 571 0130 2898      		cbi 0x5,0
+  45:ssd1306.c     **** 	CS_DISP_1;
+ 572               		.loc 1 45 2 view .LVU202
+ 573 0132 0E94 0000 		call SPI_MasterTransmit
+ 574               	.LVL52:
+  46:ssd1306.c     **** }
+ 575               		.loc 1 46 2 view .LVU203
+ 576 0136 289A      		sbi 0x5,0
+ 577               	/* epilogue start */
+  47:ssd1306.c     **** void send_command(char command)
+ 578               		.loc 1 47 1 is_stmt 0 view .LVU204
+ 579 0138 0895      		ret
+ 580               		.cfi_endproc
+ 581               	.LFE13:
+ 583               	.global	send_command
+ 585               	send_command:
+ 586               	.LVL53:
+ 587               	.LFB14:
+  49:ssd1306.c     **** 	DISP_COMM;
+ 588               		.loc 1 49 1 is_stmt 1 view -0
+ 589               		.cfi_startproc
+ 590               	/* prologue: function */
+ 591               	/* frame size = 0 */
+ 592               	/* stack size = 0 */
+ 593               	.L__stack_usage = 0
+  50:ssd1306.c     **** 	CS_DISP_0;
+ 594               		.loc 1 50 2 view .LVU206
+ 595 013a 2A98      		cbi 0x5,2
+  51:ssd1306.c     **** 	SPI_MasterTransmit(command);
+ 596               		.loc 1 51 2 view .LVU207
+ 597 013c 2898      		cbi 0x5,0
+  52:ssd1306.c     **** 	CS_DISP_1;
+ 598               		.loc 1 52 2 view .LVU208
+ 599 013e 0E94 0000 		call SPI_MasterTransmit
+ 600               	.LVL54:
+ 601               		.loc 1 53 2 view .LVU209
+ 602 0142 289A      		sbi 0x5,0
+ 603               	/* epilogue start */
+  54:ssd1306.c     **** }
+ 604               		.loc 1 54 1 is_stmt 0 view .LVU210
+ 605 0144 0895      		ret
+ 606               		.cfi_endproc
+ 607               	.LFE14:
+ 609               	.global	Set_Page_Address
+ 611               	Set_Page_Address:
+ 612               	.LVL55:
+ 613               	.LFB15:
+  55:ssd1306.c     **** void Set_Page_Address(unsigned char add)
+  56:ssd1306.c     **** {
+ 614               		.loc 1 56 1 is_stmt 1 view -0
+ 615               		.cfi_startproc
+ 616               	/* prologue: function */
+ 617               	/* frame size = 0 */
+ 618               	/* stack size = 0 */
+ 619               	.L__stack_usage = 0
+  57:ssd1306.c     ****     add=0xb0|add;
+ 620               		.loc 1 57 5 view .LVU212
+  58:ssd1306.c     ****     send_command(add);
+ 621               		.loc 1 58 5 view .LVU213
+ 622               	.LBB153:
+ 623               	.LBI153:
+  48:ssd1306.c     **** {
+ 624               		.loc 1 48 6 view .LVU214
+ 625               	.LBB154:
+  50:ssd1306.c     **** 	CS_DISP_0;
+ 626               		.loc 1 50 2 view .LVU215
+ 627 0146 2A98      		cbi 0x5,2
+  51:ssd1306.c     **** 	SPI_MasterTransmit(command);
+ 628               		.loc 1 51 2 view .LVU216
+ 629 0148 2898      		cbi 0x5,0
+  52:ssd1306.c     **** 	CS_DISP_1;
+ 630               		.loc 1 52 2 view .LVU217
+ 631 014a 806B      		ori r24,lo8(-80)
+ 632               	.LVL56:
+  52:ssd1306.c     **** 	CS_DISP_1;
+ 633               		.loc 1 52 2 is_stmt 0 view .LVU218
+ 634 014c 0E94 0000 		call SPI_MasterTransmit
+ 635               	.LVL57:
+  53:ssd1306.c     **** }
+ 636               		.loc 1 53 2 is_stmt 1 view .LVU219
+ 637 0150 289A      		sbi 0x5,0
+ 638               	.LVL58:
+  53:ssd1306.c     **** }
+ 639               		.loc 1 53 2 is_stmt 0 view .LVU220
+ 640               	.LBE154:
+ 641               	.LBE153:
+  59:ssd1306.c     **** 	return;
+ 642               		.loc 1 59 2 is_stmt 1 view .LVU221
+ 643               	/* epilogue start */
+  60:ssd1306.c     **** }
+ 644               		.loc 1 60 1 is_stmt 0 view .LVU222
+ 645 0152 0895      		ret
+ 646               		.cfi_endproc
+ 647               	.LFE15:
+ 649               	.global	Set_Column_Address
+ 651               	Set_Column_Address:
+ 652               	.LVL59:
+ 653               	.LFB16:
+  61:ssd1306.c     **** void Set_Column_Address(unsigned char add)
+  62:ssd1306.c     **** {	 add+=40;
+ 654               		.loc 1 62 1 is_stmt 1 view -0
+ 655               		.cfi_startproc
+ 656               		.loc 1 62 1 is_stmt 0 view .LVU224
+ 657 0154 CF93      		push r28
+ 658               	.LCFI0:
+ 659               		.cfi_def_cfa_offset 3
+ 660               		.cfi_offset 28, -2
+ 661               	/* prologue: function */
+ 662               	/* frame size = 0 */
+ 663               	/* stack size = 1 */
+ 664               	.L__stack_usage = 1
+ 665               		.loc 1 62 4 is_stmt 1 view .LVU225
+ 666               		.loc 1 62 7 is_stmt 0 view .LVU226
+ 667 0156 C8E2      		ldi r28,lo8(40)
+ 668 0158 C80F      		add r28,r24
+ 669               	.LVL60:
+  63:ssd1306.c     ****     send_command((0x10|(add>>4)));
+ 670               		.loc 1 63 5 is_stmt 1 view .LVU227
+ 671               	.LBB159:
+ 672               	.LBI159:
+  48:ssd1306.c     **** {
+ 673               		.loc 1 48 6 view .LVU228
+ 674               	.LBB160:
+  50:ssd1306.c     **** 	CS_DISP_0;
+ 675               		.loc 1 50 2 view .LVU229
+ 676 015a 2A98      		cbi 0x5,2
+  51:ssd1306.c     **** 	SPI_MasterTransmit(command);
+ 677               		.loc 1 51 2 view .LVU230
+ 678 015c 2898      		cbi 0x5,0
+  52:ssd1306.c     **** 	CS_DISP_1;
+ 679               		.loc 1 52 2 view .LVU231
+ 680               	.LBE160:
+ 681               	.LBE159:
+ 682               		.loc 1 63 5 is_stmt 0 view .LVU232
+ 683 015e 8C2F      		mov r24,r28
+ 684 0160 8295      		swap r24
+ 685 0162 8F70      		andi r24,lo8(15)
+ 686               	.LBB162:
+ 687               	.LBB161:
+  52:ssd1306.c     **** 	CS_DISP_1;
+ 688               		.loc 1 52 2 view .LVU233
+ 689 0164 8061      		ori r24,lo8(16)
+ 690 0166 0E94 0000 		call SPI_MasterTransmit
+ 691               	.LVL61:
+  53:ssd1306.c     **** }
+ 692               		.loc 1 53 2 is_stmt 1 view .LVU234
+ 693 016a 289A      		sbi 0x5,0
+ 694               	.LVL62:
+  53:ssd1306.c     **** }
+ 695               		.loc 1 53 2 is_stmt 0 view .LVU235
+ 696               	.LBE161:
+ 697               	.LBE162:
+  64:ssd1306.c     **** 	send_command((0x0f&add));
+ 698               		.loc 1 64 2 is_stmt 1 view .LVU236
+ 699               	.LBB163:
+ 700               	.LBI163:
+  48:ssd1306.c     **** {
+ 701               		.loc 1 48 6 view .LVU237
+ 702               	.LBB164:
+  50:ssd1306.c     **** 	CS_DISP_0;
+ 703               		.loc 1 50 2 view .LVU238
+ 704 016c 2A98      		cbi 0x5,2
+  51:ssd1306.c     **** 	SPI_MasterTransmit(command);
+ 705               		.loc 1 51 2 view .LVU239
+ 706 016e 2898      		cbi 0x5,0
+  52:ssd1306.c     **** 	CS_DISP_1;
+ 707               		.loc 1 52 2 view .LVU240
+ 708 0170 8C2F      		mov r24,r28
+ 709 0172 8F70      		andi r24,lo8(15)
+ 710               	.LVL63:
+  52:ssd1306.c     **** 	CS_DISP_1;
+ 711               		.loc 1 52 2 is_stmt 0 view .LVU241
+ 712 0174 0E94 0000 		call SPI_MasterTransmit
+ 713               	.LVL64:
+  53:ssd1306.c     **** }
+ 714               		.loc 1 53 2 is_stmt 1 view .LVU242
+ 715 0178 289A      		sbi 0x5,0
+ 716               	.LVL65:
+  53:ssd1306.c     **** }
+ 717               		.loc 1 53 2 is_stmt 0 view .LVU243
+ 718               	.LBE164:
+ 719               	.LBE163:
+  65:ssd1306.c     **** 	return;
+ 720               		.loc 1 65 2 is_stmt 1 view .LVU244
+ 721               	/* epilogue start */
+  66:ssd1306.c     **** }
+ 722               		.loc 1 66 1 is_stmt 0 view .LVU245
+ 723 017a CF91      		pop r28
+ 724               	.LVL66:
+ 725               		.loc 1 66 1 view .LVU246
+ 726 017c 0895      		ret
+ 727               		.cfi_endproc
+ 728               	.LFE16:
+ 730               	.global	Set_Contrast_Control_Register
+ 732               	Set_Contrast_Control_Register:
+ 733               	.LVL67:
+ 734               	.LFB17:
+  67:ssd1306.c     **** void Set_Contrast_Control_Register(unsigned char mod)
+  68:ssd1306.c     **** {
+ 735               		.loc 1 68 1 is_stmt 1 view -0
+ 736               		.cfi_startproc
+ 737               		.loc 1 68 1 is_stmt 0 view .LVU248
+ 738 017e CF93      		push r28
+ 739               	.LCFI1:
+ 740               		.cfi_def_cfa_offset 3
+ 741               		.cfi_offset 28, -2
+ 742               	/* prologue: function */
+ 743               	/* frame size = 0 */
+ 744               	/* stack size = 1 */
+ 745               	.L__stack_usage = 1
+ 746 0180 C82F      		mov r28,r24
+  69:ssd1306.c     ****     send_command(0x81);
+ 747               		.loc 1 69 5 is_stmt 1 view .LVU249
+ 748               	.LVL68:
+ 749               	.LBB169:
+ 750               	.LBI169:
+  48:ssd1306.c     **** {
+ 751               		.loc 1 48 6 view .LVU250
+ 752               	.LBB170:
+  50:ssd1306.c     **** 	CS_DISP_0;
+ 753               		.loc 1 50 2 view .LVU251
+ 754 0182 2A98      		cbi 0x5,2
+  51:ssd1306.c     **** 	SPI_MasterTransmit(command);
+ 755               		.loc 1 51 2 view .LVU252
+ 756 0184 2898      		cbi 0x5,0
+  52:ssd1306.c     **** 	CS_DISP_1;
+ 757               		.loc 1 52 2 view .LVU253
+ 758 0186 81E8      		ldi r24,lo8(-127)
+ 759               	.LVL69:
+  52:ssd1306.c     **** 	CS_DISP_1;
+ 760               		.loc 1 52 2 is_stmt 0 view .LVU254
+ 761 0188 0E94 0000 		call SPI_MasterTransmit
+ 762               	.LVL70:
+  53:ssd1306.c     **** }
+ 763               		.loc 1 53 2 is_stmt 1 view .LVU255
+ 764 018c 289A      		sbi 0x5,0
+ 765               	.LVL71:
+  53:ssd1306.c     **** }
+ 766               		.loc 1 53 2 is_stmt 0 view .LVU256
+ 767               	.LBE170:
+ 768               	.LBE169:
+  70:ssd1306.c     **** 	send_command(mod);
+ 769               		.loc 1 70 2 is_stmt 1 view .LVU257
+ 770               	.LBB171:
+ 771               	.LBI171:
+  48:ssd1306.c     **** {
+ 772               		.loc 1 48 6 view .LVU258
+ 773               	.LBB172:
+  50:ssd1306.c     **** 	CS_DISP_0;
+ 774               		.loc 1 50 2 view .LVU259
+ 775 018e 2A98      		cbi 0x5,2
+  51:ssd1306.c     **** 	SPI_MasterTransmit(command);
+ 776               		.loc 1 51 2 view .LVU260
+ 777 0190 2898      		cbi 0x5,0
+  52:ssd1306.c     **** 	CS_DISP_1;
+ 778               		.loc 1 52 2 view .LVU261
+ 779 0192 8C2F      		mov r24,r28
+ 780 0194 0E94 0000 		call SPI_MasterTransmit
+ 781               	.LVL72:
+  53:ssd1306.c     **** }
+ 782               		.loc 1 53 2 view .LVU262
+ 783 0198 289A      		sbi 0x5,0
+ 784               	.LVL73:
+  53:ssd1306.c     **** }
+ 785               		.loc 1 53 2 is_stmt 0 view .LVU263
+ 786               	.LBE172:
+ 787               	.LBE171:
+  71:ssd1306.c     **** 	return;
+ 788               		.loc 1 71 2 is_stmt 1 view .LVU264
+ 789               	/* epilogue start */
+  72:ssd1306.c     **** }
+ 790               		.loc 1 72 1 is_stmt 0 view .LVU265
+ 791 019a CF91      		pop r28
+ 792               	.LVL74:
+ 793               		.loc 1 72 1 view .LVU266
+ 794 019c 0895      		ret
+ 795               		.cfi_endproc
+ 796               	.LFE17:
+ 798               	.global	Display_Picture
+ 800               	Display_Picture:
+ 801               	.LVL75:
+ 802               	.LFB18:
+  73:ssd1306.c     **** void Display_Picture(const unsigned char pic[])
+  74:ssd1306.c     **** {
+ 803               		.loc 1 74 1 is_stmt 1 view -0
+ 804               		.cfi_startproc
+ 805               		.loc 1 74 1 is_stmt 0 view .LVU268
+ 806 019e FF92      		push r15
+ 807               	.LCFI2:
+ 808               		.cfi_def_cfa_offset 3
+ 809               		.cfi_offset 15, -2
+ 810 01a0 0F93      		push r16
+ 811               	.LCFI3:
+ 812               		.cfi_def_cfa_offset 4
+ 813               		.cfi_offset 16, -3
+ 814 01a2 1F93      		push r17
+ 815               	.LCFI4:
+ 816               		.cfi_def_cfa_offset 5
+ 817               		.cfi_offset 17, -4
+ 818 01a4 CF93      		push r28
+ 819               	.LCFI5:
+ 820               		.cfi_def_cfa_offset 6
+ 821               		.cfi_offset 28, -5
+ 822 01a6 DF93      		push r29
+ 823               	.LCFI6:
+ 824               		.cfi_def_cfa_offset 7
+ 825               		.cfi_offset 29, -6
+ 826               	/* prologue: function */
+ 827               	/* frame size = 0 */
+ 828               	/* stack size = 5 */
+ 829               	.L__stack_usage = 5
+  75:ssd1306.c     **** 	//Display picture 48x64
+  76:ssd1306.c     ****     unsigned char i,j;
+ 830               		.loc 1 76 5 is_stmt 1 view .LVU269
+  77:ssd1306.c     **** 	for(i=0;i<0x08;i++)
+ 831               		.loc 1 77 2 view .LVU270
+ 832               	.LVL76:
+ 833               		.loc 1 77 10 view .LVU271
+ 834 01a8 8C01      		movw r16,r24
+ 835 01aa 005D      		subi r16,-48
+ 836 01ac 1F4F      		sbci r17,-1
+ 837               		.loc 1 77 7 is_stmt 0 view .LVU272
+ 838 01ae F12C      		mov r15,__zero_reg__
+ 839               	.LVL77:
+ 840               	.L10:
+  78:ssd1306.c     **** 	{
+  79:ssd1306.c     **** 	Set_Page_Address(i);
+ 841               		.loc 1 79 2 is_stmt 1 view .LVU273
+ 842               	.LBB186:
+ 843               	.LBI186:
+  55:ssd1306.c     **** {
+ 844               		.loc 1 55 6 view .LVU274
+ 845               	.LBB187:
+  57:ssd1306.c     ****     send_command(add);
+ 846               		.loc 1 57 5 view .LVU275
+  58:ssd1306.c     **** 	return;
+ 847               		.loc 1 58 5 view .LVU276
+ 848               	.LBB188:
+ 849               	.LBI188:
+  48:ssd1306.c     **** {
+ 850               		.loc 1 48 6 view .LVU277
+ 851               	.LBB189:
+  50:ssd1306.c     **** 	CS_DISP_0;
+ 852               		.loc 1 50 2 view .LVU278
+ 853 01b0 2A98      		cbi 0x5,2
+  51:ssd1306.c     **** 	SPI_MasterTransmit(command);
+ 854               		.loc 1 51 2 view .LVU279
+ 855 01b2 2898      		cbi 0x5,0
+  52:ssd1306.c     **** 	CS_DISP_1;
+ 856               		.loc 1 52 2 view .LVU280
+ 857 01b4 8F2D      		mov r24,r15
+ 858 01b6 806B      		ori r24,lo8(-80)
+ 859               	.LVL78:
+  52:ssd1306.c     **** 	CS_DISP_1;
+ 860               		.loc 1 52 2 is_stmt 0 view .LVU281
+ 861 01b8 0E94 0000 		call SPI_MasterTransmit
+ 862               	.LVL79:
+  53:ssd1306.c     **** }
+ 863               		.loc 1 53 2 is_stmt 1 view .LVU282
+ 864 01bc 289A      		sbi 0x5,0
+ 865               	.LVL80:
+  53:ssd1306.c     **** }
+ 866               		.loc 1 53 2 is_stmt 0 view .LVU283
+ 867               	.LBE189:
+ 868               	.LBE188:
+  59:ssd1306.c     **** }
+ 869               		.loc 1 59 2 is_stmt 1 view .LVU284
+  59:ssd1306.c     **** }
+ 870               		.loc 1 59 2 is_stmt 0 view .LVU285
+ 871               	.LBE187:
+ 872               	.LBE186:
+  80:ssd1306.c     ****     Set_Column_Address(0x00);
+ 873               		.loc 1 80 5 is_stmt 1 view .LVU286
+ 874               	.LBB190:
+ 875               	.LBI190:
+  61:ssd1306.c     **** {	 add+=40;
+ 876               		.loc 1 61 6 view .LVU287
+ 877               	.LBE190:
+  62:ssd1306.c     ****     send_command((0x10|(add>>4)));
+ 878               		.loc 1 62 4 view .LVU288
+  63:ssd1306.c     **** 	send_command((0x0f&add));
+ 879               		.loc 1 63 5 view .LVU289
+ 880               	.LBB195:
+ 881               	.LBB191:
+ 882               	.LBI191:
+  48:ssd1306.c     **** {
+ 883               		.loc 1 48 6 view .LVU290
+ 884               	.LBB192:
+  50:ssd1306.c     **** 	CS_DISP_0;
+ 885               		.loc 1 50 2 view .LVU291
+ 886 01be 2A98      		cbi 0x5,2
+  51:ssd1306.c     **** 	SPI_MasterTransmit(command);
+ 887               		.loc 1 51 2 view .LVU292
+ 888 01c0 2898      		cbi 0x5,0
+  52:ssd1306.c     **** 	CS_DISP_1;
+ 889               		.loc 1 52 2 view .LVU293
+ 890 01c2 82E1      		ldi r24,lo8(18)
+ 891 01c4 0E94 0000 		call SPI_MasterTransmit
+ 892               	.LVL81:
+  53:ssd1306.c     **** }
+ 893               		.loc 1 53 2 view .LVU294
+ 894 01c8 289A      		sbi 0x5,0
+ 895               	.LVL82:
+  53:ssd1306.c     **** }
+ 896               		.loc 1 53 2 is_stmt 0 view .LVU295
+ 897               	.LBE192:
+ 898               	.LBE191:
+ 899               	.LBE195:
+  64:ssd1306.c     **** 	return;
+ 900               		.loc 1 64 2 is_stmt 1 view .LVU296
+ 901               	.LBB196:
+ 902               	.LBB193:
+ 903               	.LBI193:
+  48:ssd1306.c     **** {
+ 904               		.loc 1 48 6 view .LVU297
+ 905               	.LBB194:
+  50:ssd1306.c     **** 	CS_DISP_0;
+ 906               		.loc 1 50 2 view .LVU298
+ 907 01ca 2A98      		cbi 0x5,2
+  51:ssd1306.c     **** 	SPI_MasterTransmit(command);
+ 908               		.loc 1 51 2 view .LVU299
+ 909 01cc 2898      		cbi 0x5,0
+  52:ssd1306.c     **** 	CS_DISP_1;
+ 910               		.loc 1 52 2 view .LVU300
+ 911 01ce 88E0      		ldi r24,lo8(8)
+ 912 01d0 0E94 0000 		call SPI_MasterTransmit
+ 913               	.LVL83:
+  53:ssd1306.c     **** }
+ 914               		.loc 1 53 2 view .LVU301
+ 915 01d4 289A      		sbi 0x5,0
+ 916               	.LVL84:
+  53:ssd1306.c     **** }
+ 917               		.loc 1 53 2 is_stmt 0 view .LVU302
+ 918               	.LBE194:
+ 919               	.LBE193:
+ 920               	.LBE196:
+  81:ssd1306.c     ****         for(j=0;j<0x30;j++)
+ 921               		.loc 1 81 17 is_stmt 1 view .LVU303
+ 922 01d6 E801      		movw r28,r16
+ 923 01d8 E097      		sbiw r28,48
+ 924               	.LVL85:
+ 925               	.L9:
+  82:ssd1306.c     **** 		{
+  83:ssd1306.c     **** 		    send_data(pgm_read_byte(&pic[i*0x30+j]));
+ 926               		.loc 1 83 7 discriminator 3 view .LVU304
+ 927               	.LBB197:
+ 928               		.loc 1 83 17 discriminator 3 view .LVU305
+ 929               		.loc 1 83 17 discriminator 3 view .LVU306
+ 930               		.loc 1 83 17 discriminator 3 view .LVU307
+ 931 01da FE01      		movw r30,r28
+ 932               	/* #APP */
+ 933               	 ;  83 "ssd1306.c" 1
+ 934 01dc 8491      		lpm r24, Z
+ 935               		
+ 936               	 ;  0 "" 2
+ 937               	.LVL86:
+ 938               		.loc 1 83 17 discriminator 3 view .LVU308
+ 939               		.loc 1 83 17 is_stmt 0 discriminator 3 view .LVU309
+ 940               	/* #NOAPP */
+ 941               	.LBE197:
+ 942               	.LBB198:
+ 943               	.LBI198:
+  41:ssd1306.c     **** {
+ 944               		.loc 1 41 6 is_stmt 1 discriminator 3 view .LVU310
+ 945               	.LBB199:
+  43:ssd1306.c     **** 	CS_DISP_0;
+ 946               		.loc 1 43 2 discriminator 3 view .LVU311
+ 947 01de 2A9A      		sbi 0x5,2
+  44:ssd1306.c     **** 	SPI_MasterTransmit(data);
+ 948               		.loc 1 44 2 discriminator 3 view .LVU312
+ 949 01e0 2898      		cbi 0x5,0
+  45:ssd1306.c     **** 	CS_DISP_1;
+ 950               		.loc 1 45 2 discriminator 3 view .LVU313
+ 951 01e2 0E94 0000 		call SPI_MasterTransmit
+ 952               	.LVL87:
+  46:ssd1306.c     **** }
+ 953               		.loc 1 46 2 discriminator 3 view .LVU314
+ 954 01e6 289A      		sbi 0x5,0
+  46:ssd1306.c     **** }
+ 955               		.loc 1 46 2 is_stmt 0 discriminator 3 view .LVU315
+ 956               	.LBE199:
+ 957               	.LBE198:
+  81:ssd1306.c     **** 		{
+ 958               		.loc 1 81 24 is_stmt 1 discriminator 3 view .LVU316
+ 959               	.LVL88:
+  81:ssd1306.c     **** 		{
+ 960               		.loc 1 81 17 discriminator 3 view .LVU317
+  81:ssd1306.c     **** 		{
+ 961               		.loc 1 81 9 is_stmt 0 discriminator 3 view .LVU318
+ 962 01e8 2196      		adiw r28,1
+ 963               	.LVL89:
+  81:ssd1306.c     **** 		{
+ 964               		.loc 1 81 9 discriminator 3 view .LVU319
+ 965 01ea C017      		cp r28,r16
+ 966 01ec D107      		cpc r29,r17
+ 967 01ee 01F4      		brne .L9
+  77:ssd1306.c     **** 	{
+ 968               		.loc 1 77 17 is_stmt 1 discriminator 2 view .LVU320
+  77:ssd1306.c     **** 	{
+ 969               		.loc 1 77 18 is_stmt 0 discriminator 2 view .LVU321
+ 970 01f0 F394      		inc r15
+ 971               	.LVL90:
+  77:ssd1306.c     **** 	{
+ 972               		.loc 1 77 10 is_stmt 1 discriminator 2 view .LVU322
+  77:ssd1306.c     **** 	{
+ 973               		.loc 1 77 2 is_stmt 0 discriminator 2 view .LVU323
+ 974 01f2 8E01      		movw r16,r28
+ 975               	.LVL91:
+  77:ssd1306.c     **** 	{
+ 976               		.loc 1 77 2 discriminator 2 view .LVU324
+ 977 01f4 005D      		subi r16,-48
+ 978 01f6 1F4F      		sbci r17,-1
+ 979 01f8 F8E0      		ldi r31,lo8(8)
+ 980 01fa FF12      		cpse r15,r31
+ 981 01fc 00C0      		rjmp .L10
+ 982               	/* epilogue start */
+  84:ssd1306.c     **** 		}
+  85:ssd1306.c     **** 	}
+  86:ssd1306.c     ****     return;
+  87:ssd1306.c     **** }
+ 983               		.loc 1 87 1 view .LVU325
+ 984 01fe DF91      		pop r29
+ 985 0200 CF91      		pop r28
+ 986               	.LVL92:
+ 987               		.loc 1 87 1 view .LVU326
+ 988 0202 1F91      		pop r17
+ 989 0204 0F91      		pop r16
+ 990               	.LVL93:
+ 991               		.loc 1 87 1 view .LVU327
+ 992 0206 FF90      		pop r15
+ 993               	.LVL94:
+ 994               		.loc 1 87 1 view .LVU328
+ 995 0208 0895      		ret
+ 996               		.cfi_endproc
+ 997               	.LFE18:
+ 999               	.global	Display_Clear
+ 1001               	Display_Clear:
+ 1002               	.LFB19:
+  88:ssd1306.c     **** void Display_Clear(void)
+  89:ssd1306.c     **** {
+ 1003               		.loc 1 89 1 is_stmt 1 view -0
+ 1004               		.cfi_startproc
+ 1005 020a CF93      		push r28
+ 1006               	.LCFI7:
+ 1007               		.cfi_def_cfa_offset 3
+ 1008               		.cfi_offset 28, -2
+ 1009 020c DF93      		push r29
+ 1010               	.LCFI8:
+ 1011               		.cfi_def_cfa_offset 4
+ 1012               		.cfi_offset 29, -3
+ 1013               	/* prologue: function */
+ 1014               	/* frame size = 0 */
+ 1015               	/* stack size = 2 */
+ 1016               	.L__stack_usage = 2
+  90:ssd1306.c     **** 	//clear whole display
+  91:ssd1306.c     **** 	unsigned char i,j;
+ 1017               		.loc 1 91 2 view .LVU330
+  92:ssd1306.c     **** 	for(i=0;i<0x08;i++)
+ 1018               		.loc 1 92 2 view .LVU331
+ 1019               	.LVL95:
+ 1020               		.loc 1 92 10 view .LVU332
+ 1021               		.loc 1 92 7 is_stmt 0 view .LVU333
+ 1022 020e D0E0      		ldi r29,0
+ 1023               	.LVL96:
+ 1024               	.L15:
+  93:ssd1306.c     **** 	{
+  94:ssd1306.c     **** 	Set_Page_Address(i);
+ 1025               		.loc 1 94 2 is_stmt 1 view .LVU334
+ 1026               	.LBB212:
+ 1027               	.LBI212:
+  55:ssd1306.c     **** {
+ 1028               		.loc 1 55 6 view .LVU335
+ 1029               	.LBB213:
+  57:ssd1306.c     ****     send_command(add);
+ 1030               		.loc 1 57 5 view .LVU336
+  58:ssd1306.c     **** 	return;
+ 1031               		.loc 1 58 5 view .LVU337
+ 1032               	.LBB214:
+ 1033               	.LBI214:
+  48:ssd1306.c     **** {
+ 1034               		.loc 1 48 6 view .LVU338
+ 1035               	.LBB215:
+  50:ssd1306.c     **** 	CS_DISP_0;
+ 1036               		.loc 1 50 2 view .LVU339
+ 1037 0210 2A98      		cbi 0x5,2
+  51:ssd1306.c     **** 	SPI_MasterTransmit(command);
+ 1038               		.loc 1 51 2 view .LVU340
+ 1039 0212 2898      		cbi 0x5,0
+  52:ssd1306.c     **** 	CS_DISP_1;
+ 1040               		.loc 1 52 2 view .LVU341
+ 1041 0214 8D2F      		mov r24,r29
+ 1042 0216 806B      		ori r24,lo8(-80)
+ 1043               	.LVL97:
+  52:ssd1306.c     **** 	CS_DISP_1;
+ 1044               		.loc 1 52 2 is_stmt 0 view .LVU342
+ 1045 0218 0E94 0000 		call SPI_MasterTransmit
+ 1046               	.LVL98:
+  53:ssd1306.c     **** }
+ 1047               		.loc 1 53 2 is_stmt 1 view .LVU343
+ 1048 021c 289A      		sbi 0x5,0
+ 1049               	.LVL99:
+  53:ssd1306.c     **** }
+ 1050               		.loc 1 53 2 is_stmt 0 view .LVU344
+ 1051               	.LBE215:
+ 1052               	.LBE214:
+  59:ssd1306.c     **** }
+ 1053               		.loc 1 59 2 is_stmt 1 view .LVU345
+  59:ssd1306.c     **** }
+ 1054               		.loc 1 59 2 is_stmt 0 view .LVU346
+ 1055               	.LBE213:
+ 1056               	.LBE212:
+  95:ssd1306.c     ****     Set_Column_Address(0x00);
+ 1057               		.loc 1 95 5 is_stmt 1 view .LVU347
+ 1058               	.LBB216:
+ 1059               	.LBI216:
+  61:ssd1306.c     **** {	 add+=40;
+ 1060               		.loc 1 61 6 view .LVU348
+ 1061               	.LBE216:
+  62:ssd1306.c     ****     send_command((0x10|(add>>4)));
+ 1062               		.loc 1 62 4 view .LVU349
+  63:ssd1306.c     **** 	send_command((0x0f&add));
+ 1063               		.loc 1 63 5 view .LVU350
+ 1064               	.LBB223:
+ 1065               	.LBB217:
+ 1066               	.LBI217:
+  48:ssd1306.c     **** {
+ 1067               		.loc 1 48 6 view .LVU351
+ 1068               	.LBB218:
+  50:ssd1306.c     **** 	CS_DISP_0;
+ 1069               		.loc 1 50 2 view .LVU352
+ 1070 021e 2A98      		cbi 0x5,2
+  51:ssd1306.c     **** 	SPI_MasterTransmit(command);
+ 1071               		.loc 1 51 2 view .LVU353
+ 1072 0220 2898      		cbi 0x5,0
+  52:ssd1306.c     **** 	CS_DISP_1;
+ 1073               		.loc 1 52 2 view .LVU354
+ 1074 0222 82E1      		ldi r24,lo8(18)
+ 1075 0224 0E94 0000 		call SPI_MasterTransmit
+ 1076               	.LVL100:
+  53:ssd1306.c     **** }
+ 1077               		.loc 1 53 2 view .LVU355
+ 1078 0228 289A      		sbi 0x5,0
+ 1079               	.LVL101:
+  53:ssd1306.c     **** }
+ 1080               		.loc 1 53 2 is_stmt 0 view .LVU356
+ 1081               	.LBE218:
+ 1082               	.LBE217:
+ 1083               	.LBE223:
+  64:ssd1306.c     **** 	return;
+ 1084               		.loc 1 64 2 is_stmt 1 view .LVU357
+ 1085               	.LBB224:
+ 1086               	.LBB219:
+ 1087               	.LBI219:
+  48:ssd1306.c     **** {
+ 1088               		.loc 1 48 6 view .LVU358
+ 1089               	.LBB220:
+  50:ssd1306.c     **** 	CS_DISP_0;
+ 1090               		.loc 1 50 2 view .LVU359
+ 1091 022a 2A98      		cbi 0x5,2
+  51:ssd1306.c     **** 	SPI_MasterTransmit(command);
+ 1092               		.loc 1 51 2 view .LVU360
+ 1093 022c 2898      		cbi 0x5,0
+  52:ssd1306.c     **** 	CS_DISP_1;
+ 1094               		.loc 1 52 2 view .LVU361
+ 1095 022e 88E0      		ldi r24,lo8(8)
+ 1096 0230 0E94 0000 		call SPI_MasterTransmit
+ 1097               	.LVL102:
+  53:ssd1306.c     **** }
+ 1098               		.loc 1 53 2 view .LVU362
+ 1099 0234 289A      		sbi 0x5,0
+ 1100               	.LVL103:
+  53:ssd1306.c     **** }
+ 1101               		.loc 1 53 2 is_stmt 0 view .LVU363
+ 1102               	.LBE220:
+ 1103               	.LBE219:
+ 1104               	.LBE224:
+  96:ssd1306.c     ****         for(j=0;j<0x30;j++)
+ 1105               		.loc 1 96 17 is_stmt 1 view .LVU364
+ 1106               	.LBB225:
+ 1107               	.LBB222:
+ 1108               	.LBB221:
+  53:ssd1306.c     **** }
+ 1109               		.loc 1 53 2 is_stmt 0 view .LVU365
+ 1110 0236 C0E3      		ldi r28,lo8(48)
+ 1111               	.LVL104:
+ 1112               	.L14:
+  53:ssd1306.c     **** }
+ 1113               		.loc 1 53 2 view .LVU366
+ 1114               	.LBE221:
+ 1115               	.LBE222:
+ 1116               	.LBE225:
+  97:ssd1306.c     **** 		{
+  98:ssd1306.c     **** 		    send_data(0x00);
+ 1117               		.loc 1 98 7 is_stmt 1 view .LVU367
+ 1118               	.LBB226:
+ 1119               	.LBI226:
+  41:ssd1306.c     **** {
+ 1120               		.loc 1 41 6 view .LVU368
+ 1121               	.LBB227:
+  43:ssd1306.c     **** 	CS_DISP_0;
+ 1122               		.loc 1 43 2 view .LVU369
+ 1123 0238 2A9A      		sbi 0x5,2
+  44:ssd1306.c     **** 	SPI_MasterTransmit(data);
+ 1124               		.loc 1 44 2 view .LVU370
+ 1125 023a 2898      		cbi 0x5,0
+  45:ssd1306.c     **** 	CS_DISP_1;
+ 1126               		.loc 1 45 2 view .LVU371
+ 1127 023c 80E0      		ldi r24,0
+ 1128 023e 0E94 0000 		call SPI_MasterTransmit
+ 1129               	.LVL105:
+  46:ssd1306.c     **** }
+ 1130               		.loc 1 46 2 view .LVU372
+ 1131 0242 289A      		sbi 0x5,0
+ 1132               	.LVL106:
+  46:ssd1306.c     **** }
+ 1133               		.loc 1 46 2 is_stmt 0 view .LVU373
+ 1134               	.LBE227:
+ 1135               	.LBE226:
+  96:ssd1306.c     **** 		{
+ 1136               		.loc 1 96 24 is_stmt 1 view .LVU374
+  96:ssd1306.c     **** 		{
+ 1137               		.loc 1 96 17 view .LVU375
+  96:ssd1306.c     **** 		{
+ 1138               		.loc 1 96 9 is_stmt 0 view .LVU376
+ 1139 0244 C150      		subi r28,lo8(-(-1))
+ 1140               	.LVL107:
+  96:ssd1306.c     **** 		{
+ 1141               		.loc 1 96 9 view .LVU377
+ 1142 0246 01F4      		brne .L14
+  92:ssd1306.c     **** 	{
+ 1143               		.loc 1 92 17 is_stmt 1 discriminator 2 view .LVU378
+  92:ssd1306.c     **** 	{
+ 1144               		.loc 1 92 18 is_stmt 0 discriminator 2 view .LVU379
+ 1145 0248 DF5F      		subi r29,lo8(-(1))
+ 1146               	.LVL108:
+  92:ssd1306.c     **** 	{
+ 1147               		.loc 1 92 10 is_stmt 1 discriminator 2 view .LVU380
+  92:ssd1306.c     **** 	{
+ 1148               		.loc 1 92 2 is_stmt 0 discriminator 2 view .LVU381
+ 1149 024a D830      		cpi r29,lo8(8)
+ 1150 024c 01F4      		brne .L15
+ 1151               	/* epilogue start */
+  99:ssd1306.c     **** 		}
+ 100:ssd1306.c     **** 	}
+ 101:ssd1306.c     ****     return;
+ 102:ssd1306.c     **** }
+ 1152               		.loc 1 102 1 view .LVU382
+ 1153 024e DF91      		pop r29
+ 1154               	.LVL109:
+ 1155               		.loc 1 102 1 view .LVU383
+ 1156 0250 CF91      		pop r28
+ 1157               	.LVL110:
+ 1158               		.loc 1 102 1 view .LVU384
+ 1159 0252 0895      		ret
+ 1160               		.cfi_endproc
+ 1161               	.LFE19:
+ 1163               	.global	Char_Position
+ 1165               	Char_Position:
+ 1166               	.LVL111:
+ 1167               	.LFB20:
+ 103:ssd1306.c     **** void Char_Position(uint8_t fontsize, uint8_t row, uint8_t pos)
+ 104:ssd1306.c     **** {
+ 1168               		.loc 1 104 1 is_stmt 1 view -0
+ 1169               		.cfi_startproc
+ 1170               		.loc 1 104 1 is_stmt 0 view .LVU386
+ 1171 0254 CF93      		push r28
+ 1172               	.LCFI9:
+ 1173               		.cfi_def_cfa_offset 3
+ 1174               		.cfi_offset 28, -2
+ 1175 0256 DF93      		push r29
+ 1176               	.LCFI10:
+ 1177               		.cfi_def_cfa_offset 4
+ 1178               		.cfi_offset 29, -3
+ 1179               	/* prologue: function */
+ 1180               	/* frame size = 0 */
+ 1181               	/* stack size = 2 */
+ 1182               	.L__stack_usage = 2
+ 1183 0258 D82F      		mov r29,r24
+ 1184 025a C62F      		mov r28,r22
+ 105:ssd1306.c     **** 	//set position for new char (font size 8x14)
+ 106:ssd1306.c     **** 	Set_Page_Address(7-pos);	//0-7 	(* 8 bit)
+ 1185               		.loc 1 106 2 is_stmt 1 view .LVU387
+ 1186               	.LVL112:
+ 1187               	.LBB238:
+ 1188               	.LBI238:
+  55:ssd1306.c     **** {
+ 1189               		.loc 1 55 6 view .LVU388
+ 1190               	.LBB239:
+  57:ssd1306.c     ****     send_command(add);
+ 1191               		.loc 1 57 5 view .LVU389
+  58:ssd1306.c     **** 	return;
+ 1192               		.loc 1 58 5 view .LVU390
+ 1193               	.LBB240:
+ 1194               	.LBI240:
+  48:ssd1306.c     **** {
+ 1195               		.loc 1 48 6 view .LVU391
+ 1196               	.LBB241:
+  50:ssd1306.c     **** 	CS_DISP_0;
+ 1197               		.loc 1 50 2 view .LVU392
+ 1198 025c 2A98      		cbi 0x5,2
+  51:ssd1306.c     **** 	SPI_MasterTransmit(command);
+ 1199               		.loc 1 51 2 view .LVU393
+ 1200 025e 2898      		cbi 0x5,0
+  52:ssd1306.c     **** 	CS_DISP_1;
+ 1201               		.loc 1 52 2 view .LVU394
+ 1202               	.LBE241:
+ 1203               	.LBE240:
+ 1204               	.LBE239:
+ 1205               	.LBE238:
+ 1206               		.loc 1 106 2 is_stmt 0 view .LVU395
+ 1207 0260 87E0      		ldi r24,lo8(7)
+ 1208               	.LVL113:
+ 1209               		.loc 1 106 2 view .LVU396
+ 1210 0262 841B      		sub r24,r20
+ 1211               	.LBB245:
+ 1212               	.LBB244:
+ 1213               	.LBB243:
+ 1214               	.LBB242:
+  52:ssd1306.c     **** 	CS_DISP_1;
+ 1215               		.loc 1 52 2 view .LVU397
+ 1216 0264 806B      		ori r24,lo8(-80)
+ 1217               	.LVL114:
+  52:ssd1306.c     **** 	CS_DISP_1;
+ 1218               		.loc 1 52 2 view .LVU398
+ 1219 0266 0E94 0000 		call SPI_MasterTransmit
+ 1220               	.LVL115:
+  53:ssd1306.c     **** }
+ 1221               		.loc 1 53 2 is_stmt 1 view .LVU399
+ 1222 026a 289A      		sbi 0x5,0
+ 1223               	.LVL116:
+  53:ssd1306.c     **** }
+ 1224               		.loc 1 53 2 is_stmt 0 view .LVU400
+ 1225               	.LBE242:
+ 1226               	.LBE243:
+  59:ssd1306.c     **** }
+ 1227               		.loc 1 59 2 is_stmt 1 view .LVU401
+  59:ssd1306.c     **** }
+ 1228               		.loc 1 59 2 is_stmt 0 view .LVU402
+ 1229               	.LBE244:
+ 1230               	.LBE245:
+ 107:ssd1306.c     **** 	Set_Column_Address(row*fontsize);	//0-3	(* 14 collums / char)
+ 1231               		.loc 1 107 2 is_stmt 1 view .LVU403
+ 1232               	.LBB246:
+ 1233               	.LBI246:
+  61:ssd1306.c     **** {	 add+=40;
+ 1234               		.loc 1 61 6 view .LVU404
+ 1235               	.LBB247:
+  62:ssd1306.c     ****     send_command((0x10|(add>>4)));
+ 1236               		.loc 1 62 4 view .LVU405
+ 1237               	.LBE247:
+ 1238               	.LBE246:
+ 1239               		.loc 1 107 2 is_stmt 0 view .LVU406
+ 1240 026c CD9F      		mul r28,r29
+ 1241 026e C02D      		mov r28,r0
+ 1242 0270 1124      		clr r1
+ 1243               	.LVL117:
+ 1244               	.LBB255:
+ 1245               	.LBB254:
+  62:ssd1306.c     ****     send_command((0x10|(add>>4)));
+ 1246               		.loc 1 62 7 view .LVU407
+ 1247 0272 C85D      		subi r28,lo8(-(40))
+ 1248               	.LVL118:
+  63:ssd1306.c     **** 	send_command((0x0f&add));
+ 1249               		.loc 1 63 5 is_stmt 1 view .LVU408
+ 1250               	.LBB248:
+ 1251               	.LBI248:
+  48:ssd1306.c     **** {
+ 1252               		.loc 1 48 6 view .LVU409
+ 1253               	.LBB249:
+  50:ssd1306.c     **** 	CS_DISP_0;
+ 1254               		.loc 1 50 2 view .LVU410
+ 1255 0274 2A98      		cbi 0x5,2
+  51:ssd1306.c     **** 	SPI_MasterTransmit(command);
+ 1256               		.loc 1 51 2 view .LVU411
+ 1257 0276 2898      		cbi 0x5,0
+  52:ssd1306.c     **** 	CS_DISP_1;
+ 1258               		.loc 1 52 2 view .LVU412
+ 1259               	.LBE249:
+ 1260               	.LBE248:
+  63:ssd1306.c     **** 	send_command((0x0f&add));
+ 1261               		.loc 1 63 5 is_stmt 0 view .LVU413
+ 1262 0278 8C2F      		mov r24,r28
+ 1263 027a 8295      		swap r24
+ 1264 027c 8F70      		andi r24,lo8(15)
+ 1265               	.LBB251:
+ 1266               	.LBB250:
+  52:ssd1306.c     **** 	CS_DISP_1;
+ 1267               		.loc 1 52 2 view .LVU414
+ 1268 027e 8061      		ori r24,lo8(16)
+ 1269 0280 0E94 0000 		call SPI_MasterTransmit
+ 1270               	.LVL119:
+  53:ssd1306.c     **** }
+ 1271               		.loc 1 53 2 is_stmt 1 view .LVU415
+ 1272 0284 289A      		sbi 0x5,0
+ 1273               	.LVL120:
+  53:ssd1306.c     **** }
+ 1274               		.loc 1 53 2 is_stmt 0 view .LVU416
+ 1275               	.LBE250:
+ 1276               	.LBE251:
+  64:ssd1306.c     **** 	return;
+ 1277               		.loc 1 64 2 is_stmt 1 view .LVU417
+ 1278               	.LBB252:
+ 1279               	.LBI252:
+  48:ssd1306.c     **** {
+ 1280               		.loc 1 48 6 view .LVU418
+ 1281               	.LBB253:
+  50:ssd1306.c     **** 	CS_DISP_0;
+ 1282               		.loc 1 50 2 view .LVU419
+ 1283 0286 2A98      		cbi 0x5,2
+  51:ssd1306.c     **** 	SPI_MasterTransmit(command);
+ 1284               		.loc 1 51 2 view .LVU420
+ 1285 0288 2898      		cbi 0x5,0
+  52:ssd1306.c     **** 	CS_DISP_1;
+ 1286               		.loc 1 52 2 view .LVU421
+ 1287 028a 8C2F      		mov r24,r28
+ 1288 028c 8F70      		andi r24,lo8(15)
+ 1289               	.LVL121:
+  52:ssd1306.c     **** 	CS_DISP_1;
+ 1290               		.loc 1 52 2 is_stmt 0 view .LVU422
+ 1291 028e 0E94 0000 		call SPI_MasterTransmit
+ 1292               	.LVL122:
+  53:ssd1306.c     **** }
+ 1293               		.loc 1 53 2 is_stmt 1 view .LVU423
+ 1294 0292 289A      		sbi 0x5,0
+ 1295               	.LVL123:
+  53:ssd1306.c     **** }
+ 1296               		.loc 1 53 2 is_stmt 0 view .LVU424
+ 1297               	.LBE253:
+ 1298               	.LBE252:
+  65:ssd1306.c     **** }
+ 1299               		.loc 1 65 2 is_stmt 1 view .LVU425
+ 1300               	/* epilogue start */
+  65:ssd1306.c     **** }
+ 1301               		.loc 1 65 2 is_stmt 0 view .LVU426
+ 1302               	.LBE254:
+ 1303               	.LBE255:
+ 108:ssd1306.c     **** }
+ 1304               		.loc 1 108 1 view .LVU427
+ 1305 0294 DF91      		pop r29
+ 1306               	.LVL124:
+ 1307               		.loc 1 108 1 view .LVU428
+ 1308 0296 CF91      		pop r28
+ 1309 0298 0895      		ret
+ 1310               		.cfi_endproc
+ 1311               	.LFE20:
+ 1313               	.global	Write_Char
+ 1315               	Write_Char:
+ 1316               	.LVL125:
+ 1317               	.LFB21:
+ 109:ssd1306.c     **** 
+ 110:ssd1306.c     **** void Write_Char(uint8_t fontsize, char n)
+ 111:ssd1306.c     **** {
+ 1318               		.loc 1 111 1 is_stmt 1 view -0
+ 1319               		.cfi_startproc
+ 1320               		.loc 1 111 1 is_stmt 0 view .LVU430
+ 1321 029a 0F93      		push r16
+ 1322               	.LCFI11:
+ 1323               		.cfi_def_cfa_offset 3
+ 1324               		.cfi_offset 16, -2
+ 1325 029c 1F93      		push r17
+ 1326               	.LCFI12:
+ 1327               		.cfi_def_cfa_offset 4
+ 1328               		.cfi_offset 17, -3
+ 1329 029e CF93      		push r28
+ 1330               	.LCFI13:
+ 1331               		.cfi_def_cfa_offset 5
+ 1332               		.cfi_offset 28, -4
+ 1333 02a0 DF93      		push r29
+ 1334               	.LCFI14:
+ 1335               		.cfi_def_cfa_offset 6
+ 1336               		.cfi_offset 29, -5
+ 1337               	/* prologue: function */
+ 1338               	/* frame size = 0 */
+ 1339               	/* stack size = 4 */
+ 1340               	.L__stack_usage = 4
+ 1341 02a2 082F      		mov r16,r24
+ 112:ssd1306.c     **** 	const char *fontpointer=0;
+ 1342               		.loc 1 112 2 is_stmt 1 view .LVU431
+ 1343               	.LVL126:
+ 113:ssd1306.c     **** 	uint8_t x;
+ 1344               		.loc 1 113 2 view .LVU432
+ 114:ssd1306.c     **** 	
+ 115:ssd1306.c     **** 	switch(fontsize)		//variable height and fixed width (8 Pixel)
+ 1345               		.loc 1 115 2 view .LVU433
+ 116:ssd1306.c     **** 	{
+ 117:ssd1306.c     **** 		case 8:fontpointer=font8;break;
+ 118:ssd1306.c     **** 		case 14:fontpointer=font14;break;
+ 119:ssd1306.c     **** 	}
+ 120:ssd1306.c     **** 	n-=0x20;			//jump to position in asci table
+ 1346               		.loc 1 120 3 is_stmt 0 view .LVU434
+ 1347 02a4 6052      		subi r22,lo8(-(-32))
+ 1348               	.LVL127:
+ 115:ssd1306.c     **** 	{
+ 1349               		.loc 1 115 2 view .LVU435
+ 1350 02a6 8830      		cpi r24,lo8(8)
+ 1351 02a8 01F0      		breq .L23
+ 1352 02aa 8E30      		cpi r24,lo8(14)
+ 1353 02ac 01F0      		breq .L24
+ 1354               		.loc 1 120 2 is_stmt 1 view .LVU436
+ 1355               	.LVL128:
+ 121:ssd1306.c     **** 	for(x=0;x<fontsize;x++) 
+ 1356               		.loc 1 121 2 view .LVU437
+ 1357               		.loc 1 121 10 view .LVU438
+ 1358               		.loc 1 121 2 is_stmt 0 view .LVU439
+ 1359 02ae D0E0      		ldi r29,0
+ 1360 02b0 C0E0      		ldi r28,0
+ 1361 02b2 8823      		tst r24
+ 1362 02b4 01F0      		breq .L19
+ 1363               	.LVL129:
+ 1364               	.L20:
+ 1365               		.loc 1 121 2 view .LVU440
+ 1366 02b6 069F      		mul r16,r22
+ 1367 02b8 C00D      		add r28,r0
+ 1368 02ba D11D      		adc r29,r1
+ 1369 02bc 1124      		clr __zero_reg__
+ 1370               	.LBB260:
+ 122:ssd1306.c     **** 	{
+ 123:ssd1306.c     **** 		send_data(pgm_read_byte(&fontpointer[(n*fontsize)+x]));
+ 1371               		.loc 1 123 13 discriminator 3 view .LVU441
+ 1372 02be 10E0      		ldi r17,0
+ 1373               	.LVL130:
+ 1374               	.L21:
+ 1375               		.loc 1 123 13 discriminator 3 view .LVU442
+ 1376               	.LBE260:
+ 1377               		.loc 1 123 3 is_stmt 1 discriminator 3 view .LVU443
+ 1378               	.LBB261:
+ 1379               		.loc 1 123 13 discriminator 3 view .LVU444
+ 1380               		.loc 1 123 13 discriminator 3 view .LVU445
+ 1381               		.loc 1 123 13 discriminator 3 view .LVU446
+ 1382 02c0 FE01      		movw r30,r28
+ 1383               	/* #APP */
+ 1384               	 ;  123 "ssd1306.c" 1
+ 1385 02c2 8491      		lpm r24, Z
+ 1386               		
+ 1387               	 ;  0 "" 2
+ 1388               	.LVL131:
+ 1389               		.loc 1 123 13 discriminator 3 view .LVU447
+ 1390               		.loc 1 123 13 is_stmt 0 discriminator 3 view .LVU448
+ 1391               	/* #NOAPP */
+ 1392               	.LBE261:
+ 1393               	.LBB262:
+ 1394               	.LBI262:
+  41:ssd1306.c     **** {
+ 1395               		.loc 1 41 6 is_stmt 1 discriminator 3 view .LVU449
+ 1396               	.LBB263:
+  43:ssd1306.c     **** 	CS_DISP_0;
+ 1397               		.loc 1 43 2 discriminator 3 view .LVU450
+ 1398 02c4 2A9A      		sbi 0x5,2
+  44:ssd1306.c     **** 	SPI_MasterTransmit(data);
+ 1399               		.loc 1 44 2 discriminator 3 view .LVU451
+ 1400 02c6 2898      		cbi 0x5,0
+  45:ssd1306.c     **** 	CS_DISP_1;
+ 1401               		.loc 1 45 2 discriminator 3 view .LVU452
+ 1402 02c8 0E94 0000 		call SPI_MasterTransmit
+ 1403               	.LVL132:
+  46:ssd1306.c     **** }
+ 1404               		.loc 1 46 2 discriminator 3 view .LVU453
+ 1405 02cc 289A      		sbi 0x5,0
+  46:ssd1306.c     **** }
+ 1406               		.loc 1 46 2 is_stmt 0 discriminator 3 view .LVU454
+ 1407               	.LBE263:
+ 1408               	.LBE262:
+ 121:ssd1306.c     **** 	{
+ 1409               		.loc 1 121 21 is_stmt 1 discriminator 3 view .LVU455
+ 121:ssd1306.c     **** 	{
+ 1410               		.loc 1 121 22 is_stmt 0 discriminator 3 view .LVU456
+ 1411 02ce 1F5F      		subi r17,lo8(-(1))
+ 1412               	.LVL133:
+ 121:ssd1306.c     **** 	{
+ 1413               		.loc 1 121 10 is_stmt 1 discriminator 3 view .LVU457
+ 121:ssd1306.c     **** 	{
+ 1414               		.loc 1 121 2 is_stmt 0 discriminator 3 view .LVU458
+ 1415 02d0 2196      		adiw r28,1
+ 1416               	.LVL134:
+ 121:ssd1306.c     **** 	{
+ 1417               		.loc 1 121 2 discriminator 3 view .LVU459
+ 1418 02d2 1017      		cp r17,r16
+ 1419 02d4 00F0      		brlo .L21
+ 1420               	.LVL135:
+ 1421               	.L19:
+ 1422               	/* epilogue start */
+ 124:ssd1306.c     **** 	}
+ 125:ssd1306.c     **** 	
+ 126:ssd1306.c     **** }
+ 1423               		.loc 1 126 1 view .LVU460
+ 1424 02d6 DF91      		pop r29
+ 1425 02d8 CF91      		pop r28
+ 1426 02da 1F91      		pop r17
+ 1427 02dc 0F91      		pop r16
+ 1428               	.LVL136:
+ 1429               		.loc 1 126 1 view .LVU461
+ 1430 02de 0895      		ret
+ 1431               	.LVL137:
+ 1432               	.L24:
+ 115:ssd1306.c     **** 	{
+ 1433               		.loc 1 115 2 view .LVU462
+ 1434 02e0 C0E0      		ldi r28,lo8(font14)
+ 1435 02e2 D0E0      		ldi r29,hi8(font14)
+ 1436 02e4 00C0      		rjmp .L20
+ 1437               	.L23:
+ 117:ssd1306.c     **** 		case 14:fontpointer=font14;break;
+ 1438               		.loc 1 117 21 view .LVU463
+ 1439 02e6 C0E0      		ldi r28,lo8(font8)
+ 1440 02e8 D0E0      		ldi r29,hi8(font8)
+ 1441 02ea 00C0      		rjmp .L20
+ 1442               		.cfi_endproc
+ 1443               	.LFE21:
+ 1445               	.global	Write_String
+ 1447               	Write_String:
+ 1448               	.LVL138:
+ 1449               	.LFB22:
+ 127:ssd1306.c     **** void Write_String(uint8_t fontsize, uint8_t row, uint8_t pos, const char str[]) 
+ 128:ssd1306.c     **** {
+ 1450               		.loc 1 128 1 is_stmt 1 view -0
+ 1451               		.cfi_startproc
+ 1452               		.loc 1 128 1 is_stmt 0 view .LVU465
+ 1453 02ec AF92      		push r10
+ 1454               	.LCFI15:
+ 1455               		.cfi_def_cfa_offset 3
+ 1456               		.cfi_offset 10, -2
+ 1457 02ee BF92      		push r11
+ 1458               	.LCFI16:
+ 1459               		.cfi_def_cfa_offset 4
+ 1460               		.cfi_offset 11, -3
+ 1461 02f0 CF92      		push r12
+ 1462               	.LCFI17:
+ 1463               		.cfi_def_cfa_offset 5
+ 1464               		.cfi_offset 12, -4
+ 1465 02f2 DF92      		push r13
+ 1466               	.LCFI18:
+ 1467               		.cfi_def_cfa_offset 6
+ 1468               		.cfi_offset 13, -5
+ 1469 02f4 EF92      		push r14
+ 1470               	.LCFI19:
+ 1471               		.cfi_def_cfa_offset 7
+ 1472               		.cfi_offset 14, -6
+ 1473 02f6 FF92      		push r15
+ 1474               	.LCFI20:
+ 1475               		.cfi_def_cfa_offset 8
+ 1476               		.cfi_offset 15, -7
+ 1477 02f8 0F93      		push r16
+ 1478               	.LCFI21:
+ 1479               		.cfi_def_cfa_offset 9
+ 1480               		.cfi_offset 16, -8
+ 1481 02fa 1F93      		push r17
+ 1482               	.LCFI22:
+ 1483               		.cfi_def_cfa_offset 10
+ 1484               		.cfi_offset 17, -9
+ 1485 02fc CF93      		push r28
+ 1486               	.LCFI23:
+ 1487               		.cfi_def_cfa_offset 11
+ 1488               		.cfi_offset 28, -10
+ 1489 02fe DF93      		push r29
+ 1490               	.LCFI24:
+ 1491               		.cfi_def_cfa_offset 12
+ 1492               		.cfi_offset 29, -11
+ 1493               	/* prologue: function */
+ 1494               	/* frame size = 0 */
+ 1495               	/* stack size = 10 */
+ 1496               	.L__stack_usage = 10
+ 1497 0300 E82E      		mov r14,r24
+ 1498 0302 8901      		movw r16,r18
+ 129:ssd1306.c     **** 	if(fontsize==26)
+ 1499               		.loc 1 129 2 is_stmt 1 view .LVU466
+ 130:ssd1306.c     **** 	{
+ 131:ssd1306.c     **** 		while(*str)
+ 132:ssd1306.c     **** 		{
+ 133:ssd1306.c     **** 			Set_Page_Address(7-pos*2);			//0-7 	(* 8 bit)
+ 134:ssd1306.c     **** 			Set_Column_Address(row*fontsize);	//0-3	(* 14 collums / char)
+ 135:ssd1306.c     **** 			Write_Char(fontsize, *str++);
+ 136:ssd1306.c     **** 			pos++;
+ 137:ssd1306.c     **** 		 }
+ 138:ssd1306.c     **** 	}else
+ 139:ssd1306.c     **** 	{
+ 140:ssd1306.c     **** 		while(*str)
+ 1500               		.loc 1 140 9 is_stmt 0 view .LVU467
+ 1501 0304 F901      		movw r30,r18
+ 1502 0306 8081      		ld r24,Z
+ 1503               	.LVL139:
+ 129:ssd1306.c     **** 	if(fontsize==26)
+ 1504               		.loc 1 129 4 view .LVU468
+ 1505 0308 FAE1      		ldi r31,lo8(26)
+ 1506 030a EF16      		cp r14,r31
+ 1507 030c 01F0      		breq .L28
+ 1508               		.loc 1 140 8 is_stmt 1 view .LVU469
+ 1509 030e 8823      		tst r24
+ 1510 0310 01F0      		breq .L27
+ 141:ssd1306.c     **** 		{
+ 142:ssd1306.c     **** 			Set_Page_Address(7-pos);			//0-7 	(* 8 bit)
+ 143:ssd1306.c     **** 			Set_Column_Address(row*fontsize);	//0-3	(* 14 collums / char)
+ 1511               		.loc 1 143 4 is_stmt 0 view .LVU470
+ 1512 0312 E69E      		mul r14,r22
+ 1513 0314 602D      		mov r22,r0
+ 1514 0316 1124      		clr r1
+ 1515               	.LVL140:
+ 1516               	.LBB289:
+ 1517               	.LBB290:
+  62:ssd1306.c     ****     send_command((0x10|(add>>4)));
+ 1518               		.loc 1 62 7 view .LVU471
+ 1519 0318 685D      		subi r22,lo8(-(40))
+  63:ssd1306.c     **** 	send_command((0x0f&add));
+ 1520               		.loc 1 63 5 view .LVU472
+ 1521 031a 862F      		mov r24,r22
+ 1522 031c 8295      		swap r24
+ 1523 031e 8F70      		andi r24,lo8(15)
+ 1524 0320 D82E      		mov r13,r24
+ 1525 0322 6894      		set
+ 1526 0324 D4F8      		bld r13,4
+  64:ssd1306.c     **** 	return;
+ 1527               		.loc 1 64 2 view .LVU473
+ 1528 0326 6F70      		andi r22,lo8(15)
+ 1529 0328 F62E      		mov r15,r22
+ 1530 032a E901      		movw r28,r18
+ 1531 032c 122F      		mov r17,r18
+ 1532 032e 195F      		subi r17,lo8(-(7))
+ 1533               	.LBE290:
+ 1534               	.LBE289:
+ 1535               	.LBB296:
+ 1536               	.LBB297:
+  57:ssd1306.c     ****     send_command(add);
+ 1537               		.loc 1 57 8 view .LVU474
+ 1538 0330 141B      		sub r17,r20
+ 1539               	.LVL141:
+ 1540               	.L33:
+  57:ssd1306.c     ****     send_command(add);
+ 1541               		.loc 1 57 8 view .LVU475
+ 1542               	.LBE297:
+ 1543               	.LBE296:
+ 142:ssd1306.c     **** 			Set_Column_Address(row*fontsize);	//0-3	(* 14 collums / char)
+ 1544               		.loc 1 142 4 is_stmt 1 view .LVU476
+ 1545               	.LBB303:
+ 1546               	.LBI296:
+  55:ssd1306.c     **** {
+ 1547               		.loc 1 55 6 view .LVU477
+ 1548               	.LBB302:
+  57:ssd1306.c     ****     send_command(add);
+ 1549               		.loc 1 57 5 view .LVU478
+  58:ssd1306.c     **** 	return;
+ 1550               		.loc 1 58 5 view .LVU479
+ 1551               	.LBB298:
+ 1552               	.LBI298:
+  48:ssd1306.c     **** {
+ 1553               		.loc 1 48 6 view .LVU480
+ 1554               	.LBB299:
+  50:ssd1306.c     **** 	CS_DISP_0;
+ 1555               		.loc 1 50 2 view .LVU481
+ 1556 0332 2A98      		cbi 0x5,2
+  51:ssd1306.c     **** 	SPI_MasterTransmit(command);
+ 1557               		.loc 1 51 2 view .LVU482
+ 1558 0334 2898      		cbi 0x5,0
+  52:ssd1306.c     **** 	CS_DISP_1;
+ 1559               		.loc 1 52 2 view .LVU483
+ 1560               	.LBE299:
+ 1561               	.LBE298:
+  57:ssd1306.c     ****     send_command(add);
+ 1562               		.loc 1 57 8 is_stmt 0 view .LVU484
+ 1563 0336 812F      		mov r24,r17
+ 1564 0338 8C1B      		sub r24,r28
+ 1565               	.LBB301:
+ 1566               	.LBB300:
+  52:ssd1306.c     **** 	CS_DISP_1;
+ 1567               		.loc 1 52 2 view .LVU485
+ 1568 033a 806B      		ori r24,lo8(-80)
+ 1569 033c 0E94 0000 		call SPI_MasterTransmit
+ 1570               	.LVL142:
+  53:ssd1306.c     **** }
+ 1571               		.loc 1 53 2 is_stmt 1 view .LVU486
+ 1572 0340 289A      		sbi 0x5,0
+ 1573               	.LVL143:
+  53:ssd1306.c     **** }
+ 1574               		.loc 1 53 2 is_stmt 0 view .LVU487
+ 1575               	.LBE300:
+ 1576               	.LBE301:
+  59:ssd1306.c     **** }
+ 1577               		.loc 1 59 2 is_stmt 1 view .LVU488
+  59:ssd1306.c     **** }
+ 1578               		.loc 1 59 2 is_stmt 0 view .LVU489
+ 1579               	.LBE302:
+ 1580               	.LBE303:
+ 1581               		.loc 1 143 4 is_stmt 1 view .LVU490
+ 1582               	.LBB304:
+ 1583               	.LBI289:
+  61:ssd1306.c     **** {	 add+=40;
+ 1584               		.loc 1 61 6 view .LVU491
+ 1585               	.LBB295:
+  62:ssd1306.c     ****     send_command((0x10|(add>>4)));
+ 1586               		.loc 1 62 4 view .LVU492
+  63:ssd1306.c     **** 	send_command((0x0f&add));
+ 1587               		.loc 1 63 5 view .LVU493
+ 1588               	.LBB291:
+ 1589               	.LBI291:
+  48:ssd1306.c     **** {
+ 1590               		.loc 1 48 6 view .LVU494
+ 1591               	.LBB292:
+  50:ssd1306.c     **** 	CS_DISP_0;
+ 1592               		.loc 1 50 2 view .LVU495
+ 1593 0342 2A98      		cbi 0x5,2
+  51:ssd1306.c     **** 	SPI_MasterTransmit(command);
+ 1594               		.loc 1 51 2 view .LVU496
+ 1595 0344 2898      		cbi 0x5,0
+  52:ssd1306.c     **** 	CS_DISP_1;
+ 1596               		.loc 1 52 2 view .LVU497
+ 1597 0346 8D2D      		mov r24,r13
+ 1598 0348 0E94 0000 		call SPI_MasterTransmit
+ 1599               	.LVL144:
+  53:ssd1306.c     **** }
+ 1600               		.loc 1 53 2 view .LVU498
+ 1601 034c 289A      		sbi 0x5,0
+ 1602               	.LVL145:
+  53:ssd1306.c     **** }
+ 1603               		.loc 1 53 2 is_stmt 0 view .LVU499
+ 1604               	.LBE292:
+ 1605               	.LBE291:
+  64:ssd1306.c     **** 	return;
+ 1606               		.loc 1 64 2 is_stmt 1 view .LVU500
+ 1607               	.LBB293:
+ 1608               	.LBI293:
+  48:ssd1306.c     **** {
+ 1609               		.loc 1 48 6 view .LVU501
+ 1610               	.LBB294:
+  50:ssd1306.c     **** 	CS_DISP_0;
+ 1611               		.loc 1 50 2 view .LVU502
+ 1612 034e 2A98      		cbi 0x5,2
+  51:ssd1306.c     **** 	SPI_MasterTransmit(command);
+ 1613               		.loc 1 51 2 view .LVU503
+ 1614 0350 2898      		cbi 0x5,0
+  52:ssd1306.c     **** 	CS_DISP_1;
+ 1615               		.loc 1 52 2 view .LVU504
+ 1616 0352 8F2D      		mov r24,r15
+ 1617 0354 0E94 0000 		call SPI_MasterTransmit
+ 1618               	.LVL146:
+  53:ssd1306.c     **** }
+ 1619               		.loc 1 53 2 view .LVU505
+ 1620 0358 289A      		sbi 0x5,0
+ 1621               	.LVL147:
+  53:ssd1306.c     **** }
+ 1622               		.loc 1 53 2 is_stmt 0 view .LVU506
+ 1623               	.LBE294:
+ 1624               	.LBE293:
+  65:ssd1306.c     **** }
+ 1625               		.loc 1 65 2 is_stmt 1 view .LVU507
+  65:ssd1306.c     **** }
+ 1626               		.loc 1 65 2 is_stmt 0 view .LVU508
+ 1627               	.LBE295:
+ 1628               	.LBE304:
+ 144:ssd1306.c     **** 			Write_Char(fontsize, *str++);
+ 1629               		.loc 1 144 4 is_stmt 1 view .LVU509
+ 1630 035a FE01      		movw r30,r28
+ 1631               		.loc 1 144 29 is_stmt 0 view .LVU510
+ 1632 035c 2196      		adiw r28,1
+ 1633               	.LVL148:
+ 1634               		.loc 1 144 4 view .LVU511
+ 1635 035e 6081      		ld r22,Z
+ 1636 0360 8E2D      		mov r24,r14
+ 1637 0362 0E94 0000 		call Write_Char
+ 1638               	.LVL149:
+ 145:ssd1306.c     **** 			pos++;
+ 1639               		.loc 1 145 4 is_stmt 1 view .LVU512
+ 140:ssd1306.c     **** 		{
+ 1640               		.loc 1 140 8 view .LVU513
+ 1641 0366 9881      		ld r25,Y
+ 1642 0368 9111      		cpse r25,__zero_reg__
+ 1643 036a 00C0      		rjmp .L33
+ 1644               	.LVL150:
+ 1645               	.L27:
+ 1646               	/* epilogue start */
+ 146:ssd1306.c     **** 		 }
+ 147:ssd1306.c     **** 	}
+ 148:ssd1306.c     **** }
+ 1647               		.loc 1 148 1 is_stmt 0 view .LVU514
+ 1648 036c DF91      		pop r29
+ 1649 036e CF91      		pop r28
+ 1650 0370 1F91      		pop r17
+ 1651 0372 0F91      		pop r16
+ 1652 0374 FF90      		pop r15
+ 1653 0376 EF90      		pop r14
+ 1654 0378 DF90      		pop r13
+ 1655 037a CF90      		pop r12
+ 1656 037c BF90      		pop r11
+ 1657 037e AF90      		pop r10
+ 1658 0380 0895      		ret
+ 1659               	.LVL151:
+ 1660               	.L28:
+ 131:ssd1306.c     **** 		{
+ 1661               		.loc 1 131 8 is_stmt 1 view .LVU515
+ 1662 0382 8823      		tst r24
+ 1663 0384 01F0      		breq .L27
+ 134:ssd1306.c     **** 			Write_Char(fontsize, *str++);
+ 1664               		.loc 1 134 4 is_stmt 0 view .LVU516
+ 1665 0386 6E9D      		mul r22,r14
+ 1666 0388 602D      		mov r22,r0
+ 1667 038a 1124      		clr r1
+ 1668               	.LVL152:
+ 1669               	.LBB305:
+ 1670               	.LBB306:
+  62:ssd1306.c     ****     send_command((0x10|(add>>4)));
+ 1671               		.loc 1 62 7 view .LVU517
+ 1672 038c 685D      		subi r22,lo8(-(40))
+  63:ssd1306.c     **** 	send_command((0x0f&add));
+ 1673               		.loc 1 63 5 view .LVU518
+ 1674 038e 862F      		mov r24,r22
+ 1675 0390 8295      		swap r24
+ 1676 0392 8F70      		andi r24,lo8(15)
+ 1677 0394 B82E      		mov r11,r24
+ 1678 0396 6894      		set
+ 1679 0398 B4F8      		bld r11,4
+  64:ssd1306.c     **** 	return;
+ 1680               		.loc 1 64 2 view .LVU519
+ 1681 039a 6F70      		andi r22,lo8(15)
+ 1682 039c D62E      		mov r13,r22
+ 1683 039e 440F      		lsl r20
+ 1684               	.LVL153:
+  64:ssd1306.c     **** 	return;
+ 1685               		.loc 1 64 2 view .LVU520
+ 1686 03a0 97E0      		ldi r25,lo8(7)
+ 1687 03a2 C92E      		mov r12,r25
+ 1688 03a4 C41A      		sub r12,r20
+ 1689               	.LBE306:
+ 1690               	.LBE305:
+ 1691               	.LBB312:
+ 1692               	.LBB313:
+ 1693               	.LBB314:
+ 123:ssd1306.c     **** 	}
+ 1694               		.loc 1 123 13 view .LVU521
+ 1695 03a6 8AE1      		ldi r24,lo8(26)
+ 1696 03a8 A82E      		mov r10,r24
+ 1697               	.LVL154:
+ 1698               	.L32:
+ 123:ssd1306.c     **** 	}
+ 1699               		.loc 1 123 13 view .LVU522
+ 1700               	.LBE314:
+ 1701               	.LBE313:
+ 1702               	.LBE312:
+ 133:ssd1306.c     **** 			Set_Column_Address(row*fontsize);	//0-3	(* 14 collums / char)
+ 1703               		.loc 1 133 4 is_stmt 1 view .LVU523
+ 1704               	.LBB320:
+ 1705               	.LBI320:
+  55:ssd1306.c     **** {
+ 1706               		.loc 1 55 6 view .LVU524
+ 1707               	.LBB321:
+  57:ssd1306.c     ****     send_command(add);
+ 1708               		.loc 1 57 5 view .LVU525
+  58:ssd1306.c     **** 	return;
+ 1709               		.loc 1 58 5 view .LVU526
+ 1710               	.LBB322:
+ 1711               	.LBI322:
+  48:ssd1306.c     **** {
+ 1712               		.loc 1 48 6 view .LVU527
+ 1713               	.LBB323:
+  50:ssd1306.c     **** 	CS_DISP_0;
+ 1714               		.loc 1 50 2 view .LVU528
+ 1715 03aa 2A98      		cbi 0x5,2
+  51:ssd1306.c     **** 	SPI_MasterTransmit(command);
+ 1716               		.loc 1 51 2 view .LVU529
+ 1717 03ac 2898      		cbi 0x5,0
+  52:ssd1306.c     **** 	CS_DISP_1;
+ 1718               		.loc 1 52 2 view .LVU530
+ 1719 03ae 8C2D      		mov r24,r12
+ 1720 03b0 806B      		ori r24,lo8(-80)
+ 1721               	.LVL155:
+  52:ssd1306.c     **** 	CS_DISP_1;
+ 1722               		.loc 1 52 2 is_stmt 0 view .LVU531
+ 1723 03b2 0E94 0000 		call SPI_MasterTransmit
+ 1724               	.LVL156:
+  53:ssd1306.c     **** }
+ 1725               		.loc 1 53 2 is_stmt 1 view .LVU532
+ 1726 03b6 289A      		sbi 0x5,0
+ 1727               	.LVL157:
+  53:ssd1306.c     **** }
+ 1728               		.loc 1 53 2 is_stmt 0 view .LVU533
+ 1729               	.LBE323:
+ 1730               	.LBE322:
+  59:ssd1306.c     **** }
+ 1731               		.loc 1 59 2 is_stmt 1 view .LVU534
+  59:ssd1306.c     **** }
+ 1732               		.loc 1 59 2 is_stmt 0 view .LVU535
+ 1733               	.LBE321:
+ 1734               	.LBE320:
+ 134:ssd1306.c     **** 			Write_Char(fontsize, *str++);
+ 1735               		.loc 1 134 4 is_stmt 1 view .LVU536
+ 1736               	.LBB324:
+ 1737               	.LBI305:
+  61:ssd1306.c     **** {	 add+=40;
+ 1738               		.loc 1 61 6 view .LVU537
+ 1739               	.LBB311:
+  62:ssd1306.c     ****     send_command((0x10|(add>>4)));
+ 1740               		.loc 1 62 4 view .LVU538
+  63:ssd1306.c     **** 	send_command((0x0f&add));
+ 1741               		.loc 1 63 5 view .LVU539
+ 1742               	.LBB307:
+ 1743               	.LBI307:
+  48:ssd1306.c     **** {
+ 1744               		.loc 1 48 6 view .LVU540
+ 1745               	.LBB308:
+  50:ssd1306.c     **** 	CS_DISP_0;
+ 1746               		.loc 1 50 2 view .LVU541
+ 1747 03b8 2A98      		cbi 0x5,2
+  51:ssd1306.c     **** 	SPI_MasterTransmit(command);
+ 1748               		.loc 1 51 2 view .LVU542
+ 1749 03ba 2898      		cbi 0x5,0
+  52:ssd1306.c     **** 	CS_DISP_1;
+ 1750               		.loc 1 52 2 view .LVU543
+ 1751 03bc 8B2D      		mov r24,r11
+ 1752 03be 0E94 0000 		call SPI_MasterTransmit
+ 1753               	.LVL158:
+  53:ssd1306.c     **** }
+ 1754               		.loc 1 53 2 view .LVU544
+ 1755 03c2 289A      		sbi 0x5,0
+ 1756               	.LVL159:
+  53:ssd1306.c     **** }
+ 1757               		.loc 1 53 2 is_stmt 0 view .LVU545
+ 1758               	.LBE308:
+ 1759               	.LBE307:
+  64:ssd1306.c     **** 	return;
+ 1760               		.loc 1 64 2 is_stmt 1 view .LVU546
+ 1761               	.LBB309:
+ 1762               	.LBI309:
+  48:ssd1306.c     **** {
+ 1763               		.loc 1 48 6 view .LVU547
+ 1764               	.LBB310:
+  50:ssd1306.c     **** 	CS_DISP_0;
+ 1765               		.loc 1 50 2 view .LVU548
+ 1766 03c4 2A98      		cbi 0x5,2
+  51:ssd1306.c     **** 	SPI_MasterTransmit(command);
+ 1767               		.loc 1 51 2 view .LVU549
+ 1768 03c6 2898      		cbi 0x5,0
+  52:ssd1306.c     **** 	CS_DISP_1;
+ 1769               		.loc 1 52 2 view .LVU550
+ 1770 03c8 8D2D      		mov r24,r13
+ 1771 03ca 0E94 0000 		call SPI_MasterTransmit
+ 1772               	.LVL160:
+  53:ssd1306.c     **** }
+ 1773               		.loc 1 53 2 view .LVU551
+ 1774 03ce 289A      		sbi 0x5,0
+ 1775               	.LVL161:
+  53:ssd1306.c     **** }
+ 1776               		.loc 1 53 2 is_stmt 0 view .LVU552
+ 1777               	.LBE310:
+ 1778               	.LBE309:
+  65:ssd1306.c     **** }
+ 1779               		.loc 1 65 2 is_stmt 1 view .LVU553
+  65:ssd1306.c     **** }
+ 1780               		.loc 1 65 2 is_stmt 0 view .LVU554
+ 1781               	.LBE311:
+ 1782               	.LBE324:
+ 135:ssd1306.c     **** 			pos++;
+ 1783               		.loc 1 135 4 is_stmt 1 view .LVU555
+ 1784 03d0 F801      		movw r30,r16
+ 1785               	.LVL162:
+ 1786               	.LBB325:
+ 1787               	.LBI312:
+ 110:ssd1306.c     **** {
+ 1788               		.loc 1 110 6 view .LVU556
+ 1789               	.LBB319:
+ 112:ssd1306.c     **** 	uint8_t x;
+ 1790               		.loc 1 112 2 view .LVU557
+ 113:ssd1306.c     **** 	
+ 1791               		.loc 1 113 2 view .LVU558
+ 115:ssd1306.c     **** 	{
+ 1792               		.loc 1 115 2 view .LVU559
+ 120:ssd1306.c     **** 	for(x=0;x<fontsize;x++) 
+ 1793               		.loc 1 120 2 view .LVU560
+ 121:ssd1306.c     **** 	{
+ 1794               		.loc 1 121 2 view .LVU561
+ 121:ssd1306.c     **** 	{
+ 1795               		.loc 1 121 10 view .LVU562
+ 120:ssd1306.c     **** 	for(x=0;x<fontsize;x++) 
+ 1796               		.loc 1 120 3 is_stmt 0 view .LVU563
+ 1797 03d2 C081      		ld r28,Z
+ 1798 03d4 0F5F      		subi r16,-1
+ 1799 03d6 1F4F      		sbci r17,-1
+ 1800               	.LVL163:
+ 120:ssd1306.c     **** 	for(x=0;x<fontsize;x++) 
+ 1801               		.loc 1 120 3 view .LVU564
+ 1802 03d8 C052      		subi r28,lo8(-(-32))
+ 1803               	.LBB315:
+ 123:ssd1306.c     **** 	}
+ 1804               		.loc 1 123 13 view .LVU565
+ 1805 03da CA9D      		mul r28,r10
+ 1806 03dc E001      		movw r28,r0
+ 1807 03de 1124      		clr __zero_reg__
+ 1808 03e0 7E01      		movw r14,r28
+ 1809 03e2 8AE1      		ldi r24,26
+ 1810 03e4 E80E      		add r14,r24
+ 1811 03e6 F11C      		adc r15,__zero_reg__
+ 1812               	.LVL164:
+ 1813               	.L31:
+ 123:ssd1306.c     **** 	}
+ 1814               		.loc 1 123 13 view .LVU566
+ 1815               	.LBE315:
+ 123:ssd1306.c     **** 	}
+ 1816               		.loc 1 123 3 is_stmt 1 view .LVU567
+ 1817               	.LBB316:
+ 123:ssd1306.c     **** 	}
+ 1818               		.loc 1 123 13 view .LVU568
+ 123:ssd1306.c     **** 	}
+ 1819               		.loc 1 123 13 view .LVU569
+ 123:ssd1306.c     **** 	}
+ 1820               		.loc 1 123 13 view .LVU570
+ 1821 03e8 FE01      		movw r30,r28
+ 1822               	/* #APP */
+ 1823               	 ;  123 "ssd1306.c" 1
+ 1824 03ea 8491      		lpm r24, Z
+ 1825               		
+ 1826               	 ;  0 "" 2
+ 1827               	.LVL165:
+ 123:ssd1306.c     **** 	}
+ 1828               		.loc 1 123 13 view .LVU571
+ 123:ssd1306.c     **** 	}
+ 1829               		.loc 1 123 13 is_stmt 0 view .LVU572
+ 1830               	/* #NOAPP */
+ 1831               	.LBE316:
+ 1832               	.LBB317:
+ 1833               	.LBI317:
+  41:ssd1306.c     **** {
+ 1834               		.loc 1 41 6 is_stmt 1 view .LVU573
+ 1835               	.LBB318:
+  43:ssd1306.c     **** 	CS_DISP_0;
+ 1836               		.loc 1 43 2 view .LVU574
+ 1837 03ec 2A9A      		sbi 0x5,2
+  44:ssd1306.c     **** 	SPI_MasterTransmit(data);
+ 1838               		.loc 1 44 2 view .LVU575
+ 1839 03ee 2898      		cbi 0x5,0
+  45:ssd1306.c     **** 	CS_DISP_1;
+ 1840               		.loc 1 45 2 view .LVU576
+ 1841 03f0 0E94 0000 		call SPI_MasterTransmit
+ 1842               	.LVL166:
+  46:ssd1306.c     **** }
+ 1843               		.loc 1 46 2 view .LVU577
+ 1844 03f4 289A      		sbi 0x5,0
+  46:ssd1306.c     **** }
+ 1845               		.loc 1 46 2 is_stmt 0 view .LVU578
+ 1846               	.LBE318:
+ 1847               	.LBE317:
+ 121:ssd1306.c     **** 	{
+ 1848               		.loc 1 121 21 is_stmt 1 view .LVU579
+ 121:ssd1306.c     **** 	{
+ 1849               		.loc 1 121 10 view .LVU580
+ 121:ssd1306.c     **** 	{
+ 1850               		.loc 1 121 2 is_stmt 0 view .LVU581
+ 1851 03f6 2196      		adiw r28,1
+ 1852               	.LVL167:
+ 121:ssd1306.c     **** 	{
+ 1853               		.loc 1 121 2 view .LVU582
+ 1854 03f8 EC16      		cp r14,r28
+ 1855 03fa FD06      		cpc r15,r29
+ 1856 03fc 01F4      		brne .L31
+ 1857               	.LVL168:
+ 121:ssd1306.c     **** 	{
+ 1858               		.loc 1 121 2 view .LVU583
+ 1859               	.LBE319:
+ 1860               	.LBE325:
+ 136:ssd1306.c     **** 		 }
+ 1861               		.loc 1 136 4 is_stmt 1 view .LVU584
+ 131:ssd1306.c     **** 		{
+ 1862               		.loc 1 131 8 view .LVU585
+ 1863 03fe CA94      		dec r12
+ 1864 0400 CA94      		dec r12
+ 1865 0402 F801      		movw r30,r16
+ 1866 0404 8081      		ld r24,Z
+ 1867 0406 8111      		cpse r24,__zero_reg__
+ 1868 0408 00C0      		rjmp .L32
+ 131:ssd1306.c     **** 		{
+ 1869               		.loc 1 131 8 is_stmt 0 view .LVU586
+ 1870 040a 00C0      		rjmp .L27
+ 1871               		.cfi_endproc
+ 1872               	.LFE22:
+ 1874               	.Letext0:
+ 1875               		.file 4 "/usr/avr/include/stdint.h"
+ 1876               		.file 5 "ssd1306.h"
+ 1877               		.file 6 "spi.h"
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 ssd1306.c
+     /tmp/cckDei8I.s:2      *ABS*:000000000000003e __SP_H__
+     /tmp/cckDei8I.s:3      *ABS*:000000000000003d __SP_L__
+     /tmp/cckDei8I.s:4      *ABS*:000000000000003f __SREG__
+     /tmp/cckDei8I.s:5      *ABS*:0000000000000000 __tmp_reg__
+     /tmp/cckDei8I.s:6      *ABS*:0000000000000001 __zero_reg__
+     /tmp/cckDei8I.s:12     .text:0000000000000000 Display_Init
+     /tmp/cckDei8I.s:559    .text:000000000000012e send_data
+     /tmp/cckDei8I.s:585    .text:000000000000013a send_command
+     /tmp/cckDei8I.s:611    .text:0000000000000146 Set_Page_Address
+     /tmp/cckDei8I.s:651    .text:0000000000000154 Set_Column_Address
+     /tmp/cckDei8I.s:732    .text:000000000000017e Set_Contrast_Control_Register
+     /tmp/cckDei8I.s:800    .text:000000000000019e Display_Picture
+     /tmp/cckDei8I.s:1001   .text:000000000000020a Display_Clear
+     /tmp/cckDei8I.s:1165   .text:0000000000000254 Char_Position
+     /tmp/cckDei8I.s:1315   .text:000000000000029a Write_Char
+     /tmp/cckDei8I.s:1447   .text:00000000000002ec Write_String
+
+UNDEFINED SYMBOLS
+SPI_MasterTransmit
+font14
+font8
