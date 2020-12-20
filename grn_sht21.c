@@ -2,10 +2,9 @@
  * 
  * 	Sensirion SHT21 Sensor (Temperature / Humidity)
  *
- * 	grn; Apr 15
+ * 	grn; Dec 20
  * 
- * 	Bemerkung: 	- momentan nur positive Temparaturen
- * 				- noch nicht alle Funktionen von Sensor implementiert
+ * 	Bemerkung: 	- noch nicht alle Funktionen von Sensor implementiert
  * 				- Messungen mit defaul Werten (14Bit Auflösung)
  * 
  */
@@ -22,16 +21,20 @@
 #define SHT21_HUM_HOLDMASTER 0xE5	//Humidity hold master = on
 #define SHT21_SOFTRESET 0xFE		//Softreset
 #define POLYNOMINAL 0x131				//P(x) = x^8+x^5+x^4+1 = 0b100110001
-
 #define TEMPERATURE 	0
 #define HUMIDITY		1
 
-typedef float ft;						//Float VAriable zur Umrechnung vor Rueckgabe
-
+/* ****************************************************
+ * sht21_measure()
+ * 
+ * input:	Temperature (0), HUMIDITY (1)
+ * output:	-
+ * return:	calculated Temp / Hum value / error code
+ ******************************************************/
 int16_t sht21_measure(uint8_t mode)
 {
 	uint8_t bit_l, bit_h, crc, checksum;
-	int16_t messwert, rueckgabewert;
+	int16_t messwert, rueckgabewert,i;
 	bit_l=0;
 	bit_h=0;
 	checksum = 0;
@@ -56,6 +59,15 @@ int16_t sht21_measure(uint8_t mode)
 	if(TWIGetStatus() != 0x10)return 7; //kontrolle ob erfolgreich sonst Abbruch mit Error Code
 	TWIWrite(SHT21_R);					//Adresse und lesen
 	if(TWIGetStatus() != 0x40)return 8;	//kontrolle ob erfolgreich sonst Abbruch mit Error Code
+	
+	DDRC &= ~(1<<PC5);				//set SCL as Input
+	for(i=0;i<1000;i++)				//wait for timout or
+	{	
+		if(PINC &= ~(1<<PC5));		//wait for end conversion of conversion from sensor
+		break;
+	}
+	DDRC |= (1<<PC5);				//set SCL as Output
+	
 		
 	bit_h = TWIReadACK();				//empfange MSB
 	if(TWIGetStatus() != 0x50)return 9;	//kontrolle ob erfolgreich sonst Abbruch mit Error Code

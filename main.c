@@ -135,11 +135,11 @@ int main(void)
 							}
 							break;
 			case MEASURE:	temp = sht21_measure(0);
-							sprintf(buffer,"%d",temp);
+							sprintf(buffer,"%d.%d*",vor_komma(temp), nach_komma(temp));
 							Write_String(14,0,0,buffer);
 							
 							hum = sht21_measure(1);
-							sprintf(buff,"%d",hum);
+							sprintf(buff,"%d.%d%%",vor_komma(hum), nach_komma(hum));
 							Write_String(14,1,0,buff);
 							/*
 							TWIStart();
