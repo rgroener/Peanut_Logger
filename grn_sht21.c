@@ -37,7 +37,7 @@ uint8_t sht21_init(void)
 	_delay_ms(15);	//Startuptime after Reset <15ms (Datasheet)
 	return 0;
 }
-float sht21_measure(uint8_t measure_mode)
+int16_t sht21_measure(uint8_t measure_mode)
 {
 	/*
 	 * 	Temperaturmessung / Überprüfung der Checksumme	
@@ -45,8 +45,8 @@ float sht21_measure(uint8_t measure_mode)
 	 * 	Rückgabewert: 	16 bit Temperaturwert x 100 
 	 * 					(letzte 2 Stellen sind Nachkommastellen)
 	 * 
-	 * 	for float as return value, you have to change the following line in 
-	 * the Makefile since only a minimalistic sprintf library is included
+	 * For float as return value, you have to change the following line in 
+	 * the Makefile and add mat.h library since only a minimalistic sprintf library is included
 	 * by default. To add the full float library add/change the following 
 	 * line to the Makefile.
 	 * 
@@ -65,7 +65,7 @@ float sht21_measure(uint8_t measure_mode)
 	 
 	uint8_t raw[]={0,0,0};
 	uint16_t messwert;
-	float rueckgabewert;
+	int16_t rueckgabewert;
 	
 	messwert=0;
 	rueckgabewert=0;
@@ -101,8 +101,8 @@ float sht21_measure(uint8_t measure_mode)
 	messwert &= ~0x003;								//Loescht letzte 2 Bits (Status Bits)
 	switch(measure_mode)
 	{
-		case T_HOLD:	rueckgabewert = (-46.85 + 175.72/65536 * (float)messwert);break;
-		case RH_HOLD:	rueckgabewert = (-6.0 + 125.0/65536 * (float)messwert);break; // return relative humidity;break;	//Modus = Temperatur master hold = on
+		case T_HOLD:	rueckgabewert = (-46.85 + 175.72/65536 * messwert);break;
+		case RH_HOLD:	rueckgabewert = (-6.0 + 125.0/65536 * messwert);break; // return relative humidity;break;	//Modus = Temperatur master hold = on
 	}
 	 
 	if(sht21_checksum(raw,2,raw[2])) 	//check result with checksum

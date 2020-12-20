@@ -19,6 +19,6 @@
 //==============================================================================
 
 uint8_t sht21_init(void);
-float sht21_measure(uint8_t measure_mode);
+int16_t sht21_measure(uint8_t measure_mode);
 uint8_t sht21_checksum(uint8_t data[], uint8_t no_of_bytes, uint8_t checksum); 
 

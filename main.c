@@ -11,7 +11,7 @@
 #include <stdlib.h>
 #include <avr/io.h>
 #include <stdio.h>  
-#include <math.h>               
+               
 #include <avr/pgmspace.h>
 #include "fonts.h"
 #include "grn_TWI.h"
@@ -27,7 +27,7 @@
 
 uint16_t vor_komma(uint32_t value);
 uint8_t nach_komma(uint32_t value);
-float temp=0;
+int16_t temp=0;
 uint16_t test=0;
 uint16_t roman=0;
 
@@ -131,7 +131,7 @@ int main(void)
 							}
 							break;
 			case MEASURE:	temp = (sht21_measure(0));
-							sprintf(buffer,"%f",temp);
+							sprintf(buffer,"%d",temp);
 							Write_String(14,0,0,buffer);
 							
 							sprintf(buffer,"%d",test);
