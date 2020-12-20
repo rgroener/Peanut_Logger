@@ -5,137 +5,203 @@
  * 
  * avrdude: safemode: Fuses OK (E:F7, H:D9, L:62)
  * */
-#define F_CPU 1000000UL// set the CPU clock
+#define F_CPU 8000000UL// set the CPU clock
 #include <util/delay.h>
 #include <avr/interrupt.h>
 #include <stdlib.h>
 #include <avr/io.h>
-#include <stdio.h>                 
+#include <stdio.h>  
+               
 #include <avr/pgmspace.h>
+#include "fonts.h"
+#include "grn_TWI.h"
+#include "spi.h"
+#include "grn_sht21.h"
+#include "ssd1306.h"
 
-#define CS_DISP_ON 	PORTB &= ~(1<<PB0)	//select chip select display
-#define CS_DISP_OFF 	PORTB |= (1<<PB0)	//deselect chip select display
-#define DISP_DATA	PORTB |= (1<<PB2)	//set D/C to data
-#define DISP_COMM	PORTB &= ~(1<<PB2)	//set D/C to command
-#define DISP_RST_0	PORTB &= ~(1<<PB1)	//set Reset to 0
-#define DISP_RST_1	PORTB |= (1<<PB1)	//set Reset to 1
+#define BUTTON	(!(PIND & (1<<PD3))) && (entprell==0) //read button input
+#define RELOAD_ENTPRELL 40
+#define TOGGLEMAX 4
+#define TEMPERATURE 0
+#define HUMIDITY 1
 
-/*
- * RES		PB1
- * CS_DISP	PB0
- * SCK		PB5
- * MISO		PB4
- * D/C		PB2
- * SDO		PD2
- * 
- * SDA		PC4
- * SCL		PC5
- * 
- * */
+uint16_t vor_komma(uint32_t value);
+uint8_t nach_komma(uint32_t value);
+int16_t temp=0;
+uint16_t test=0;
+int16_t hum=0;
 
-void SPI_MasterInit(void);
-void SPI_MasterTransmit(char cData);
-void send_data(char data);
-void send_command(char command);
+//TIMER
+ISR (TIMER1_COMPA_vect);
+uint16_t vor_komma(uint32_t value);
+uint8_t nach_komma(uint32_t value);
 
+
+enum state {GREETER, ZERO, MEASURE};
+uint8_t state;
+volatile uint8_t ms10,ms100,sec,min, entprell;
+volatile uint8_t screentoggle, toggle, toggle_alt;
+char buffer[20]; // buffer to store string
+char buff[20]; // buffer to store string
 int main(void)
 {
-	DDRB 	|= (1<<PB0) | (1<<PB1) | (1<<PB2);//set CS_DISP and RES and D/C output
-	PORTB	|= (1<<PB0) | (1<<PB1) | (1<<PB2);//set CS_DISP and RES and D/C high
+	DDRB 	|= (1<<PB0) | (1<<PB1) | (1<<PB2) | (1<<PB3) | (1<<PB5);//set CS_DISP and RES and D/C output
+	PORTB	|= (1<<PB0) | (1<<PB1) | (1<<PB2) | (1<<PB3) | (1<<PB5);//set CS_DISP and RES and D/C high
 	
-	
-	
-	DDRB 	|= (1<<PB3);
-	PORTB	|= (1<<PB3);
-	
-	DDRC |= (1<<PC5);
-	PORTC |= (1<<PC5);
+	//TWI
+	DDRC |= (1<<PC5) | (1<<PC4);	//set pins for SCL und SDA as output
+	PORTC |= (1<<PC5) | (1<<PC4);	//set pins high
 	PORTC &= ~(1<<PC5);
-	
-	
+	DDRD |= (1<<PD1)|(1<<PD2);//set TX0 and SDO as output
+	PORTD |= (1<<PD1);
+	PORTD &= ~(1<<PD2);
+
+	DDRD &= ~(1<<PD3) | (1<<PD0);	//Button and RX0 as input(red LED)
+	PORTD |= (1<<PD3);	//activate Pullup
 	
 	//init SPI as master without interrupt
 	SPI_MasterInit();
-    // Enable Global Interrupts
-    //sei();
+    //Timer 1 Configuration
+	OCR1A = 1249;	//OCR1A = 0x3D08;==1sec
+	
+    TCCR1B |= (1 << WGM12);
+    // Mode 4, CTC on OCR1A
+
+    TIMSK1 |= (1 << OCIE1A);
+    //Set interrupt on compare match
+
+    TCCR1B |= (1 << CS11) | (1 << CS10);
+    // set prescaler to 64 and start the timer
+
+    sei();
+    // enable interrupts
+    
+    ms10=0;
+    ms100=0;
+    sec=0;
+    min=0;
+    entprell=0;
+    screentoggle=3;
+    toggle=0;
+    toggle_alt=toggle;
 		
-	DISP_RST_1;
-	_delay_ms(2000);
-	DISP_RST_0;
-	_delay_ms(2000);
-	DISP_RST_1;
-	_delay_ms(30000);
-	PORTB &= ~(1<<PB2);
-
-
- 	send_command(0xae);//--turn off oled panel
-	send_command(0xd5);//--set display clock divide ratio/oscillator frequency
-	send_command(0x80);//--set divide ratio
-	send_command(0xa8);//--set multiplex ratio(1 to 64)
-	send_command(0x3f);//--1/64 duty orig 3f
-	send_command(0xd3);//-set display offset
-	send_command(0x00);//-not offset
-	send_command(0x8d);//--set Charge Pump enable/disable
-	send_command(0x14);//--set(0x10) disable
-	send_command(0x40);//--set start line address orig 40
-	send_command(0xa6);//--set normal display
-	send_command(0xa5);// Disable Entire Display On orig a4
-	send_command(0xa1);//--set segment re-map 128 to 0
-	send_command(0xC8);//--Set COM Output Scan Direction 64 to 0
-	send_command(0xda);//--set com pins hardware configuration
-	send_command(0x12);
-	send_command(0x81);//--set contrast control register
-	send_command(0x80);//orig 80
-	send_command(0xd9);//--set pre-charge period
-	send_command(0xf1);
-	send_command(0xdb);//--set vcomh
-	send_command(0x40);
-
-
-
-	send_command(0xaf);//--turn on oled panel
-	PORTB |= (1<<PB2);
-		
+	Display_Init();
+	Display_Clear();
+	Set_Page_Address(0);
+    Set_Column_Address(0);
+    TWIInit();
+	sht21_init();
+	//DPS310_init(LOW);
+   state = MEASURE;
+	//sprintf(buffer,"sec=%d",sec);
+	//Write_String(14,0,0,"test");
+	/*
+	 * 
+	 * SHT21 0x80 / 0x81
+	 * DPS310 0xee / 0xef
+	 * 
+	 * */
 	while(1)
-	{ 
+	{ 	
+		switch(state)
+		{
+			case GREETER:	if(BUTTON)
+							{
+								state=ZERO;
+								entprell=RELOAD_ENTPRELL;
+								Write_String(14,0,0," Button ");
+								Write_String(14,1,0,"   to   ");
+								Write_String(14,2,0, "  ZERO  ");
+							}
+							if(toggle)
+							{
+									Write_String(14,0,0,"If found");
+									Write_String(14,1,0,"please  ");
+									Write_String(14,2,0, "contact ");
+							}else
+							{
+									Write_String(14,0,0,"rgroener");
+									Write_String(14,1,0,"@mailbox");
+									Write_String(14,2,0, ".org    ");	
+							}
+							break;
+			case ZERO:		if(BUTTON)
+							{
+								state=MEASURE;
+								entprell=RELOAD_ENTPRELL;
+								Write_String(14,0,0," Button ");
+								Write_String(14,1,0,"   to   ");
+								Write_String(14,2,0, "  ZERO  ");
+							}
+							break;
+			case MEASURE:	temp = sht21_measure(0);
+							sprintf(buffer,"%d.%d*",vor_komma(temp), nach_komma(temp));
+							Write_String(14,0,0,buffer);
+							
+							hum = sht21_measure(1);
+							sprintf(buff,"%d.%d%%",vor_komma(hum), nach_komma(hum));
+							Write_String(14,1,0,buff);
+							/*
+							TWIStart();
+							test=TWIGetStatus();
+							sprintf(buffer,"%02X",test);
+							Write_String(14,1,0,buffer);
+							while(1);*/
+							
+							break;
+		}//End of switch(state)	
+			
 		
-		send_data(0xa7);//invert display
-		_delay_ms(2000);
-		send_data(0xa6);//vormal display
-		_delay_ms(2000);		
-		
+		//sprintf(buffer,"sec=%d",test);
+		//Write_String(14,1,0,buffer);
 	} //end while
 }//end of main
 
 
-void SPI_MasterInit(void)
+ISR (TIMER1_COMPA_vect)
 {
-	/* Set MOSI and SCK output, all others input */
-	//DDRB = (1<<MOSI)|(1<<SCK);
-	/* Enable SPI, Master, set clock rate fck/16 */
-	SPCR0 = (1<<SPE)|(1<<MSTR)|(1<<SPR0);
+	
+		ms10++;
+		if(entprell)entprell--;
+			
+	if(ms10==10)	//100ms
+	{
+		ms10=0;
+		ms100++;
+	
+		
+	}
+    if(ms100==10)	//sec
+	{
+		ms100=0;
+		sec++;
+		//change display screen in fixed time
+		screentoggle++;
+		if(screentoggle==TOGGLEMAX)
+		{
+			screentoggle=0;
+			if(toggle==0)
+			{
+				toggle = 1;
+			}else toggle =0;
+		}
+	}
+	if(sec==60)	//Minute
+	{
+		sec=0;
+		min++;
+	}
 }
-void SPI_MasterTransmit(char cData)
+uint16_t vor_komma(uint32_t value)
 {
-	/* Start transmission */
-	SPDR0 = cData;
-	/* Wait for transmission complete */
-	while(!(SPSR0 & (1<<SPIF)));
+	return value/100;
+	
 }
-
-void send_data(char data)
+uint8_t nach_komma(uint32_t value)
 {
-	DISP_DATA;
-	CS_DISP_ON;
-	SPI_MasterTransmit(data);
-	CS_DISP_OFF;
+	uint8_t temp;
+	temp = value/100;
+	return value-(temp*100);
+	
+	
 }
-
-void send_command(char command)
-{
-	DISP_COMM;
-	CS_DISP_ON;
-	SPI_MasterTransmit(command);
-	CS_DISP_OFF;
-}
-

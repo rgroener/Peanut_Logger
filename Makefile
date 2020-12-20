@@ -52,7 +52,7 @@ TARGET = main
 
 
 # List C source files here. (C dependencies are automatically generated.)
-SRC = $(TARGET).c
+SRC = $(TARGET).c grn_TWI.c grn_sht21.c ssd1306.c spi.c
 
 # List Assembler source files here.
 # Make them always end in a capital .S.  Files ending in a lowercase .s
@@ -132,6 +132,7 @@ PRINTF_LIB_MIN = -Wl,-u,vfprintf -lprintf_min
 
 # Floating point printf version (requires MATH_LIB = -lm below)
 PRINTF_LIB_FLOAT = -Wl,-u,vfprintf -lprintf_flt
+
 
 PRINTF_LIB = 
 
