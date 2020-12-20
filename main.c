@@ -29,7 +29,7 @@ uint16_t vor_komma(uint32_t value);
 uint8_t nach_komma(uint32_t value);
 int16_t temp=0;
 uint16_t test=0;
-uint16_t roman=0;
+int16_t hum=0;
 
 //TIMER
 ISR (TIMER1_COMPA_vect);
@@ -42,14 +42,15 @@ uint8_t state;
 volatile uint8_t ms10,ms100,sec,min, entprell;
 volatile uint8_t screentoggle, toggle, toggle_alt;
 char buffer[20]; // buffer to store string
-
+char buff[20]; // buffer to store string
 int main(void)
 {
 	DDRB 	|= (1<<PB0) | (1<<PB1) | (1<<PB2) | (1<<PB3) | (1<<PB5);//set CS_DISP and RES and D/C output
 	PORTB	|= (1<<PB0) | (1<<PB1) | (1<<PB2) | (1<<PB3) | (1<<PB5);//set CS_DISP and RES and D/C high
-		
-	DDRC |= (1<<PC5);	//SCL
-	PORTC |= (1<<PC5);
+	
+	//TWI
+	DDRC |= (1<<PC5) | (1<<PC4);	//set pins for SCL und SDA as output
+	PORTC |= (1<<PC5) | (1<<PC4);	//set pins high
 	PORTC &= ~(1<<PC5);
 	DDRD |= (1<<PD1)|(1<<PD2);//set TX0 and SDO as output
 	PORTD |= (1<<PD1);
@@ -133,13 +134,19 @@ int main(void)
 								Write_String(14,2,0, "  ZERO  ");
 							}
 							break;
-			case MEASURE:	temp = (sht21_measure(0));
-							sprintf(buffer,"%d.%d*",vor_komma(temp),nach_komma(temp));
+			case MEASURE:	temp = sht21_measure(1);
+							sprintf(buffer,"%02X",temp);
 							Write_String(14,0,0,buffer);
 							
-							sprintf(buffer,"%d",test);
+							hum = sht21_measure(0);
+							sprintf(buff,"%02X",hum);
+							Write_String(14,1,0,buff);
+							/*
+							TWIStart();
+							test=TWIGetStatus();
+							sprintf(buffer,"%02X",test);
 							Write_String(14,1,0,buffer);
-							test++;
+							while(1);*/
 							
 							break;
 		}//End of switch(state)	

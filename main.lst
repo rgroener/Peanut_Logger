@@ -45,15 +45,13 @@
   28      2020 2020 
   28      00
   29               	.LC9:
-  30 0051 2564 2E25 		.string	"%d.%d*"
-  30      642A 00
-  31               	.LC10:
-  32 0058 2564 00   		.string	"%d"
-  33               		.section	.text.startup,"ax",@progbits
-  34               	.global	main
-  36               	main:
-  37               	.LFB12:
-  38               		.file 1 "main.c"
+  30 0051 2530 3258 		.string	"%02X"
+  30      00
+  31               		.section	.text.startup,"ax",@progbits
+  32               	.global	main
+  34               	main:
+  35               	.LFB12:
+  36               		.file 1 "main.c"
    1:main.c        **** /*
    2:main.c        ****  * Altitude logger for rubber powered models
    3:main.c        ****  * 
@@ -85,7 +83,7 @@
   29:main.c        **** uint8_t nach_komma(uint32_t value);
   30:main.c        **** int16_t temp=0;
   31:main.c        **** uint16_t test=0;
-  32:main.c        **** uint16_t roman=0;
+  32:main.c        **** int16_t hum=0;
   33:main.c        **** 
   34:main.c        **** //TIMER
   35:main.c        **** ISR (TIMER1_COMPA_vect);
@@ -98,1903 +96,1801 @@
   42:main.c        **** volatile uint8_t ms10,ms100,sec,min, entprell;
   43:main.c        **** volatile uint8_t screentoggle, toggle, toggle_alt;
   44:main.c        **** char buffer[20]; // buffer to store string
-  45:main.c        **** 
+  45:main.c        **** char buff[20]; // buffer to store string
   46:main.c        **** int main(void)
   47:main.c        **** {
-  39               		.loc 1 47 1 view -0
-  40               		.cfi_startproc
-  41 0000 00D0      		rcall .
-  42 0002 00D0      		rcall .
-  43               	.LCFI0:
-  44               		.cfi_def_cfa_offset 6
-  45 0004 CDB7      		in r28,__SP_L__
-  46 0006 DEB7      		in r29,__SP_H__
-  47               	.LCFI1:
-  48               		.cfi_def_cfa_register 28
-  49               	/* prologue: function */
-  50               	/* frame size = 4 */
-  51               	/* stack size = 4 */
-  52               	.L__stack_usage = 4
+  37               		.loc 1 47 1 view -0
+  38               		.cfi_startproc
+  39               	/* prologue: function */
+  40               	/* frame size = 0 */
+  41               	/* stack size = 0 */
+  42               	.L__stack_usage = 0
   48:main.c        **** 	DDRB 	|= (1<<PB0) | (1<<PB1) | (1<<PB2) | (1<<PB3) | (1<<PB5);//set CS_DISP and RES and D/C output
-  53               		.loc 1 48 2 view .LVU1
-  54               		.loc 1 48 8 is_stmt 0 view .LVU2
-  55 0008 84B1      		in r24,0x4
-  56 000a 8F62      		ori r24,lo8(47)
-  57 000c 84B9      		out 0x4,r24
+  43               		.loc 1 48 2 view .LVU1
+  44               		.loc 1 48 8 is_stmt 0 view .LVU2
+  45 0000 84B1      		in r24,0x4
+  46 0002 8F62      		ori r24,lo8(47)
+  47 0004 84B9      		out 0x4,r24
   49:main.c        **** 	PORTB	|= (1<<PB0) | (1<<PB1) | (1<<PB2) | (1<<PB3) | (1<<PB5);//set CS_DISP and RES and D/C high
-  58               		.loc 1 49 2 is_stmt 1 view .LVU3
-  59               		.loc 1 49 8 is_stmt 0 view .LVU4
-  60 000e 85B1      		in r24,0x5
-  61 0010 8F62      		ori r24,lo8(47)
-  62 0012 85B9      		out 0x5,r24
-  50:main.c        **** 		
-  51:main.c        **** 	DDRC |= (1<<PC5);	//SCL
-  63               		.loc 1 51 2 is_stmt 1 view .LVU5
-  64               		.loc 1 51 7 is_stmt 0 view .LVU6
-  65 0014 3D9A      		sbi 0x7,5
-  52:main.c        **** 	PORTC |= (1<<PC5);
-  66               		.loc 1 52 2 is_stmt 1 view .LVU7
-  67               		.loc 1 52 8 is_stmt 0 view .LVU8
-  68 0016 459A      		sbi 0x8,5
-  53:main.c        **** 	PORTC &= ~(1<<PC5);
-  69               		.loc 1 53 2 is_stmt 1 view .LVU9
-  70               		.loc 1 53 8 is_stmt 0 view .LVU10
-  71 0018 4598      		cbi 0x8,5
-  54:main.c        **** 	DDRD |= (1<<PD1)|(1<<PD2);//set TX0 and SDO as output
-  72               		.loc 1 54 2 is_stmt 1 view .LVU11
-  73               		.loc 1 54 7 is_stmt 0 view .LVU12
-  74 001a 8AB1      		in r24,0xa
-  75 001c 8660      		ori r24,lo8(6)
-  76 001e 8AB9      		out 0xa,r24
-  55:main.c        **** 	PORTD |= (1<<PD1);
-  77               		.loc 1 55 2 is_stmt 1 view .LVU13
-  78               		.loc 1 55 8 is_stmt 0 view .LVU14
-  79 0020 599A      		sbi 0xb,1
-  56:main.c        **** 	PORTD &= ~(1<<PD2);
-  80               		.loc 1 56 2 is_stmt 1 view .LVU15
-  81               		.loc 1 56 8 is_stmt 0 view .LVU16
-  82 0022 5A98      		cbi 0xb,2
-  57:main.c        **** 
-  58:main.c        **** 	DDRD &= ~(1<<PD3) | (1<<PD0);	//Button and RX0 as input(red LED)
-  83               		.loc 1 58 2 is_stmt 1 view .LVU17
-  84               		.loc 1 58 7 is_stmt 0 view .LVU18
-  85 0024 5398      		cbi 0xa,3
-  59:main.c        **** 	PORTD |= (1<<PD3);	//activate Pullup
-  86               		.loc 1 59 2 is_stmt 1 view .LVU19
-  87               		.loc 1 59 8 is_stmt 0 view .LVU20
-  88 0026 5B9A      		sbi 0xb,3
-  60:main.c        **** 	
-  61:main.c        **** 	//init SPI as master without interrupt
-  62:main.c        **** 	SPI_MasterInit();
-  89               		.loc 1 62 2 is_stmt 1 view .LVU21
-  90 0028 0E94 0000 		call SPI_MasterInit
-  91               	.LVL0:
-  63:main.c        ****     //Timer 1 Configuration
-  64:main.c        **** 	OCR1A = 1249;	//OCR1A = 0x3D08;==1sec
-  92               		.loc 1 64 2 view .LVU22
-  93               		.loc 1 64 8 is_stmt 0 view .LVU23
-  94 002c 81EE      		ldi r24,lo8(-31)
-  95 002e 94E0      		ldi r25,lo8(4)
-  96 0030 9093 8900 		sts 136+1,r25
-  97 0034 8093 8800 		sts 136,r24
-  65:main.c        **** 	
-  66:main.c        ****     TCCR1B |= (1 << WGM12);
-  98               		.loc 1 66 5 is_stmt 1 view .LVU24
-  99               		.loc 1 66 12 is_stmt 0 view .LVU25
- 100 0038 8091 8100 		lds r24,129
- 101 003c 8860      		ori r24,lo8(8)
- 102 003e 8093 8100 		sts 129,r24
-  67:main.c        ****     // Mode 4, CTC on OCR1A
-  68:main.c        **** 
-  69:main.c        ****     TIMSK1 |= (1 << OCIE1A);
- 103               		.loc 1 69 5 is_stmt 1 view .LVU26
- 104               		.loc 1 69 12 is_stmt 0 view .LVU27
- 105 0042 8091 6F00 		lds r24,111
- 106 0046 8260      		ori r24,lo8(2)
- 107 0048 8093 6F00 		sts 111,r24
-  70:main.c        ****     //Set interrupt on compare match
-  71:main.c        **** 
-  72:main.c        ****     TCCR1B |= (1 << CS11) | (1 << CS10);
- 108               		.loc 1 72 5 is_stmt 1 view .LVU28
- 109               		.loc 1 72 12 is_stmt 0 view .LVU29
- 110 004c 8091 8100 		lds r24,129
- 111 0050 8360      		ori r24,lo8(3)
- 112 0052 8093 8100 		sts 129,r24
-  73:main.c        ****     // set prescaler to 64 and start the timer
-  74:main.c        **** 
-  75:main.c        ****     sei();
- 113               		.loc 1 75 5 is_stmt 1 view .LVU30
- 114               	/* #APP */
- 115               	 ;  75 "main.c" 1
- 116 0056 7894      		sei
- 117               	 ;  0 "" 2
-  76:main.c        ****     // enable interrupts
-  77:main.c        ****     
-  78:main.c        ****     ms10=0;
- 118               		.loc 1 78 5 view .LVU31
- 119               		.loc 1 78 9 is_stmt 0 view .LVU32
- 120               	/* #NOAPP */
- 121 0058 1092 0000 		sts ms10,__zero_reg__
-  79:main.c        ****     ms100=0;
- 122               		.loc 1 79 5 is_stmt 1 view .LVU33
- 123               		.loc 1 79 10 is_stmt 0 view .LVU34
- 124 005c 1092 0000 		sts ms100,__zero_reg__
-  80:main.c        ****     sec=0;
- 125               		.loc 1 80 5 is_stmt 1 view .LVU35
- 126               		.loc 1 80 8 is_stmt 0 view .LVU36
- 127 0060 1092 0000 		sts sec,__zero_reg__
-  81:main.c        ****     min=0;
- 128               		.loc 1 81 5 is_stmt 1 view .LVU37
- 129               		.loc 1 81 8 is_stmt 0 view .LVU38
- 130 0064 1092 0000 		sts min,__zero_reg__
-  82:main.c        ****     entprell=0;
- 131               		.loc 1 82 5 is_stmt 1 view .LVU39
- 132               		.loc 1 82 13 is_stmt 0 view .LVU40
- 133 0068 1092 0000 		sts entprell,__zero_reg__
-  83:main.c        ****     screentoggle=3;
- 134               		.loc 1 83 5 is_stmt 1 view .LVU41
- 135               		.loc 1 83 17 is_stmt 0 view .LVU42
- 136 006c 83E0      		ldi r24,lo8(3)
- 137 006e 8093 0000 		sts screentoggle,r24
-  84:main.c        ****     toggle=0;
- 138               		.loc 1 84 5 is_stmt 1 view .LVU43
- 139               		.loc 1 84 11 is_stmt 0 view .LVU44
- 140 0072 1092 0000 		sts toggle,__zero_reg__
-  85:main.c        ****     toggle_alt=toggle;
- 141               		.loc 1 85 5 is_stmt 1 view .LVU45
- 142               		.loc 1 85 15 is_stmt 0 view .LVU46
- 143 0076 8091 0000 		lds r24,toggle
- 144 007a 8093 0000 		sts toggle_alt,r24
-  86:main.c        **** 		
-  87:main.c        **** 	Display_Init();
- 145               		.loc 1 87 2 is_stmt 1 view .LVU47
- 146 007e 0E94 0000 		call Display_Init
- 147               	.LVL1:
-  88:main.c        **** 	Display_Clear();
- 148               		.loc 1 88 2 view .LVU48
- 149 0082 0E94 0000 		call Display_Clear
- 150               	.LVL2:
-  89:main.c        **** 	Set_Page_Address(0);
- 151               		.loc 1 89 2 view .LVU49
- 152 0086 80E0      		ldi r24,0
- 153 0088 0E94 0000 		call Set_Page_Address
- 154               	.LVL3:
-  90:main.c        ****     Set_Column_Address(0);
- 155               		.loc 1 90 5 view .LVU50
- 156 008c 80E0      		ldi r24,0
- 157 008e 0E94 0000 		call Set_Column_Address
- 158               	.LVL4:
-  91:main.c        ****     TWIInit();
- 159               		.loc 1 91 5 view .LVU51
- 160 0092 0E94 0000 		call TWIInit
- 161               	.LVL5:
-  92:main.c        **** 	sht21_init();
- 162               		.loc 1 92 2 view .LVU52
- 163 0096 0E94 0000 		call sht21_init
- 164               	.LVL6:
-  93:main.c        **** 	//DPS310_init(LOW);
-  94:main.c        ****    state = MEASURE;
- 165               		.loc 1 94 4 view .LVU53
- 166               		.loc 1 94 10 is_stmt 0 view .LVU54
- 167 009a 82E0      		ldi r24,lo8(2)
- 168 009c 8093 0000 		sts state,r24
-  95:main.c        **** 	//sprintf(buffer,"sec=%d",sec);
-  96:main.c        **** 	//Write_String(14,0,0,"test");
-  97:main.c        **** 	/*
-  98:main.c        **** 	 * 
-  99:main.c        **** 	 * SHT21 0x80 / 0x81
- 100:main.c        **** 	 * DPS310 0xee / 0xef
- 101:main.c        **** 	 * 
- 102:main.c        **** 	 * */
- 103:main.c        **** 	while(1)
+  48               		.loc 1 49 2 is_stmt 1 view .LVU3
+  49               		.loc 1 49 8 is_stmt 0 view .LVU4
+  50 0006 85B1      		in r24,0x5
+  51 0008 8F62      		ori r24,lo8(47)
+  52 000a 85B9      		out 0x5,r24
+  50:main.c        **** 	
+  51:main.c        **** 	//TWI
+  52:main.c        **** 	DDRC |= (1<<PC5) | (1<<PC4);	//set pins for SCL und SDA as output
+  53               		.loc 1 52 2 is_stmt 1 view .LVU5
+  54               		.loc 1 52 7 is_stmt 0 view .LVU6
+  55 000c 87B1      		in r24,0x7
+  56 000e 8063      		ori r24,lo8(48)
+  57 0010 87B9      		out 0x7,r24
+  53:main.c        **** 	PORTC |= (1<<PC5) | (1<<PC4);	//set pins high
+  58               		.loc 1 53 2 is_stmt 1 view .LVU7
+  59               		.loc 1 53 8 is_stmt 0 view .LVU8
+  60 0012 88B1      		in r24,0x8
+  61 0014 8063      		ori r24,lo8(48)
+  62 0016 88B9      		out 0x8,r24
+  54:main.c        **** 	PORTC &= ~(1<<PC5);
+  63               		.loc 1 54 2 is_stmt 1 view .LVU9
+  64               		.loc 1 54 8 is_stmt 0 view .LVU10
+  65 0018 4598      		cbi 0x8,5
+  55:main.c        **** 	DDRD |= (1<<PD1)|(1<<PD2);//set TX0 and SDO as output
+  66               		.loc 1 55 2 is_stmt 1 view .LVU11
+  67               		.loc 1 55 7 is_stmt 0 view .LVU12
+  68 001a 8AB1      		in r24,0xa
+  69 001c 8660      		ori r24,lo8(6)
+  70 001e 8AB9      		out 0xa,r24
+  56:main.c        **** 	PORTD |= (1<<PD1);
+  71               		.loc 1 56 2 is_stmt 1 view .LVU13
+  72               		.loc 1 56 8 is_stmt 0 view .LVU14
+  73 0020 599A      		sbi 0xb,1
+  57:main.c        **** 	PORTD &= ~(1<<PD2);
+  74               		.loc 1 57 2 is_stmt 1 view .LVU15
+  75               		.loc 1 57 8 is_stmt 0 view .LVU16
+  76 0022 5A98      		cbi 0xb,2
+  58:main.c        **** 
+  59:main.c        **** 	DDRD &= ~(1<<PD3) | (1<<PD0);	//Button and RX0 as input(red LED)
+  77               		.loc 1 59 2 is_stmt 1 view .LVU17
+  78               		.loc 1 59 7 is_stmt 0 view .LVU18
+  79 0024 5398      		cbi 0xa,3
+  60:main.c        **** 	PORTD |= (1<<PD3);	//activate Pullup
+  80               		.loc 1 60 2 is_stmt 1 view .LVU19
+  81               		.loc 1 60 8 is_stmt 0 view .LVU20
+  82 0026 5B9A      		sbi 0xb,3
+  61:main.c        **** 	
+  62:main.c        **** 	//init SPI as master without interrupt
+  63:main.c        **** 	SPI_MasterInit();
+  83               		.loc 1 63 2 is_stmt 1 view .LVU21
+  84 0028 0E94 0000 		call SPI_MasterInit
+  64:main.c        ****     //Timer 1 Configuration
+  65:main.c        **** 	OCR1A = 1249;	//OCR1A = 0x3D08;==1sec
+  85               		.loc 1 65 2 view .LVU22
+  86               		.loc 1 65 8 is_stmt 0 view .LVU23
+  87 002c 81EE      		ldi r24,lo8(-31)
+  88 002e 94E0      		ldi r25,lo8(4)
+  89 0030 9093 8900 		sts 136+1,r25
+  90 0034 8093 8800 		sts 136,r24
+  66:main.c        **** 	
+  67:main.c        ****     TCCR1B |= (1 << WGM12);
+  91               		.loc 1 67 5 is_stmt 1 view .LVU24
+  92               		.loc 1 67 12 is_stmt 0 view .LVU25
+  93 0038 8091 8100 		lds r24,129
+  94 003c 8860      		ori r24,lo8(8)
+  95 003e 8093 8100 		sts 129,r24
+  68:main.c        ****     // Mode 4, CTC on OCR1A
+  69:main.c        **** 
+  70:main.c        ****     TIMSK1 |= (1 << OCIE1A);
+  96               		.loc 1 70 5 is_stmt 1 view .LVU26
+  97               		.loc 1 70 12 is_stmt 0 view .LVU27
+  98 0042 8091 6F00 		lds r24,111
+  99 0046 8260      		ori r24,lo8(2)
+ 100 0048 8093 6F00 		sts 111,r24
+  71:main.c        ****     //Set interrupt on compare match
+  72:main.c        **** 
+  73:main.c        ****     TCCR1B |= (1 << CS11) | (1 << CS10);
+ 101               		.loc 1 73 5 is_stmt 1 view .LVU28
+ 102               		.loc 1 73 12 is_stmt 0 view .LVU29
+ 103 004c 8091 8100 		lds r24,129
+ 104 0050 8360      		ori r24,lo8(3)
+ 105 0052 8093 8100 		sts 129,r24
+  74:main.c        ****     // set prescaler to 64 and start the timer
+  75:main.c        **** 
+  76:main.c        ****     sei();
+ 106               		.loc 1 76 5 is_stmt 1 view .LVU30
+ 107               	/* #APP */
+ 108               	 ;  76 "main.c" 1
+ 109 0056 7894      		sei
+ 110               	 ;  0 "" 2
+  77:main.c        ****     // enable interrupts
+  78:main.c        ****     
+  79:main.c        ****     ms10=0;
+ 111               		.loc 1 79 5 view .LVU31
+ 112               		.loc 1 79 9 is_stmt 0 view .LVU32
+ 113               	/* #NOAPP */
+ 114 0058 1092 0000 		sts ms10,__zero_reg__
+  80:main.c        ****     ms100=0;
+ 115               		.loc 1 80 5 is_stmt 1 view .LVU33
+ 116               		.loc 1 80 10 is_stmt 0 view .LVU34
+ 117 005c 1092 0000 		sts ms100,__zero_reg__
+  81:main.c        ****     sec=0;
+ 118               		.loc 1 81 5 is_stmt 1 view .LVU35
+ 119               		.loc 1 81 8 is_stmt 0 view .LVU36
+ 120 0060 1092 0000 		sts sec,__zero_reg__
+  82:main.c        ****     min=0;
+ 121               		.loc 1 82 5 is_stmt 1 view .LVU37
+ 122               		.loc 1 82 8 is_stmt 0 view .LVU38
+ 123 0064 1092 0000 		sts min,__zero_reg__
+  83:main.c        ****     entprell=0;
+ 124               		.loc 1 83 5 is_stmt 1 view .LVU39
+ 125               		.loc 1 83 13 is_stmt 0 view .LVU40
+ 126 0068 1092 0000 		sts entprell,__zero_reg__
+  84:main.c        ****     screentoggle=3;
+ 127               		.loc 1 84 5 is_stmt 1 view .LVU41
+ 128               		.loc 1 84 17 is_stmt 0 view .LVU42
+ 129 006c 83E0      		ldi r24,lo8(3)
+ 130 006e 8093 0000 		sts screentoggle,r24
+  85:main.c        ****     toggle=0;
+ 131               		.loc 1 85 5 is_stmt 1 view .LVU43
+ 132               		.loc 1 85 11 is_stmt 0 view .LVU44
+ 133 0072 1092 0000 		sts toggle,__zero_reg__
+  86:main.c        ****     toggle_alt=toggle;
+ 134               		.loc 1 86 5 is_stmt 1 view .LVU45
+ 135               		.loc 1 86 15 is_stmt 0 view .LVU46
+ 136 0076 8091 0000 		lds r24,toggle
+ 137 007a 8093 0000 		sts toggle_alt,r24
+  87:main.c        **** 		
+  88:main.c        **** 	Display_Init();
+ 138               		.loc 1 88 2 is_stmt 1 view .LVU47
+ 139 007e 0E94 0000 		call Display_Init
+  89:main.c        **** 	Display_Clear();
+ 140               		.loc 1 89 2 view .LVU48
+ 141 0082 0E94 0000 		call Display_Clear
+  90:main.c        **** 	Set_Page_Address(0);
+ 142               		.loc 1 90 2 view .LVU49
+ 143 0086 80E0      		ldi r24,0
+ 144 0088 0E94 0000 		call Set_Page_Address
+  91:main.c        ****     Set_Column_Address(0);
+ 145               		.loc 1 91 5 view .LVU50
+ 146 008c 80E0      		ldi r24,0
+ 147 008e 0E94 0000 		call Set_Column_Address
+  92:main.c        ****     TWIInit();
+ 148               		.loc 1 92 5 view .LVU51
+ 149 0092 0E94 0000 		call TWIInit
+  93:main.c        **** 	sht21_init();
+ 150               		.loc 1 93 2 view .LVU52
+ 151 0096 0E94 0000 		call sht21_init
+  94:main.c        **** 	//DPS310_init(LOW);
+  95:main.c        ****    state = MEASURE;
+ 152               		.loc 1 95 4 view .LVU53
+ 153               		.loc 1 95 10 is_stmt 0 view .LVU54
+ 154 009a 82E0      		ldi r24,lo8(2)
+ 155 009c 8093 0000 		sts state,r24
+  96:main.c        **** 	//sprintf(buffer,"sec=%d",sec);
+  97:main.c        **** 	//Write_String(14,0,0,"test");
+  98:main.c        **** 	/*
+  99:main.c        **** 	 * 
+ 100:main.c        **** 	 * SHT21 0x80 / 0x81
+ 101:main.c        **** 	 * DPS310 0xee / 0xef
+ 102:main.c        **** 	 * 
+ 103:main.c        **** 	 * */
+ 104:main.c        **** 	while(1)
+ 105:main.c        **** 	{ 	
+ 106:main.c        **** 		switch(state)
+ 107:main.c        **** 		{
+ 108:main.c        **** 			case GREETER:	if(BUTTON)
+ 109:main.c        **** 							{
+ 110:main.c        **** 								state=ZERO;
+ 111:main.c        **** 								entprell=RELOAD_ENTPRELL;
+ 112:main.c        **** 								Write_String(14,0,0," Button ");
+ 113:main.c        **** 								Write_String(14,1,0,"   to   ");
+ 114:main.c        **** 								Write_String(14,2,0, "  ZERO  ");
+ 115:main.c        **** 							}
+ 116:main.c        **** 							if(toggle)
+ 117:main.c        **** 							{
+ 118:main.c        **** 									Write_String(14,0,0,"If found");
+ 119:main.c        **** 									Write_String(14,1,0,"please  ");
+ 120:main.c        **** 									Write_String(14,2,0, "contact ");
+ 121:main.c        **** 							}else
+ 122:main.c        **** 							{
+ 123:main.c        **** 									Write_String(14,0,0,"rgroener");
+ 124:main.c        **** 									Write_String(14,1,0,"@mailbox");
+ 125:main.c        **** 									Write_String(14,2,0, ".org    ");	
+ 126:main.c        **** 							}
+ 127:main.c        **** 							break;
+ 128:main.c        **** 			case ZERO:		if(BUTTON)
+ 129:main.c        **** 							{
+ 130:main.c        **** 								state=MEASURE;
+ 156               		.loc 1 130 14 view .LVU55
+ 157 00a0 92E0      		ldi r25,lo8(2)
+ 158 00a2 C92E      		mov r12,r25
+ 131:main.c        **** 								entprell=RELOAD_ENTPRELL;
+ 159               		.loc 1 131 17 view .LVU56
+ 160 00a4 28E2      		ldi r18,lo8(40)
+ 161 00a6 D22E      		mov r13,r18
+ 132:main.c        **** 								Write_String(14,0,0," Button ");
+ 133:main.c        **** 								Write_String(14,1,0,"   to   ");
+ 134:main.c        **** 								Write_String(14,2,0, "  ZERO  ");
+ 135:main.c        **** 							}
+ 136:main.c        **** 							break;
+ 137:main.c        **** 			case MEASURE:	temp = sht21_measure(1);
+ 138:main.c        **** 							sprintf(buffer,"%02X",temp);
+ 162               		.loc 1 138 8 view .LVU57
+ 163 00a8 C0E0      		ldi r28,lo8(.LC9)
+ 164 00aa D0E0      		ldi r29,hi8(.LC9)
+ 165 00ac 30E0      		ldi r19,lo8(buffer)
+ 166 00ae E32E      		mov r14,r19
+ 167 00b0 30E0      		ldi r19,hi8(buffer)
+ 168 00b2 F32E      		mov r15,r19
+ 139:main.c        **** 							Write_String(14,0,0,buffer);
+ 140:main.c        **** 							
+ 141:main.c        **** 							hum = sht21_measure(0);
+ 142:main.c        **** 							sprintf(buff,"%02X",hum);
+ 169               		.loc 1 142 8 view .LVU58
+ 170 00b4 00E0      		ldi r16,lo8(buff)
+ 171 00b6 10E0      		ldi r17,hi8(buff)
+ 172               	.L5:
  104:main.c        **** 	{ 	
- 105:main.c        **** 		switch(state)
+ 173               		.loc 1 104 2 is_stmt 1 view .LVU59
  106:main.c        **** 		{
- 107:main.c        **** 			case GREETER:	if(BUTTON)
+ 174               		.loc 1 106 3 view .LVU60
+ 175 00b8 8130      		cpi r24,lo8(1)
+ 176 00ba 01F0      		breq .L3
+ 177               	.L13:
+ 178 00bc 8230      		cpi r24,lo8(2)
+ 179 00be 01F4      		brne .+2
+ 180 00c0 00C0      		rjmp .L4
+ 181 00c2 8111      		cpse r24,__zero_reg__
+ 182 00c4 00C0      		rjmp .L5
  108:main.c        **** 							{
- 109:main.c        **** 								state=ZERO;
- 110:main.c        **** 								entprell=RELOAD_ENTPRELL;
- 111:main.c        **** 								Write_String(14,0,0," Button ");
- 112:main.c        **** 								Write_String(14,1,0,"   to   ");
- 113:main.c        **** 								Write_String(14,2,0, "  ZERO  ");
- 114:main.c        **** 							}
- 115:main.c        **** 							if(toggle)
+ 183               		.loc 1 108 18 view .LVU61
+ 108:main.c        **** 							{
+ 184               		.loc 1 108 20 is_stmt 0 view .LVU62
+ 185 00c6 4B99      		sbic 0x9,3
+ 186 00c8 00C0      		rjmp .L6
+ 108:main.c        **** 							{
+ 187               		.loc 1 108 21 discriminator 1 view .LVU63
+ 188 00ca 8091 0000 		lds r24,entprell
+ 189 00ce 8823      		tst r24
+ 190 00d0 01F4      		brne .+2
+ 191 00d2 00C0      		rjmp .L12
+ 192               	.L6:
  116:main.c        **** 							{
- 117:main.c        **** 									Write_String(14,0,0,"If found");
+ 193               		.loc 1 116 8 is_stmt 1 view .LVU64
+ 116:main.c        **** 							{
+ 194               		.loc 1 116 11 is_stmt 0 view .LVU65
+ 195 00d4 8091 0000 		lds r24,toggle
+ 116:main.c        **** 							{
+ 196               		.loc 1 116 10 view .LVU66
+ 197 00d8 8823      		tst r24
+ 198 00da 01F4      		brne .+2
+ 199 00dc 00C0      		rjmp .L7
  118:main.c        **** 									Write_String(14,1,0,"please  ");
+ 200               		.loc 1 118 10 is_stmt 1 view .LVU67
+ 201 00de 20E0      		ldi r18,lo8(.LC3)
+ 202 00e0 30E0      		ldi r19,hi8(.LC3)
+ 203 00e2 40E0      		ldi r20,0
+ 204 00e4 60E0      		ldi r22,0
+ 205 00e6 8EE0      		ldi r24,lo8(14)
+ 206 00e8 0E94 0000 		call Write_String
  119:main.c        **** 									Write_String(14,2,0, "contact ");
+ 207               		.loc 1 119 10 view .LVU68
+ 208 00ec 20E0      		ldi r18,lo8(.LC4)
+ 209 00ee 30E0      		ldi r19,hi8(.LC4)
+ 210 00f0 40E0      		ldi r20,0
+ 211 00f2 61E0      		ldi r22,lo8(1)
+ 212 00f4 8EE0      		ldi r24,lo8(14)
+ 213 00f6 0E94 0000 		call Write_String
  120:main.c        **** 							}else
- 121:main.c        **** 							{
- 122:main.c        **** 									Write_String(14,0,0,"rgroener");
- 123:main.c        **** 									Write_String(14,1,0,"@mailbox");
- 124:main.c        **** 									Write_String(14,2,0, ".org    ");	
- 125:main.c        **** 							}
- 126:main.c        **** 							break;
- 127:main.c        **** 			case ZERO:		if(BUTTON)
- 128:main.c        **** 							{
- 129:main.c        **** 								state=MEASURE;
- 169               		.loc 1 129 14 view .LVU55
- 170 00a0 92E0      		ldi r25,lo8(2)
- 171 00a2 792E      		mov r7,r25
- 130:main.c        **** 								entprell=RELOAD_ENTPRELL;
- 172               		.loc 1 130 17 view .LVU56
- 173 00a4 28E2      		ldi r18,lo8(40)
- 174 00a6 C22E      		mov r12,r18
- 175               	.LBB6:
- 176               	.LBB7:
- 131:main.c        **** 								Write_String(14,0,0," Button ");
- 132:main.c        **** 								Write_String(14,1,0,"   to   ");
- 133:main.c        **** 								Write_String(14,2,0, "  ZERO  ");
+ 214               		.loc 1 120 10 view .LVU69
+ 215 00fa 20E0      		ldi r18,lo8(.LC5)
+ 216 00fc 30E0      		ldi r19,hi8(.LC5)
+ 217               	.L10:
  134:main.c        **** 							}
- 135:main.c        **** 							break;
- 136:main.c        **** 			case MEASURE:	temp = (sht21_measure(0));
- 137:main.c        **** 							sprintf(buffer,"%d.%d*",vor_komma(temp),nach_komma(temp));
+ 218               		.loc 1 134 9 is_stmt 0 view .LVU70
+ 219 00fe 40E0      		ldi r20,0
+ 220 0100 62E0      		ldi r22,lo8(2)
+ 221 0102 8EE0      		ldi r24,lo8(14)
+ 222 0104 0E94 0000 		call Write_String
+ 106:main.c        **** 		{
+ 223               		.loc 1 106 3 view .LVU71
+ 224 0108 8091 0000 		lds r24,state
+ 104:main.c        **** 	{ 	
+ 225               		.loc 1 104 2 is_stmt 1 view .LVU72
+ 106:main.c        **** 		{
+ 226               		.loc 1 106 3 view .LVU73
+ 227 010c 8130      		cpi r24,lo8(1)
+ 228 010e 01F4      		brne .L13
+ 229               	.L3:
+ 128:main.c        **** 							{
+ 230               		.loc 1 128 16 view .LVU74
+ 128:main.c        **** 							{
+ 231               		.loc 1 128 18 is_stmt 0 view .LVU75
+ 232 0110 4B99      		sbic 0x9,3
+ 233 0112 00C0      		rjmp .L3
+ 128:main.c        **** 							{
+ 234               		.loc 1 128 19 discriminator 1 view .LVU76
+ 235 0114 8091 0000 		lds r24,entprell
+ 236 0118 8111      		cpse r24,__zero_reg__
+ 237 011a 00C0      		rjmp .L3
+ 130:main.c        **** 								entprell=RELOAD_ENTPRELL;
+ 238               		.loc 1 130 9 is_stmt 1 view .LVU77
+ 130:main.c        **** 								entprell=RELOAD_ENTPRELL;
+ 239               		.loc 1 130 14 is_stmt 0 view .LVU78
+ 240 011c C092 0000 		sts state,r12
+ 131:main.c        **** 								Write_String(14,0,0," Button ");
+ 241               		.loc 1 131 9 is_stmt 1 view .LVU79
+ 131:main.c        **** 								Write_String(14,0,0," Button ");
+ 242               		.loc 1 131 17 is_stmt 0 view .LVU80
+ 243 0120 D092 0000 		sts entprell,r13
+ 132:main.c        **** 								Write_String(14,1,0,"   to   ");
+ 244               		.loc 1 132 9 is_stmt 1 view .LVU81
+ 245 0124 20E0      		ldi r18,lo8(.LC0)
+ 246 0126 30E0      		ldi r19,hi8(.LC0)
+ 247 0128 40E0      		ldi r20,0
+ 248 012a 60E0      		ldi r22,0
+ 249 012c 8EE0      		ldi r24,lo8(14)
+ 250 012e 0E94 0000 		call Write_String
+ 133:main.c        **** 								Write_String(14,2,0, "  ZERO  ");
+ 251               		.loc 1 133 9 view .LVU82
+ 252 0132 20E0      		ldi r18,lo8(.LC1)
+ 253 0134 30E0      		ldi r19,hi8(.LC1)
+ 254 0136 40E0      		ldi r20,0
+ 255 0138 61E0      		ldi r22,lo8(1)
+ 256 013a 8EE0      		ldi r24,lo8(14)
+ 257 013c 0E94 0000 		call Write_String
+ 134:main.c        **** 							}
+ 258               		.loc 1 134 9 view .LVU83
+ 259 0140 20E0      		ldi r18,lo8(.LC2)
+ 260 0142 30E0      		ldi r19,hi8(.LC2)
+ 261 0144 00C0      		rjmp .L10
+ 262               	.L4:
+ 137:main.c        **** 							sprintf(buffer,"%02X",temp);
+ 263               		.loc 1 137 18 view .LVU84
+ 137:main.c        **** 							sprintf(buffer,"%02X",temp);
+ 264               		.loc 1 137 25 is_stmt 0 view .LVU85
+ 265 0146 81E0      		ldi r24,lo8(1)
+ 266 0148 0E94 0000 		call sht21_measure
+ 137:main.c        **** 							sprintf(buffer,"%02X",temp);
+ 267               		.loc 1 137 23 view .LVU86
+ 268 014c 8093 0000 		sts temp,r24
+ 269 0150 9093 0000 		sts temp+1,r25
  138:main.c        **** 							Write_String(14,0,0,buffer);
+ 270               		.loc 1 138 8 is_stmt 1 view .LVU87
+ 271 0154 9F93      		push r25
+ 272               	.LCFI0:
+ 273               		.cfi_def_cfa_offset 3
+ 274 0156 8F93      		push r24
+ 275               	.LCFI1:
+ 276               		.cfi_def_cfa_offset 4
+ 277 0158 DF93      		push r29
+ 278               	.LCFI2:
+ 279               		.cfi_def_cfa_offset 5
+ 280 015a CF93      		push r28
+ 281               	.LCFI3:
+ 282               		.cfi_def_cfa_offset 6
+ 283 015c FF92      		push r15
+ 284               	.LCFI4:
+ 285               		.cfi_def_cfa_offset 7
+ 286 015e EF92      		push r14
+ 287               	.LCFI5:
+ 288               		.cfi_def_cfa_offset 8
+ 289 0160 0E94 0000 		call sprintf
  139:main.c        **** 							
- 140:main.c        **** 							sprintf(buffer,"%d",test);
- 141:main.c        **** 							Write_String(14,1,0,buffer);
- 142:main.c        **** 							test++;
- 143:main.c        **** 							
- 144:main.c        **** 							break;
- 145:main.c        **** 		}//End of switch(state)	
- 146:main.c        **** 			
- 147:main.c        **** 		
- 148:main.c        **** 		//sprintf(buffer,"sec=%d",test);
- 149:main.c        **** 		//Write_String(14,1,0,buffer);
- 150:main.c        **** 	} //end while
- 151:main.c        **** }//end of main
- 152:main.c        **** 
- 153:main.c        **** 
- 154:main.c        **** ISR (TIMER1_COMPA_vect)
- 155:main.c        **** {
- 156:main.c        **** 	
- 157:main.c        **** 		ms10++;
- 158:main.c        **** 		if(entprell)entprell--;
- 159:main.c        **** 			
- 160:main.c        **** 	if(ms10==10)	//100ms
- 161:main.c        **** 	{
- 162:main.c        **** 		ms10=0;
- 163:main.c        **** 		ms100++;
- 164:main.c        **** 	
- 165:main.c        **** 		
- 166:main.c        **** 	}
- 167:main.c        ****     if(ms100==10)	//sec
+ 290               		.loc 1 139 8 view .LVU88
+ 291 0164 20E0      		ldi r18,lo8(buffer)
+ 292 0166 30E0      		ldi r19,hi8(buffer)
+ 293 0168 40E0      		ldi r20,0
+ 294 016a 60E0      		ldi r22,0
+ 295 016c 8EE0      		ldi r24,lo8(14)
+ 296 016e 0E94 0000 		call Write_String
+ 141:main.c        **** 							sprintf(buff,"%02X",hum);
+ 297               		.loc 1 141 8 view .LVU89
+ 141:main.c        **** 							sprintf(buff,"%02X",hum);
+ 298               		.loc 1 141 14 is_stmt 0 view .LVU90
+ 299 0172 80E0      		ldi r24,0
+ 300 0174 0E94 0000 		call sht21_measure
+ 141:main.c        **** 							sprintf(buff,"%02X",hum);
+ 301               		.loc 1 141 12 view .LVU91
+ 302 0178 8093 0000 		sts hum,r24
+ 303 017c 9093 0000 		sts hum+1,r25
+ 304               		.loc 1 142 8 is_stmt 1 view .LVU92
+ 305 0180 9F93      		push r25
+ 306               	.LCFI6:
+ 307               		.cfi_def_cfa_offset 9
+ 308 0182 8F93      		push r24
+ 309               	.LCFI7:
+ 310               		.cfi_def_cfa_offset 10
+ 311 0184 DF93      		push r29
+ 312               	.LCFI8:
+ 313               		.cfi_def_cfa_offset 11
+ 314 0186 CF93      		push r28
+ 315               	.LCFI9:
+ 316               		.cfi_def_cfa_offset 12
+ 317 0188 1F93      		push r17
+ 318               	.LCFI10:
+ 319               		.cfi_def_cfa_offset 13
+ 320 018a 0F93      		push r16
+ 321               	.LCFI11:
+ 322               		.cfi_def_cfa_offset 14
+ 323 018c 0E94 0000 		call sprintf
+ 143:main.c        **** 							Write_String(14,1,0,buff);
+ 324               		.loc 1 143 8 view .LVU93
+ 325 0190 20E0      		ldi r18,lo8(buff)
+ 326 0192 30E0      		ldi r19,hi8(buff)
+ 327 0194 40E0      		ldi r20,0
+ 328 0196 61E0      		ldi r22,lo8(1)
+ 329 0198 8EE0      		ldi r24,lo8(14)
+ 330 019a 0E94 0000 		call Write_String
+ 144:main.c        **** 							/*
+ 145:main.c        **** 							TWIStart();
+ 146:main.c        **** 							test=TWIGetStatus();
+ 147:main.c        **** 							sprintf(buffer,"%02X",test);
+ 148:main.c        **** 							Write_String(14,1,0,buffer);
+ 149:main.c        **** 							while(1);*/
+ 150:main.c        **** 							
+ 151:main.c        **** 							break;
+ 331               		.loc 1 151 8 view .LVU94
+ 106:main.c        **** 		{
+ 332               		.loc 1 106 3 is_stmt 0 view .LVU95
+ 333 019e 8091 0000 		lds r24,state
+ 334               		.loc 1 151 8 view .LVU96
+ 335 01a2 2DB7      		in r18,__SP_L__
+ 336 01a4 3EB7      		in r19,__SP_H__
+ 337 01a6 245F      		subi r18,-12
+ 338 01a8 3F4F      		sbci r19,-1
+ 339 01aa 0FB6      		in __tmp_reg__,__SREG__
+ 340 01ac F894      		cli
+ 341 01ae 3EBF      		out __SP_H__,r19
+ 342 01b0 0FBE      		out __SREG__,__tmp_reg__
+ 343 01b2 2DBF      		out __SP_L__,r18
+ 344               	.LCFI12:
+ 345               		.cfi_def_cfa_offset 2
+ 346 01b4 00C0      		rjmp .L5
+ 347               	.L7:
+ 123:main.c        **** 									Write_String(14,1,0,"@mailbox");
+ 348               		.loc 1 123 10 is_stmt 1 view .LVU97
+ 349 01b6 20E0      		ldi r18,lo8(.LC6)
+ 350 01b8 30E0      		ldi r19,hi8(.LC6)
+ 351 01ba 40E0      		ldi r20,0
+ 352 01bc 60E0      		ldi r22,0
+ 353 01be 8EE0      		ldi r24,lo8(14)
+ 354 01c0 0E94 0000 		call Write_String
+ 124:main.c        **** 									Write_String(14,2,0, ".org    ");	
+ 355               		.loc 1 124 10 view .LVU98
+ 356 01c4 20E0      		ldi r18,lo8(.LC7)
+ 357 01c6 30E0      		ldi r19,hi8(.LC7)
+ 358 01c8 40E0      		ldi r20,0
+ 359 01ca 61E0      		ldi r22,lo8(1)
+ 360 01cc 8EE0      		ldi r24,lo8(14)
+ 361 01ce 0E94 0000 		call Write_String
+ 125:main.c        **** 							}
+ 362               		.loc 1 125 10 view .LVU99
+ 363 01d2 20E0      		ldi r18,lo8(.LC8)
+ 364 01d4 30E0      		ldi r19,hi8(.LC8)
+ 365 01d6 00C0      		rjmp .L10
+ 366               	.L12:
+ 110:main.c        **** 								entprell=RELOAD_ENTPRELL;
+ 367               		.loc 1 110 9 view .LVU100
+ 110:main.c        **** 								entprell=RELOAD_ENTPRELL;
+ 368               		.loc 1 110 14 is_stmt 0 view .LVU101
+ 369 01d8 81E0      		ldi r24,lo8(1)
+ 370 01da 8093 0000 		sts state,r24
+ 111:main.c        **** 								Write_String(14,0,0," Button ");
+ 371               		.loc 1 111 9 is_stmt 1 view .LVU102
+ 111:main.c        **** 								Write_String(14,0,0," Button ");
+ 372               		.loc 1 111 17 is_stmt 0 view .LVU103
+ 373 01de D092 0000 		sts entprell,r13
+ 112:main.c        **** 								Write_String(14,1,0,"   to   ");
+ 374               		.loc 1 112 9 is_stmt 1 view .LVU104
+ 375 01e2 20E0      		ldi r18,lo8(.LC0)
+ 376 01e4 30E0      		ldi r19,hi8(.LC0)
+ 377 01e6 40E0      		ldi r20,0
+ 378 01e8 60E0      		ldi r22,0
+ 379 01ea 8EE0      		ldi r24,lo8(14)
+ 380 01ec 0E94 0000 		call Write_String
+ 113:main.c        **** 								Write_String(14,2,0, "  ZERO  ");
+ 381               		.loc 1 113 9 view .LVU105
+ 382 01f0 20E0      		ldi r18,lo8(.LC1)
+ 383 01f2 30E0      		ldi r19,hi8(.LC1)
+ 384 01f4 40E0      		ldi r20,0
+ 385 01f6 61E0      		ldi r22,lo8(1)
+ 386 01f8 8EE0      		ldi r24,lo8(14)
+ 387 01fa 0E94 0000 		call Write_String
+ 114:main.c        **** 							}
+ 388               		.loc 1 114 9 view .LVU106
+ 389 01fe 20E0      		ldi r18,lo8(.LC2)
+ 390 0200 30E0      		ldi r19,hi8(.LC2)
+ 391 0202 40E0      		ldi r20,0
+ 392 0204 62E0      		ldi r22,lo8(2)
+ 393 0206 8EE0      		ldi r24,lo8(14)
+ 394 0208 0E94 0000 		call Write_String
+ 395 020c 00C0      		rjmp .L6
+ 396               		.cfi_endproc
+ 397               	.LFE12:
+ 399               		.text
+ 400               	.global	__vector_11
+ 402               	__vector_11:
+ 403               	.LFB13:
+ 152:main.c        **** 		}//End of switch(state)	
+ 153:main.c        **** 			
+ 154:main.c        **** 		
+ 155:main.c        **** 		//sprintf(buffer,"sec=%d",test);
+ 156:main.c        **** 		//Write_String(14,1,0,buffer);
+ 157:main.c        **** 	} //end while
+ 158:main.c        **** }//end of main
+ 159:main.c        **** 
+ 160:main.c        **** 
+ 161:main.c        **** ISR (TIMER1_COMPA_vect)
+ 162:main.c        **** {
+ 404               		.loc 1 162 1 view -0
+ 405               		.cfi_startproc
+ 406 0000 1F92 1FB6 		__gcc_isr 1
+ 406      1F92 1124 
+ 406      8F93 
+ 407               	/* prologue: Signal */
+ 408               	/* frame size = 0 */
+ 409               	/* stack size = 0...4 */
+ 410               	.L__stack_usage = 0 + __gcc_isr.n_pushed
+ 163:main.c        **** 	
+ 164:main.c        **** 		ms10++;
+ 411               		.loc 1 164 3 view .LVU108
+ 412               		.loc 1 164 7 is_stmt 0 view .LVU109
+ 413 000a 8091 0000 		lds r24,ms10
+ 414 000e 8F5F      		subi r24,lo8(-(1))
+ 415 0010 8093 0000 		sts ms10,r24
+ 165:main.c        **** 		if(entprell)entprell--;
+ 416               		.loc 1 165 3 is_stmt 1 view .LVU110
+ 417               		.loc 1 165 6 is_stmt 0 view .LVU111
+ 418 0014 8091 0000 		lds r24,entprell
+ 419               		.loc 1 165 5 view .LVU112
+ 420 0018 8823      		tst r24
+ 421 001a 01F0      		breq .L15
+ 422               		.loc 1 165 15 is_stmt 1 discriminator 1 view .LVU113
+ 423               		.loc 1 165 23 is_stmt 0 discriminator 1 view .LVU114
+ 424 001c 8091 0000 		lds r24,entprell
+ 425 0020 8150      		subi r24,lo8(-(-1))
+ 426 0022 8093 0000 		sts entprell,r24
+ 427               	.L15:
+ 166:main.c        **** 			
+ 167:main.c        **** 	if(ms10==10)	//100ms
+ 428               		.loc 1 167 2 is_stmt 1 view .LVU115
+ 429               		.loc 1 167 9 is_stmt 0 view .LVU116
+ 430 0026 8091 0000 		lds r24,ms10
+ 431               		.loc 1 167 4 view .LVU117
+ 432 002a 8A30      		cpi r24,lo8(10)
+ 433 002c 01F4      		brne .L16
  168:main.c        **** 	{
- 169:main.c        **** 		ms100=0;
- 170:main.c        **** 		sec++;
- 171:main.c        **** 		//change display screen in fixed time
- 172:main.c        **** 		screentoggle++;
- 173:main.c        **** 		if(screentoggle==TOGGLEMAX)
- 174:main.c        **** 		{
- 175:main.c        **** 			screentoggle=0;
- 176:main.c        **** 			if(toggle==0)
- 177:main.c        **** 			{
- 178:main.c        **** 				toggle = 1;
- 179:main.c        **** 			}else toggle =0;
- 180:main.c        **** 		}
- 181:main.c        **** 	}
- 182:main.c        **** 	if(sec==60)	//Minute
- 183:main.c        **** 	{
- 184:main.c        **** 		sec=0;
- 185:main.c        **** 		min++;
- 186:main.c        **** 	}
- 187:main.c        **** }
- 188:main.c        **** uint16_t vor_komma(uint32_t value)
- 189:main.c        **** {
- 190:main.c        **** 	return value/100;
- 191:main.c        **** 	
- 192:main.c        **** }
- 193:main.c        **** uint8_t nach_komma(uint32_t value)
- 194:main.c        **** {
- 195:main.c        **** 	uint8_t temp;
- 196:main.c        **** 	temp = value/100;
- 177               		.loc 1 196 14 view .LVU57
- 178 00a8 34E6      		ldi r19,lo8(100)
- 179 00aa 832E      		mov r8,r19
- 180 00ac 912C      		mov r9,__zero_reg__
- 181 00ae A12C      		mov r10,__zero_reg__
- 182 00b0 B12C      		mov r11,__zero_reg__
- 197:main.c        **** 	return value-(temp*100);
- 183               		.loc 1 197 14 view .LVU58
- 184 00b2 44E6      		ldi r20,lo8(100)
- 185 00b4 D42E      		mov r13,r20
- 186               	.LBE7:
- 187               	.LBE6:
- 137:main.c        **** 							Write_String(14,0,0,buffer);
- 188               		.loc 1 137 8 view .LVU59
- 189 00b6 50E0      		ldi r21,lo8(.LC9)
- 190 00b8 E52E      		mov r14,r21
- 191 00ba 50E0      		ldi r21,hi8(.LC9)
- 192 00bc F52E      		mov r15,r21
- 140:main.c        **** 							Write_String(14,1,0,buffer);
- 193               		.loc 1 140 8 view .LVU60
- 194 00be 00E0      		ldi r16,lo8(.LC10)
- 195 00c0 10E0      		ldi r17,hi8(.LC10)
- 196               	.L5:
- 103:main.c        **** 	{ 	
- 197               		.loc 1 103 2 is_stmt 1 view .LVU61
- 105:main.c        **** 		{
- 198               		.loc 1 105 3 view .LVU62
- 199 00c2 8130      		cpi r24,lo8(1)
- 200 00c4 01F0      		breq .L3
- 201               	.L13:
- 202 00c6 8230      		cpi r24,lo8(2)
- 203 00c8 01F4      		brne .+2
- 204 00ca 00C0      		rjmp .L4
- 205 00cc 8111      		cpse r24,__zero_reg__
- 206 00ce 00C0      		rjmp .L5
- 107:main.c        **** 							{
- 207               		.loc 1 107 18 view .LVU63
- 107:main.c        **** 							{
- 208               		.loc 1 107 20 is_stmt 0 view .LVU64
- 209 00d0 4B99      		sbic 0x9,3
- 210 00d2 00C0      		rjmp .L6
- 107:main.c        **** 							{
- 211               		.loc 1 107 21 discriminator 1 view .LVU65
- 212 00d4 8091 0000 		lds r24,entprell
- 213 00d8 8823      		tst r24
- 214 00da 01F4      		brne .+2
- 215 00dc 00C0      		rjmp .L12
- 216               	.L6:
- 115:main.c        **** 							{
- 217               		.loc 1 115 8 is_stmt 1 view .LVU66
- 115:main.c        **** 							{
- 218               		.loc 1 115 11 is_stmt 0 view .LVU67
- 219 00de 8091 0000 		lds r24,toggle
- 115:main.c        **** 							{
- 220               		.loc 1 115 10 view .LVU68
- 221 00e2 8823      		tst r24
- 222 00e4 01F4      		brne .+2
- 223 00e6 00C0      		rjmp .L7
- 117:main.c        **** 									Write_String(14,1,0,"please  ");
- 224               		.loc 1 117 10 is_stmt 1 view .LVU69
- 225 00e8 20E0      		ldi r18,lo8(.LC3)
- 226 00ea 30E0      		ldi r19,hi8(.LC3)
- 227 00ec 40E0      		ldi r20,0
- 228 00ee 60E0      		ldi r22,0
- 229 00f0 8EE0      		ldi r24,lo8(14)
- 230 00f2 0E94 0000 		call Write_String
- 231               	.LVL7:
- 118:main.c        **** 									Write_String(14,2,0, "contact ");
- 232               		.loc 1 118 10 view .LVU70
- 233 00f6 20E0      		ldi r18,lo8(.LC4)
- 234 00f8 30E0      		ldi r19,hi8(.LC4)
- 235 00fa 40E0      		ldi r20,0
- 236 00fc 61E0      		ldi r22,lo8(1)
- 237 00fe 8EE0      		ldi r24,lo8(14)
- 238 0100 0E94 0000 		call Write_String
- 239               	.LVL8:
- 119:main.c        **** 							}else
- 240               		.loc 1 119 10 view .LVU71
- 241 0104 20E0      		ldi r18,lo8(.LC5)
- 242 0106 30E0      		ldi r19,hi8(.LC5)
- 243               	.L10:
- 133:main.c        **** 							}
- 244               		.loc 1 133 9 is_stmt 0 view .LVU72
- 245 0108 40E0      		ldi r20,0
- 246 010a 62E0      		ldi r22,lo8(2)
- 247 010c 8EE0      		ldi r24,lo8(14)
- 248 010e 0E94 0000 		call Write_String
- 249               	.LVL9:
- 105:main.c        **** 		{
- 250               		.loc 1 105 3 view .LVU73
- 251 0112 8091 0000 		lds r24,state
- 103:main.c        **** 	{ 	
- 252               		.loc 1 103 2 is_stmt 1 view .LVU74
- 105:main.c        **** 		{
- 253               		.loc 1 105 3 view .LVU75
- 254 0116 8130      		cpi r24,lo8(1)
- 255 0118 01F4      		brne .L13
- 256               	.L3:
- 127:main.c        **** 							{
- 257               		.loc 1 127 16 view .LVU76
- 127:main.c        **** 							{
- 258               		.loc 1 127 18 is_stmt 0 view .LVU77
- 259 011a 4B99      		sbic 0x9,3
- 260 011c 00C0      		rjmp .L3
- 127:main.c        **** 							{
- 261               		.loc 1 127 19 discriminator 1 view .LVU78
- 262 011e 8091 0000 		lds r24,entprell
- 263 0122 8111      		cpse r24,__zero_reg__
- 264 0124 00C0      		rjmp .L3
- 129:main.c        **** 								entprell=RELOAD_ENTPRELL;
- 265               		.loc 1 129 9 is_stmt 1 view .LVU79
- 129:main.c        **** 								entprell=RELOAD_ENTPRELL;
- 266               		.loc 1 129 14 is_stmt 0 view .LVU80
- 267 0126 7092 0000 		sts state,r7
- 130:main.c        **** 								Write_String(14,0,0," Button ");
- 268               		.loc 1 130 9 is_stmt 1 view .LVU81
- 130:main.c        **** 								Write_String(14,0,0," Button ");
- 269               		.loc 1 130 17 is_stmt 0 view .LVU82
- 270 012a C092 0000 		sts entprell,r12
- 131:main.c        **** 								Write_String(14,1,0,"   to   ");
- 271               		.loc 1 131 9 is_stmt 1 view .LVU83
- 272 012e 20E0      		ldi r18,lo8(.LC0)
- 273 0130 30E0      		ldi r19,hi8(.LC0)
- 274 0132 40E0      		ldi r20,0
- 275 0134 60E0      		ldi r22,0
- 276 0136 8EE0      		ldi r24,lo8(14)
- 277 0138 0E94 0000 		call Write_String
- 278               	.LVL10:
- 132:main.c        **** 								Write_String(14,2,0, "  ZERO  ");
- 279               		.loc 1 132 9 view .LVU84
- 280 013c 20E0      		ldi r18,lo8(.LC1)
- 281 013e 30E0      		ldi r19,hi8(.LC1)
- 282 0140 40E0      		ldi r20,0
- 283 0142 61E0      		ldi r22,lo8(1)
- 284 0144 8EE0      		ldi r24,lo8(14)
- 285 0146 0E94 0000 		call Write_String
- 286               	.LVL11:
- 133:main.c        **** 							}
- 287               		.loc 1 133 9 view .LVU85
- 288 014a 20E0      		ldi r18,lo8(.LC2)
- 289 014c 30E0      		ldi r19,hi8(.LC2)
- 290 014e 00C0      		rjmp .L10
- 291               	.L4:
- 136:main.c        **** 							sprintf(buffer,"%d.%d*",vor_komma(temp),nach_komma(temp));
- 292               		.loc 1 136 18 view .LVU86
- 136:main.c        **** 							sprintf(buffer,"%d.%d*",vor_komma(temp),nach_komma(temp));
- 293               		.loc 1 136 26 is_stmt 0 view .LVU87
- 294 0150 80E0      		ldi r24,0
- 295 0152 0E94 0000 		call sht21_measure
- 296               	.LVL12:
- 136:main.c        **** 							sprintf(buffer,"%d.%d*",vor_komma(temp),nach_komma(temp));
- 297               		.loc 1 136 23 view .LVU88
- 298 0156 9093 0000 		sts temp+1,r25
- 299 015a 8093 0000 		sts temp,r24
- 137:main.c        **** 							Write_String(14,0,0,buffer);
- 300               		.loc 1 137 8 is_stmt 1 view .LVU89
- 137:main.c        **** 							Write_String(14,0,0,buffer);
- 301               		.loc 1 137 48 is_stmt 0 view .LVU90
- 302 015e 092E      		mov __tmp_reg__,r25
- 303 0160 000C      		lsl r0
- 304 0162 AA0B      		sbc r26,r26
- 305 0164 BB0B      		sbc r27,r27
- 306 0166 8983      		std Y+1,r24
- 307 0168 9A83      		std Y+2,r25
- 308 016a AB83      		std Y+3,r26
- 309 016c BC83      		std Y+4,r27
- 310               	.LVL13:
- 311               	.LBB10:
- 312               	.LBI6:
- 193:main.c        **** {
- 313               		.loc 1 193 9 is_stmt 1 view .LVU91
- 314               	.LBB8:
- 195:main.c        **** 	temp = value/100;
- 315               		.loc 1 195 2 view .LVU92
- 196:main.c        **** 	return value-(temp*100);
- 316               		.loc 1 196 2 view .LVU93
- 196:main.c        **** 	return value-(temp*100);
- 317               		.loc 1 196 14 is_stmt 0 view .LVU94
- 318 016e BC01      		movw r22,r24
- 319 0170 CD01      		movw r24,r26
- 320               	.LVL14:
- 196:main.c        **** 	return value-(temp*100);
- 321               		.loc 1 196 14 view .LVU95
- 322 0172 A501      		movw r20,r10
- 323 0174 9401      		movw r18,r8
- 324 0176 0E94 0000 		call __udivmodsi4
- 325               	.LVL15:
- 326               		.loc 1 197 2 is_stmt 1 view .LVU96
- 327               		.loc 1 197 2 is_stmt 0 view .LVU97
- 328               	.LBE8:
- 329               	.LBE10:
- 330               	.LBB11:
- 331               	.LBI11:
- 188:main.c        **** {
- 332               		.loc 1 188 10 is_stmt 1 view .LVU98
- 333               	.LBB12:
- 190:main.c        **** 	
- 334               		.loc 1 190 2 view .LVU99
- 190:main.c        **** 	
- 335               		.loc 1 190 2 is_stmt 0 view .LVU100
- 336               	.LBE12:
- 337               	.LBE11:
- 338               	.LBB13:
- 339               	.LBB9:
- 340               		.loc 1 197 14 view .LVU101
- 341 017a 8981      		ldd r24,Y+1
- 342 017c D29E      		mul r13,r18
- 343 017e 8019      		sub r24,r0
- 344 0180 1124      		clr __zero_reg__
- 345               	.LBE9:
- 346               	.LBE13:
- 137:main.c        **** 							Write_String(14,0,0,buffer);
- 347               		.loc 1 137 8 view .LVU102
- 348 0182 1F92      		push __zero_reg__
- 349 0184 8F93      		push r24
- 350 0186 3F93      		push r19
- 351 0188 2F93      		push r18
- 352 018a FF92      		push r15
- 353 018c EF92      		push r14
- 354 018e A0E0      		ldi r26,lo8(buffer)
- 355 0190 B0E0      		ldi r27,hi8(buffer)
- 356 0192 BF93      		push r27
- 357 0194 AF93      		push r26
- 358 0196 0E94 0000 		call sprintf
- 359               	.LVL16:
- 138:main.c        **** 							
- 360               		.loc 1 138 8 is_stmt 1 view .LVU103
- 361 019a 20E0      		ldi r18,lo8(buffer)
- 362 019c 30E0      		ldi r19,hi8(buffer)
- 363 019e 40E0      		ldi r20,0
- 364 01a0 60E0      		ldi r22,0
- 365 01a2 8EE0      		ldi r24,lo8(14)
- 366 01a4 0E94 0000 		call Write_String
- 367               	.LVL17:
- 140:main.c        **** 							Write_String(14,1,0,buffer);
- 368               		.loc 1 140 8 view .LVU104
- 369 01a8 8091 0000 		lds r24,test+1
- 370 01ac 8F93      		push r24
- 371 01ae 8091 0000 		lds r24,test
- 372 01b2 8F93      		push r24
- 373 01b4 1F93      		push r17
- 374 01b6 0F93      		push r16
- 375 01b8 80E0      		ldi r24,lo8(buffer)
- 376 01ba 90E0      		ldi r25,hi8(buffer)
- 377 01bc 9F93      		push r25
- 378 01be 8F93      		push r24
- 379 01c0 0E94 0000 		call sprintf
- 380               	.LVL18:
- 141:main.c        **** 							test++;
- 381               		.loc 1 141 8 view .LVU105
- 382 01c4 20E0      		ldi r18,lo8(buffer)
- 383 01c6 30E0      		ldi r19,hi8(buffer)
- 384 01c8 40E0      		ldi r20,0
- 385 01ca 61E0      		ldi r22,lo8(1)
- 386 01cc 8EE0      		ldi r24,lo8(14)
- 387 01ce 0E94 0000 		call Write_String
- 388               	.LVL19:
- 142:main.c        **** 							
- 389               		.loc 1 142 8 view .LVU106
- 142:main.c        **** 							
- 390               		.loc 1 142 12 is_stmt 0 view .LVU107
- 391 01d2 8091 0000 		lds r24,test
- 392 01d6 9091 0000 		lds r25,test+1
- 393 01da 0196      		adiw r24,1
- 394 01dc 9093 0000 		sts test+1,r25
- 395 01e0 8093 0000 		sts test,r24
- 144:main.c        **** 		}//End of switch(state)	
- 396               		.loc 1 144 8 is_stmt 1 view .LVU108
- 105:main.c        **** 		{
- 397               		.loc 1 105 3 is_stmt 0 view .LVU109
- 398 01e4 8091 0000 		lds r24,state
- 144:main.c        **** 		}//End of switch(state)	
- 399               		.loc 1 144 8 view .LVU110
- 400 01e8 0FB6      		in __tmp_reg__,__SREG__
- 401 01ea F894      		cli
- 402 01ec DEBF      		out __SP_H__,r29
- 403 01ee 0FBE      		out __SREG__,__tmp_reg__
- 404 01f0 CDBF      		out __SP_L__,r28
- 405 01f2 00C0      		rjmp .L5
- 406               	.L7:
- 122:main.c        **** 									Write_String(14,1,0,"@mailbox");
- 407               		.loc 1 122 10 is_stmt 1 view .LVU111
- 408 01f4 20E0      		ldi r18,lo8(.LC6)
- 409 01f6 30E0      		ldi r19,hi8(.LC6)
- 410 01f8 40E0      		ldi r20,0
- 411 01fa 60E0      		ldi r22,0
- 412 01fc 8EE0      		ldi r24,lo8(14)
- 413 01fe 0E94 0000 		call Write_String
- 414               	.LVL20:
- 123:main.c        **** 									Write_String(14,2,0, ".org    ");	
- 415               		.loc 1 123 10 view .LVU112
- 416 0202 20E0      		ldi r18,lo8(.LC7)
- 417 0204 30E0      		ldi r19,hi8(.LC7)
- 418 0206 40E0      		ldi r20,0
- 419 0208 61E0      		ldi r22,lo8(1)
- 420 020a 8EE0      		ldi r24,lo8(14)
- 421 020c 0E94 0000 		call Write_String
- 422               	.LVL21:
- 124:main.c        **** 							}
- 423               		.loc 1 124 10 view .LVU113
- 424 0210 20E0      		ldi r18,lo8(.LC8)
- 425 0212 30E0      		ldi r19,hi8(.LC8)
- 426 0214 00C0      		rjmp .L10
- 427               	.L12:
- 109:main.c        **** 								entprell=RELOAD_ENTPRELL;
- 428               		.loc 1 109 9 view .LVU114
- 109:main.c        **** 								entprell=RELOAD_ENTPRELL;
- 429               		.loc 1 109 14 is_stmt 0 view .LVU115
- 430 0216 81E0      		ldi r24,lo8(1)
- 431 0218 8093 0000 		sts state,r24
- 110:main.c        **** 								Write_String(14,0,0," Button ");
- 432               		.loc 1 110 9 is_stmt 1 view .LVU116
- 110:main.c        **** 								Write_String(14,0,0," Button ");
- 433               		.loc 1 110 17 is_stmt 0 view .LVU117
- 434 021c C092 0000 		sts entprell,r12
- 111:main.c        **** 								Write_String(14,1,0,"   to   ");
- 435               		.loc 1 111 9 is_stmt 1 view .LVU118
- 436 0220 20E0      		ldi r18,lo8(.LC0)
- 437 0222 30E0      		ldi r19,hi8(.LC0)
- 438 0224 40E0      		ldi r20,0
- 439 0226 60E0      		ldi r22,0
- 440 0228 8EE0      		ldi r24,lo8(14)
- 441 022a 0E94 0000 		call Write_String
- 442               	.LVL22:
- 112:main.c        **** 								Write_String(14,2,0, "  ZERO  ");
- 443               		.loc 1 112 9 view .LVU119
- 444 022e 20E0      		ldi r18,lo8(.LC1)
- 445 0230 30E0      		ldi r19,hi8(.LC1)
- 446 0232 40E0      		ldi r20,0
- 447 0234 61E0      		ldi r22,lo8(1)
- 448 0236 8EE0      		ldi r24,lo8(14)
- 449 0238 0E94 0000 		call Write_String
- 450               	.LVL23:
- 113:main.c        **** 							}
- 451               		.loc 1 113 9 view .LVU120
- 452 023c 20E0      		ldi r18,lo8(.LC2)
- 453 023e 30E0      		ldi r19,hi8(.LC2)
- 454 0240 40E0      		ldi r20,0
- 455 0242 62E0      		ldi r22,lo8(2)
- 456 0244 8EE0      		ldi r24,lo8(14)
- 457 0246 0E94 0000 		call Write_String
- 458               	.LVL24:
- 459 024a 00C0      		rjmp .L6
- 460               		.cfi_endproc
- 461               	.LFE12:
- 463               		.text
- 464               	.global	__vector_11
- 466               	__vector_11:
- 467               	.LFB13:
- 155:main.c        **** 	
- 468               		.loc 1 155 1 view -0
- 469               		.cfi_startproc
- 470 0000 1F92 1FB6 		__gcc_isr 1
- 470      1F92 1124 
- 470      8F93 
- 471               	/* prologue: Signal */
- 472               	/* frame size = 0 */
- 473               	/* stack size = 0...4 */
- 474               	.L__stack_usage = 0 + __gcc_isr.n_pushed
- 157:main.c        **** 		if(entprell)entprell--;
- 475               		.loc 1 157 3 view .LVU122
- 157:main.c        **** 		if(entprell)entprell--;
- 476               		.loc 1 157 7 is_stmt 0 view .LVU123
- 477 000a 8091 0000 		lds r24,ms10
- 478 000e 8F5F      		subi r24,lo8(-(1))
- 479 0010 8093 0000 		sts ms10,r24
- 158:main.c        **** 			
- 480               		.loc 1 158 3 is_stmt 1 view .LVU124
- 158:main.c        **** 			
- 481               		.loc 1 158 6 is_stmt 0 view .LVU125
- 482 0014 8091 0000 		lds r24,entprell
- 158:main.c        **** 			
- 483               		.loc 1 158 5 view .LVU126
- 484 0018 8823      		tst r24
- 485 001a 01F0      		breq .L15
- 158:main.c        **** 			
- 486               		.loc 1 158 15 is_stmt 1 discriminator 1 view .LVU127
- 158:main.c        **** 			
- 487               		.loc 1 158 23 is_stmt 0 discriminator 1 view .LVU128
- 488 001c 8091 0000 		lds r24,entprell
- 489 0020 8150      		subi r24,lo8(-(-1))
- 490 0022 8093 0000 		sts entprell,r24
- 491               	.L15:
- 160:main.c        **** 	{
- 492               		.loc 1 160 2 is_stmt 1 view .LVU129
- 160:main.c        **** 	{
- 493               		.loc 1 160 9 is_stmt 0 view .LVU130
- 494 0026 8091 0000 		lds r24,ms10
- 160:main.c        **** 	{
- 495               		.loc 1 160 4 view .LVU131
- 496 002a 8A30      		cpi r24,lo8(10)
- 497 002c 01F4      		brne .L16
- 162:main.c        **** 		ms100++;
- 498               		.loc 1 162 3 is_stmt 1 view .LVU132
- 162:main.c        **** 		ms100++;
- 499               		.loc 1 162 7 is_stmt 0 view .LVU133
- 500 002e 1092 0000 		sts ms10,__zero_reg__
- 163:main.c        **** 	
- 501               		.loc 1 163 3 is_stmt 1 view .LVU134
- 163:main.c        **** 	
- 502               		.loc 1 163 8 is_stmt 0 view .LVU135
- 503 0032 8091 0000 		lds r24,ms100
- 504 0036 8F5F      		subi r24,lo8(-(1))
- 505 0038 8093 0000 		sts ms100,r24
- 506               	.L16:
- 167:main.c        **** 	{
- 507               		.loc 1 167 5 is_stmt 1 view .LVU136
- 167:main.c        **** 	{
- 508               		.loc 1 167 13 is_stmt 0 view .LVU137
- 509 003c 8091 0000 		lds r24,ms100
- 167:main.c        **** 	{
- 510               		.loc 1 167 7 view .LVU138
- 511 0040 8A30      		cpi r24,lo8(10)
- 512 0042 01F0      		breq .L25
- 513               	.L18:
- 182:main.c        **** 	{
- 514               		.loc 1 182 2 is_stmt 1 view .LVU139
- 182:main.c        **** 	{
- 515               		.loc 1 182 8 is_stmt 0 view .LVU140
- 516 0044 8091 0000 		lds r24,sec
- 182:main.c        **** 	{
- 517               		.loc 1 182 4 view .LVU141
- 518 0048 8C33      		cpi r24,lo8(60)
- 519 004a 01F4      		brne .L14
- 184:main.c        **** 		min++;
- 520               		.loc 1 184 3 is_stmt 1 view .LVU142
- 184:main.c        **** 		min++;
- 521               		.loc 1 184 6 is_stmt 0 view .LVU143
- 522 004c 1092 0000 		sts sec,__zero_reg__
- 185:main.c        **** 	}
- 523               		.loc 1 185 3 is_stmt 1 view .LVU144
- 185:main.c        **** 	}
- 524               		.loc 1 185 6 is_stmt 0 view .LVU145
- 525 0050 8091 0000 		lds r24,min
- 526 0054 8F5F      		subi r24,lo8(-(1))
- 527 0056 8093 0000 		sts min,r24
- 528               	.L14:
- 529               	/* epilogue start */
- 187:main.c        **** uint16_t vor_komma(uint32_t value)
- 530               		.loc 1 187 1 view .LVU146
- 531 005a 8F91 1F90 		__gcc_isr 2
- 531      1FBE 1F90 
- 532 0062 1895      		reti
- 533               	.L25:
- 169:main.c        **** 		sec++;
- 534               		.loc 1 169 3 is_stmt 1 view .LVU147
- 169:main.c        **** 		sec++;
- 535               		.loc 1 169 8 is_stmt 0 view .LVU148
- 536 0064 1092 0000 		sts ms100,__zero_reg__
- 170:main.c        **** 		//change display screen in fixed time
- 537               		.loc 1 170 3 is_stmt 1 view .LVU149
- 170:main.c        **** 		//change display screen in fixed time
- 538               		.loc 1 170 6 is_stmt 0 view .LVU150
- 539 0068 8091 0000 		lds r24,sec
- 540 006c 8F5F      		subi r24,lo8(-(1))
- 541 006e 8093 0000 		sts sec,r24
- 172:main.c        **** 		if(screentoggle==TOGGLEMAX)
- 542               		.loc 1 172 3 is_stmt 1 view .LVU151
- 172:main.c        **** 		if(screentoggle==TOGGLEMAX)
- 543               		.loc 1 172 15 is_stmt 0 view .LVU152
- 544 0072 8091 0000 		lds r24,screentoggle
- 545 0076 8F5F      		subi r24,lo8(-(1))
- 546 0078 8093 0000 		sts screentoggle,r24
- 173:main.c        **** 		{
- 547               		.loc 1 173 3 is_stmt 1 view .LVU153
- 173:main.c        **** 		{
- 548               		.loc 1 173 18 is_stmt 0 view .LVU154
- 549 007c 8091 0000 		lds r24,screentoggle
- 173:main.c        **** 		{
- 550               		.loc 1 173 5 view .LVU155
- 551 0080 8430      		cpi r24,lo8(4)
- 552 0082 01F4      		brne .L18
- 175:main.c        **** 			if(toggle==0)
- 553               		.loc 1 175 4 is_stmt 1 view .LVU156
- 175:main.c        **** 			if(toggle==0)
- 554               		.loc 1 175 16 is_stmt 0 view .LVU157
- 555 0084 1092 0000 		sts screentoggle,__zero_reg__
- 176:main.c        **** 			{
- 556               		.loc 1 176 4 is_stmt 1 view .LVU158
- 176:main.c        **** 			{
- 557               		.loc 1 176 13 is_stmt 0 view .LVU159
- 558 0088 8091 0000 		lds r24,toggle
- 176:main.c        **** 			{
- 559               		.loc 1 176 6 view .LVU160
- 560 008c 8111      		cpse r24,__zero_reg__
- 561 008e 00C0      		rjmp .L20
- 178:main.c        **** 			}else toggle =0;
- 562               		.loc 1 178 5 is_stmt 1 view .LVU161
- 178:main.c        **** 			}else toggle =0;
- 563               		.loc 1 178 12 is_stmt 0 view .LVU162
- 564 0090 81E0      		ldi r24,lo8(1)
- 565 0092 8093 0000 		sts toggle,r24
- 566 0096 00C0      		rjmp .L18
- 567               	.L20:
- 179:main.c        **** 		}
- 568               		.loc 1 179 10 is_stmt 1 view .LVU163
- 179:main.c        **** 		}
- 569               		.loc 1 179 17 is_stmt 0 view .LVU164
- 570 0098 1092 0000 		sts toggle,__zero_reg__
- 571 009c 00C0      		rjmp .L18
- 572               		__gcc_isr 0,r24
- 573               		.cfi_endproc
- 574               	.LFE13:
- 576               	.global	vor_komma
- 578               	vor_komma:
- 579               	.LVL25:
- 580               	.LFB14:
- 189:main.c        **** 	return value/100;
- 581               		.loc 1 189 1 is_stmt 1 view -0
- 582               		.cfi_startproc
- 189:main.c        **** 	return value/100;
- 583               		.loc 1 189 1 is_stmt 0 view .LVU166
- 584 009e CF93      		push r28
- 585               	.LCFI2:
- 586               		.cfi_def_cfa_offset 3
- 587               		.cfi_offset 28, -2
- 588 00a0 DF93      		push r29
- 589               	.LCFI3:
- 590               		.cfi_def_cfa_offset 4
- 591               		.cfi_offset 29, -3
- 592 00a2 00D0      		rcall .
- 593 00a4 00D0      		rcall .
- 594               	.LCFI4:
- 595               		.cfi_def_cfa_offset 8
- 596 00a6 CDB7      		in r28,__SP_L__
- 597 00a8 DEB7      		in r29,__SP_H__
- 598               	.LCFI5:
- 599               		.cfi_def_cfa_register 28
- 600               	/* prologue: function */
- 601               	/* frame size = 4 */
- 602               	/* stack size = 6 */
- 603               	.L__stack_usage = 6
- 190:main.c        **** 	
- 604               		.loc 1 190 2 is_stmt 1 view .LVU167
- 190:main.c        **** 	
- 605               		.loc 1 190 14 is_stmt 0 view .LVU168
- 606 00aa 24E6      		ldi r18,lo8(100)
- 607 00ac 30E0      		ldi r19,0
- 608 00ae 40E0      		ldi r20,0
- 609 00b0 50E0      		ldi r21,0
- 610 00b2 0E94 0000 		call __udivmodsi4
- 611               	.LVL26:
- 192:main.c        **** uint8_t nach_komma(uint32_t value)
- 612               		.loc 1 192 1 view .LVU169
- 613 00b6 C901      		movw r24,r18
- 614               	/* epilogue start */
- 615 00b8 0F90      		pop __tmp_reg__
- 616 00ba 0F90      		pop __tmp_reg__
- 617 00bc 0F90      		pop __tmp_reg__
- 618 00be 0F90      		pop __tmp_reg__
- 619 00c0 DF91      		pop r29
- 620 00c2 CF91      		pop r28
- 621 00c4 0895      		ret
- 622               		.cfi_endproc
- 623               	.LFE14:
- 625               	.global	nach_komma
- 627               	nach_komma:
- 628               	.LVL27:
- 629               	.LFB15:
- 194:main.c        **** 	uint8_t temp;
- 630               		.loc 1 194 1 is_stmt 1 view -0
- 631               		.cfi_startproc
- 194:main.c        **** 	uint8_t temp;
- 632               		.loc 1 194 1 is_stmt 0 view .LVU171
- 633 00c6 CF93      		push r28
- 634               	.LCFI6:
- 635               		.cfi_def_cfa_offset 3
- 636               		.cfi_offset 28, -2
- 637               	/* prologue: function */
- 638               	/* frame size = 0 */
- 639               	/* stack size = 1 */
- 640               	.L__stack_usage = 1
- 641 00c8 C62F      		mov r28,r22
- 195:main.c        **** 	temp = value/100;
- 642               		.loc 1 195 2 is_stmt 1 view .LVU172
- 196:main.c        **** 	return value-(temp*100);
- 643               		.loc 1 196 2 view .LVU173
- 644               	.LVL28:
- 645               		.loc 1 197 2 view .LVU174
- 196:main.c        **** 	return value-(temp*100);
- 646               		.loc 1 196 14 is_stmt 0 view .LVU175
- 647 00ca 24E6      		ldi r18,lo8(100)
- 648 00cc 30E0      		ldi r19,0
- 649 00ce 40E0      		ldi r20,0
- 650 00d0 50E0      		ldi r21,0
- 651 00d2 0E94 0000 		call __udivmodsi4
- 652               	.LVL29:
+ 169:main.c        **** 		ms10=0;
+ 434               		.loc 1 169 3 is_stmt 1 view .LVU118
+ 435               		.loc 1 169 7 is_stmt 0 view .LVU119
+ 436 002e 1092 0000 		sts ms10,__zero_reg__
+ 170:main.c        **** 		ms100++;
+ 437               		.loc 1 170 3 is_stmt 1 view .LVU120
+ 438               		.loc 1 170 8 is_stmt 0 view .LVU121
+ 439 0032 8091 0000 		lds r24,ms100
+ 440 0036 8F5F      		subi r24,lo8(-(1))
+ 441 0038 8093 0000 		sts ms100,r24
+ 442               	.L16:
+ 171:main.c        **** 	
+ 172:main.c        **** 		
+ 173:main.c        **** 	}
+ 174:main.c        ****     if(ms100==10)	//sec
+ 443               		.loc 1 174 5 is_stmt 1 view .LVU122
+ 444               		.loc 1 174 13 is_stmt 0 view .LVU123
+ 445 003c 8091 0000 		lds r24,ms100
+ 446               		.loc 1 174 7 view .LVU124
+ 447 0040 8A30      		cpi r24,lo8(10)
+ 448 0042 01F0      		breq .L25
+ 449               	.L18:
+ 175:main.c        **** 	{
+ 176:main.c        **** 		ms100=0;
+ 177:main.c        **** 		sec++;
+ 178:main.c        **** 		//change display screen in fixed time
+ 179:main.c        **** 		screentoggle++;
+ 180:main.c        **** 		if(screentoggle==TOGGLEMAX)
+ 181:main.c        **** 		{
+ 182:main.c        **** 			screentoggle=0;
+ 183:main.c        **** 			if(toggle==0)
+ 184:main.c        **** 			{
+ 185:main.c        **** 				toggle = 1;
+ 186:main.c        **** 			}else toggle =0;
+ 187:main.c        **** 		}
+ 188:main.c        **** 	}
+ 189:main.c        **** 	if(sec==60)	//Minute
+ 450               		.loc 1 189 2 is_stmt 1 view .LVU125
+ 451               		.loc 1 189 8 is_stmt 0 view .LVU126
+ 452 0044 8091 0000 		lds r24,sec
+ 453               		.loc 1 189 4 view .LVU127
+ 454 0048 8C33      		cpi r24,lo8(60)
+ 455 004a 01F4      		brne .L14
+ 190:main.c        **** 	{
+ 191:main.c        **** 		sec=0;
+ 456               		.loc 1 191 3 is_stmt 1 view .LVU128
+ 457               		.loc 1 191 6 is_stmt 0 view .LVU129
+ 458 004c 1092 0000 		sts sec,__zero_reg__
+ 192:main.c        **** 		min++;
+ 459               		.loc 1 192 3 is_stmt 1 view .LVU130
+ 460               		.loc 1 192 6 is_stmt 0 view .LVU131
+ 461 0050 8091 0000 		lds r24,min
+ 462 0054 8F5F      		subi r24,lo8(-(1))
+ 463 0056 8093 0000 		sts min,r24
+ 464               	.L14:
+ 465               	/* epilogue start */
+ 193:main.c        **** 	}
+ 194:main.c        **** }
+ 466               		.loc 1 194 1 view .LVU132
+ 467 005a 8F91 1F90 		__gcc_isr 2
+ 467      1FBE 1F90 
+ 468 0062 1895      		reti
+ 469               	.L25:
+ 176:main.c        **** 		sec++;
+ 470               		.loc 1 176 3 is_stmt 1 view .LVU133
+ 176:main.c        **** 		sec++;
+ 471               		.loc 1 176 8 is_stmt 0 view .LVU134
+ 472 0064 1092 0000 		sts ms100,__zero_reg__
+ 177:main.c        **** 		//change display screen in fixed time
+ 473               		.loc 1 177 3 is_stmt 1 view .LVU135
+ 177:main.c        **** 		//change display screen in fixed time
+ 474               		.loc 1 177 6 is_stmt 0 view .LVU136
+ 475 0068 8091 0000 		lds r24,sec
+ 476 006c 8F5F      		subi r24,lo8(-(1))
+ 477 006e 8093 0000 		sts sec,r24
+ 179:main.c        **** 		if(screentoggle==TOGGLEMAX)
+ 478               		.loc 1 179 3 is_stmt 1 view .LVU137
+ 179:main.c        **** 		if(screentoggle==TOGGLEMAX)
+ 479               		.loc 1 179 15 is_stmt 0 view .LVU138
+ 480 0072 8091 0000 		lds r24,screentoggle
+ 481 0076 8F5F      		subi r24,lo8(-(1))
+ 482 0078 8093 0000 		sts screentoggle,r24
+ 180:main.c        **** 		{
+ 483               		.loc 1 180 3 is_stmt 1 view .LVU139
+ 180:main.c        **** 		{
+ 484               		.loc 1 180 18 is_stmt 0 view .LVU140
+ 485 007c 8091 0000 		lds r24,screentoggle
+ 180:main.c        **** 		{
+ 486               		.loc 1 180 5 view .LVU141
+ 487 0080 8430      		cpi r24,lo8(4)
+ 488 0082 01F4      		brne .L18
+ 182:main.c        **** 			if(toggle==0)
+ 489               		.loc 1 182 4 is_stmt 1 view .LVU142
+ 182:main.c        **** 			if(toggle==0)
+ 490               		.loc 1 182 16 is_stmt 0 view .LVU143
+ 491 0084 1092 0000 		sts screentoggle,__zero_reg__
+ 183:main.c        **** 			{
+ 492               		.loc 1 183 4 is_stmt 1 view .LVU144
+ 183:main.c        **** 			{
+ 493               		.loc 1 183 13 is_stmt 0 view .LVU145
+ 494 0088 8091 0000 		lds r24,toggle
+ 183:main.c        **** 			{
+ 495               		.loc 1 183 6 view .LVU146
+ 496 008c 8111      		cpse r24,__zero_reg__
+ 497 008e 00C0      		rjmp .L20
+ 185:main.c        **** 			}else toggle =0;
+ 498               		.loc 1 185 5 is_stmt 1 view .LVU147
+ 185:main.c        **** 			}else toggle =0;
+ 499               		.loc 1 185 12 is_stmt 0 view .LVU148
+ 500 0090 81E0      		ldi r24,lo8(1)
+ 501 0092 8093 0000 		sts toggle,r24
+ 502 0096 00C0      		rjmp .L18
+ 503               	.L20:
+ 186:main.c        **** 		}
+ 504               		.loc 1 186 10 is_stmt 1 view .LVU149
+ 186:main.c        **** 		}
+ 505               		.loc 1 186 17 is_stmt 0 view .LVU150
+ 506 0098 1092 0000 		sts toggle,__zero_reg__
+ 507 009c 00C0      		rjmp .L18
+ 508               		__gcc_isr 0,r24
+ 509               		.cfi_endproc
+ 510               	.LFE13:
+ 512               	.global	vor_komma
+ 514               	vor_komma:
+ 515               	.LVL0:
+ 516               	.LFB14:
+ 195:main.c        **** uint16_t vor_komma(uint32_t value)
+ 196:main.c        **** {
+ 517               		.loc 1 196 1 is_stmt 1 view -0
+ 518               		.cfi_startproc
+ 519               		.loc 1 196 1 is_stmt 0 view .LVU152
+ 520 009e CF93      		push r28
+ 521               	.LCFI13:
+ 522               		.cfi_def_cfa_offset 3
+ 523               		.cfi_offset 28, -2
+ 524 00a0 DF93      		push r29
+ 525               	.LCFI14:
+ 526               		.cfi_def_cfa_offset 4
+ 527               		.cfi_offset 29, -3
+ 528 00a2 00D0      		rcall .
+ 529 00a4 00D0      		rcall .
+ 530               	.LCFI15:
+ 531               		.cfi_def_cfa_offset 8
+ 532 00a6 CDB7      		in r28,__SP_L__
+ 533 00a8 DEB7      		in r29,__SP_H__
+ 534               	.LCFI16:
+ 535               		.cfi_def_cfa_register 28
+ 536               	/* prologue: function */
+ 537               	/* frame size = 4 */
+ 538               	/* stack size = 6 */
+ 539               	.L__stack_usage = 6
+ 197:main.c        **** 	return value/100;
+ 540               		.loc 1 197 2 is_stmt 1 view .LVU153
+ 541               		.loc 1 197 14 is_stmt 0 view .LVU154
+ 542 00aa 24E6      		ldi r18,lo8(100)
+ 543 00ac 30E0      		ldi r19,0
+ 544 00ae 40E0      		ldi r20,0
+ 545 00b0 50E0      		ldi r21,0
+ 546 00b2 0E94 0000 		call __udivmodsi4
+ 547               	.LVL1:
  198:main.c        **** 	
- 199:main.c        **** 	
- 200:main.c        **** }
- 653               		.loc 1 200 1 view .LVU176
- 654 00d6 8C2F      		mov r24,r28
- 655               	.LVL30:
- 656               		.loc 1 200 1 view .LVU177
- 657 00d8 94E6      		ldi r25,lo8(100)
- 658 00da 299F      		mul r18,r25
- 659 00dc 8019      		sub r24,r0
- 660 00de 1124      		clr __zero_reg__
- 661               	/* epilogue start */
- 662 00e0 CF91      		pop r28
- 663               		.loc 1 200 1 view .LVU178
- 664 00e2 0895      		ret
- 665               		.cfi_endproc
- 666               	.LFE15:
- 668               	.global	buffer
- 669               		.section .bss
- 672               	buffer:
- 673 0000 0000 0000 		.zero	20
- 673      0000 0000 
- 673      0000 0000 
- 673      0000 0000 
- 673      0000 0000 
- 674               	.global	toggle_alt
- 677               	toggle_alt:
- 678 0014 00        		.zero	1
- 679               	.global	toggle
- 682               	toggle:
- 683 0015 00        		.zero	1
- 684               	.global	screentoggle
- 687               	screentoggle:
- 688 0016 00        		.zero	1
- 689               	.global	entprell
- 692               	entprell:
- 693 0017 00        		.zero	1
- 694               	.global	min
- 697               	min:
- 698 0018 00        		.zero	1
- 699               	.global	sec
- 702               	sec:
- 703 0019 00        		.zero	1
- 704               	.global	ms100
- 707               	ms100:
- 708 001a 00        		.zero	1
- 709               	.global	ms10
- 712               	ms10:
- 713 001b 00        		.zero	1
- 714               	.global	state
- 717               	state:
- 718 001c 00        		.zero	1
- 719               	.global	roman
- 722               	roman:
- 723 001d 0000      		.zero	2
- 724               	.global	test
- 727               	test:
- 728 001f 0000      		.zero	2
- 729               	.global	temp
- 732               	temp:
- 733 0021 0000      		.zero	2
- 734               	.global	font14
- 735               		.section	.progmem.data,"a",@progbits
- 738               	font14:
- 739 0000 00        		.string	""
- 740 0001 00        		.string	""
- 741 0002 00        		.string	""
- 742 0003 00        		.string	""
- 743 0004 00        		.string	""
- 744 0005 00        		.string	""
- 745 0006 00        		.string	""
- 746 0007 00        		.string	""
- 747 0008 00        		.string	""
- 748 0009 00        		.string	""
- 749 000a 00        		.string	""
- 750 000b 00        		.string	""
- 751 000c 00        		.string	""
- 752 000d 00        		.string	""
- 753 000e 00        		.string	""
- 754 000f 1010 1010 		.string	"\020\020\020\020\020\020\020"
- 754      1010 1000 
- 755 0017 1010 00   		.string	"\020\020"
- 756 001a 00        		.string	""
- 757 001b 00        		.string	""
- 758 001c 2424 2424 		.string	"$$$$"
- 758      00
- 759 0021 00        		.string	""
- 760 0022 00        		.string	""
- 761 0023 00        		.string	""
- 762 0024 00        		.string	""
- 763 0025 00        		.string	""
- 764 0026 00        		.string	""
- 765 0027 00        		.string	""
- 766 0028 00        		.string	""
- 767 0029 00        		.string	""
- 768 002a 00        		.string	""
- 769 002b 0909 127F 		.string	"\t\t\022\177\022$\377$HH"
- 769      1224 FF24 
- 769      4848 00
- 770 0036 00        		.string	""
- 771 0037 00        		.string	""
- 772 0038 103C 5050 		.string	"\020<PPP0\030\024\024\024x\020"
- 772      5030 1814 
- 772      1414 7810 
- 772      00
- 773 0045 00        		.string	""
- 774 0046 00        		.string	""
- 775 0047 6192 9494 		.string	"a\222\224\224h\026))I\206"
- 775      6816 2929 
- 775      4986 00
- 776 0052 00        		.string	""
- 777 0053 00        		.string	""
- 778 0054 00        		.string	""
- 779 0055 1824 2428 		.string	"\030$$(0\321\211\216\306\177"
- 779      30D1 898E 
- 779      C67F 00
- 780 0060 00        		.string	""
- 781 0061 00        		.string	""
- 782 0062 1010 1010 		.string	"\020\020\020\020"
- 782      00
- 783 0067 00        		.string	""
- 784 0068 00        		.string	""
- 785 0069 00        		.string	""
- 786 006a 00        		.string	""
- 787 006b 00        		.string	""
- 788 006c 00        		.string	""
- 789 006d 00        		.string	""
- 790 006e 00        		.string	""
- 791 006f 00        		.string	""
- 792 0070 060C 1010 		.string	"\006\f\020\020     \020\020\f\006"
- 792      2020 2020 
- 792      2010 100C 
- 792      0600 
- 793 007e 6030 0808 		.string	"`0\b\b\004\004\004\004\004\b\b0`"
- 793      0404 0404 
- 793      0408 0830 
- 793      6000 
- 794 008c 00        		.string	""
- 795 008d 1028 1000 		.string	"\020(\020"
- 796 0091 00        		.string	""
- 797 0092 00        		.string	""
- 798 0093 00        		.string	""
- 799 0094 00        		.string	""
- 800 0095 00        		.string	""
- 801 0096 00        		.string	""
- 802 0097 00        		.string	""
- 803 0098 00        		.string	""
- 804 0099 00        		.string	""
- 805 009a 00        		.string	""
- 806 009b 00        		.string	""
- 807 009c 00        		.string	""
- 808 009d 00        		.string	""
- 809 009e 1010 10FE 		.string	"\020\020\020\376\020\020\020"
- 809      1010 1000 
- 810 00a6 00        		.string	""
- 811 00a7 00        		.string	""
- 812 00a8 00        		.string	""
- 813 00a9 00        		.string	""
- 814 00aa 00        		.string	""
- 815 00ab 00        		.string	""
- 816 00ac 00        		.string	""
- 817 00ad 00        		.string	""
- 818 00ae 00        		.string	""
- 819 00af 00        		.string	""
- 820 00b0 00        		.string	""
- 821 00b1 1818 0810 		.string	"\030\030\b\020"
- 821      00
- 822 00b6 00        		.string	""
- 823 00b7 00        		.string	""
- 824 00b8 00        		.string	""
- 825 00b9 00        		.string	""
- 826 00ba 00        		.string	""
- 827 00bb 00        		.string	""
- 828 00bc 7E00      		.string	"~"
- 829 00be 00        		.string	""
- 830 00bf 00        		.string	""
- 831 00c0 00        		.string	""
- 832 00c1 00        		.string	""
- 833 00c2 00        		.string	""
- 834 00c3 00        		.string	""
- 835 00c4 00        		.string	""
- 836 00c5 00        		.string	""
- 837 00c6 00        		.string	""
- 838 00c7 00        		.string	""
- 839 00c8 00        		.string	""
- 840 00c9 00        		.string	""
- 841 00ca 00        		.string	""
- 842 00cb 00        		.string	""
- 843 00cc 00        		.string	""
- 844 00cd 1818 00   		.string	"\030\030"
- 845 00d0 00        		.string	""
- 846 00d1 00        		.string	""
- 847 00d2 0204 0404 		.string	"\002\004\004\004\b\b\030\020\020   @"
- 847      0808 1810 
- 847      1020 2020 
- 847      4000 
- 848 00e0 00        		.string	""
- 849 00e1 1824 4242 		.string	"\030$BBBBBB$\030"
- 849      4242 4242 
- 849      2418 00
- 850 00ec 00        		.string	""
- 851 00ed 00        		.string	""
- 852 00ee 00        		.string	""
- 853 00ef 0878 0808 		.string	"\bx\b\b\b\b\b\b\b\177"
- 853      0808 0808 
- 853      087F 00
- 854 00fa 00        		.string	""
- 855 00fb 00        		.string	""
- 856 00fc 00        		.string	""
- 857 00fd 7804 0404 		.string	"x\004\004\004\b\b\020 @|"
- 857      0808 1020 
- 857      407C 00
- 858 0108 00        		.string	""
- 859 0109 00        		.string	""
- 860 010a 00        		.string	""
- 861 010b 3C02 0202 		.string	"<\002\002\002\034\002\002\002\002<"
- 861      1C02 0202 
- 861      023C 00
- 862 0116 00        		.string	""
- 863 0117 00        		.string	""
- 864 0118 00        		.string	""
- 865 0119 040C 1414 		.string	"\004\f\024\024$D~\004\004\004"
- 865      2444 7E04 
- 865      0404 00
- 866 0124 00        		.string	""
- 867 0125 00        		.string	""
- 868 0126 00        		.string	""
- 869 0127 3E20 2020 		.string	">   8\006\002\002\002<"
- 869      3806 0202 
- 869      023C 00
- 870 0132 00        		.string	""
- 871 0133 00        		.string	""
- 872 0134 00        		.string	""
- 873 0135 1C20 4040 		.string	"\034 @@\\bBB\"\034"
- 873      5C62 4242 
- 873      221C 00
- 874 0140 00        		.string	""
- 875 0141 00        		.string	""
- 876 0142 00        		.string	""
- 877 0143 7E02 0404 		.string	"~\002\004\004\b\020\020\020  "
- 877      0810 1010 
- 877      2020 00
- 878 014e 00        		.string	""
- 879 014f 00        		.string	""
- 880 0150 00        		.string	""
- 881 0151 3C42 4244 		.string	"<BBD8$BBB<"
- 881      3824 4242 
- 881      423C 00
- 882 015c 00        		.string	""
- 883 015d 00        		.string	""
- 884 015e 00        		.string	""
- 885 015f 3844 4242 		.string	"8DBBF:\002\002\0048"
- 885      463A 0202 
- 885      0438 00
- 886 016a 00        		.string	""
- 887 016b 00        		.string	""
- 888 016c 00        		.string	""
- 889 016d 00        		.string	""
- 890 016e 00        		.string	""
- 891 016f 00        		.string	""
- 892 0170 1818 00   		.string	"\030\030"
- 893 0173 00        		.string	""
- 894 0174 00        		.string	""
- 895 0175 1818 00   		.string	"\030\030"
- 896 0178 00        		.string	""
- 897 0179 00        		.string	""
- 898 017a 00        		.string	""
- 899 017b 00        		.string	""
- 900 017c 00        		.string	""
- 901 017d 00        		.string	""
- 902 017e 1818 00   		.string	"\030\030"
- 903 0181 00        		.string	""
- 904 0182 00        		.string	""
- 905 0183 1818 0810 		.string	"\030\030\b\020"
- 905      00
- 906 0188 00        		.string	""
- 907 0189 00        		.string	""
- 908 018a 00        		.string	""
- 909 018b 00        		.string	""
- 910 018c 020C 1060 		.string	"\002\f\020`\020\f\002"
- 910      100C 0200 
- 911 0194 00        		.string	""
- 912 0195 00        		.string	""
- 913 0196 00        		.string	""
- 914 0197 00        		.string	""
- 915 0198 00        		.string	""
- 916 0199 00        		.string	""
- 917 019a 00        		.string	""
- 918 019b 7E00      		.string	"~"
- 919 019d 00        		.string	""
- 920 019e 7E00      		.string	"~"
- 921 01a0 00        		.string	""
- 922 01a1 00        		.string	""
- 923 01a2 00        		.string	""
- 924 01a3 00        		.string	""
- 925 01a4 00        		.string	""
- 926 01a5 00        		.string	""
- 927 01a6 00        		.string	""
- 928 01a7 00        		.string	""
- 929 01a8 4030 0806 		.string	"@0\b\006\b0@"
- 929      0830 4000 
- 930 01b0 00        		.string	""
- 931 01b1 00        		.string	""
- 932 01b2 00        		.string	""
- 933 01b3 7C42 0204 		.string	"|B\002\004\b\020\020"
- 933      0810 1000 
- 934 01bb 1010 00   		.string	"\020\020"
- 935 01be 00        		.string	""
- 936 01bf 00        		.string	""
- 937 01c0 00        		.string	""
- 938 01c1 3C62 4E92 		.string	"<bN\222\222\222\226\333D<"
- 938      9292 96DB 
- 938      443C 00
- 939 01cc 00        		.string	""
- 940 01cd 00        		.string	""
- 941 01ce 00        		.string	""
- 942 01cf 00        		.string	""
- 943 01d0 0818 1424 		.string	"\b\030\024$$B~B\201"
- 943      2442 7E42 
- 943      8100 
- 944 01da 00        		.string	""
- 945 01db 00        		.string	""
- 946 01dc 00        		.string	""
- 947 01dd 00        		.string	""
- 948 01de 7C42 4244 		.string	"|BBDxDBB|"
- 948      7844 4242 
- 948      7C00 
- 949 01e8 00        		.string	""
- 950 01e9 00        		.string	""
- 951 01ea 00        		.string	""
- 952 01eb 00        		.string	""
- 953 01ec 3E40 8080 		.string	">@\200\200\200\200\200@>"
- 953      8080 8040 
- 953      3E00 
- 954 01f6 00        		.string	""
- 955 01f7 00        		.string	""
- 956 01f8 00        		.string	""
- 957 01f9 00        		.string	""
- 958 01fa F884 8282 		.string	"\370\204\202\202\202\202\202\204\370"
- 958      8282 8284 
- 958      F800 
- 959 0204 00        		.string	""
- 960 0205 00        		.string	""
- 961 0206 00        		.string	""
- 962 0207 00        		.string	""
- 963 0208 7E40 4040 		.string	"~@@@|@@@~"
- 963      7C40 4040 
- 963      7E00 
- 964 0212 00        		.string	""
- 965 0213 00        		.string	""
- 966 0214 00        		.string	""
- 967 0215 00        		.string	""
- 968 0216 7E40 4040 		.string	"~@@@|@@@@"
- 968      7C40 4040 
- 968      4000 
- 969 0220 00        		.string	""
- 970 0221 00        		.string	""
- 971 0222 00        		.string	""
- 972 0223 00        		.string	""
- 973 0224 3E40 8080 		.string	">@\200\200\200\216\202B>"
- 973      808E 8242 
- 973      3E00 
- 974 022e 00        		.string	""
- 975 022f 00        		.string	""
- 976 0230 00        		.string	""
- 977 0231 00        		.string	""
- 978 0232 4242 4242 		.string	"BBBB~BBBB"
- 978      7E42 4242 
- 978      4200 
- 979 023c 00        		.string	""
- 980 023d 00        		.string	""
- 981 023e 00        		.string	""
- 982 023f 00        		.string	""
- 983 0240 7C10 1010 		.string	"|\020\020\020\020\020\020\020|"
- 983      1010 1010 
- 983      7C00 
- 984 024a 00        		.string	""
- 985 024b 00        		.string	""
- 986 024c 00        		.string	""
- 987 024d 00        		.string	""
- 988 024e 3C04 0404 		.string	"<\004\004\004\004\004\004\004x"
- 988      0404 0404 
- 988      7800 
- 989 0258 00        		.string	""
- 990 0259 00        		.string	""
- 991 025a 00        		.string	""
- 992 025b 00        		.string	""
- 993 025c 4244 4850 		.string	"BDHP`PHDB"
- 993      6050 4844 
- 993      4200 
- 994 0266 00        		.string	""
- 995 0267 00        		.string	""
- 996 0268 00        		.string	""
- 997 0269 00        		.string	""
- 998 026a 4040 4040 		.string	"@@@@@@@@~"
- 998      4040 4040 
- 998      7E00 
- 999 0274 00        		.string	""
- 1000 0275 00        		.string	""
- 1001 0276 00        		.string	""
- 1002 0277 00        		.string	""
- 1003 0278 C6C6 C6AA 		.string	"\306\306\306\252\252\252\222\202\202"
- 1003      AAAA 9282 
- 1003      8200 
- 1004 0282 00        		.string	""
- 1005 0283 00        		.string	""
- 1006 0284 00        		.string	""
- 1007 0285 00        		.string	""
- 1008 0286 4262 6252 		.string	"BbbRRJJFB"
- 1008      524A 4A46 
- 1008      4200 
- 1009 0290 00        		.string	""
- 1010 0291 00        		.string	""
- 1011 0292 00        		.string	""
- 1012 0293 00        		.string	""
- 1013 0294 3844 8282 		.string	"8D\202\202\202\202\202D8"
- 1013      8282 8244 
- 1013      3800 
- 1014 029e 00        		.string	""
- 1015 029f 00        		.string	""
- 1016 02a0 00        		.string	""
- 1017 02a1 00        		.string	""
- 1018 02a2 7C42 4242 		.string	"|BBBFx@@@"
- 1018      4678 4040 
- 1018      4000 
- 1019 02ac 00        		.string	""
- 1020 02ad 00        		.string	""
- 1021 02ae 00        		.string	""
- 1022 02af 00        		.string	""
- 1023 02b0 3844 8282 		.string	"8D\202\202\202\202\202D8\006\003"
- 1023      8282 8244 
- 1023      3806 0300 
- 1024 02bc 00        		.string	""
- 1025 02bd 00        		.string	""
- 1026 02be 7844 4444 		.string	"xDDDxHLDB"
- 1026      7848 4C44 
- 1026      4200 
- 1027 02c8 00        		.string	""
- 1028 02c9 00        		.string	""
- 1029 02ca 00        		.string	""
- 1030 02cb 00        		.string	""
- 1031 02cc 3E40 4060 		.string	">@@`\030\006\002\002|"
- 1031      1806 0202 
- 1031      7C00 
- 1032 02d6 00        		.string	""
- 1033 02d7 00        		.string	""
- 1034 02d8 00        		.string	""
- 1035 02d9 00        		.string	""
- 1036 02da FE10 1010 		.string	"\376\020\020\020\020\020\020\020\020"
- 1036      1010 1010 
- 1036      1000 
- 1037 02e4 00        		.string	""
- 1038 02e5 00        		.string	""
- 1039 02e6 00        		.string	""
- 1040 02e7 00        		.string	""
- 1041 02e8 4242 4242 		.string	"BBBBBBBB<"
- 1041      4242 4242 
- 1041      3C00 
- 1042 02f2 00        		.string	""
- 1043 02f3 00        		.string	""
- 1044 02f4 00        		.string	""
- 1045 02f5 00        		.string	""
- 1046 02f6 8142 4244 		.string	"\201BBD$((\020\020"
- 1046      2428 2810 
- 1046      1000 
- 1047 0300 00        		.string	""
- 1048 0301 00        		.string	""
- 1049 0302 00        		.string	""
- 1050 0303 00        		.string	""
- 1051 0304 8181 939A 		.string	"\201\201\223\232ZZff$"
- 1051      5A5A 6666 
- 1051      2400 
- 1052 030e 00        		.string	""
- 1053 030f 00        		.string	""
- 1054 0310 00        		.string	""
- 1055 0311 00        		.string	""
- 1056 0312 8142 2418 		.string	"\201B$\030\030\030$B\201"
- 1056      1818 2442 
- 1056      8100 
- 1057 031c 00        		.string	""
- 1058 031d 00        		.string	""
- 1059 031e 00        		.string	""
- 1060 031f 00        		.string	""
- 1061 0320 8142 4428 		.string	"\201BD(\030\020\020\020\020"
- 1061      1810 1010 
- 1061      1000 
- 1062 032a 00        		.string	""
- 1063 032b 00        		.string	""
- 1064 032c 00        		.string	""
- 1065 032d 00        		.string	""
- 1066 032e FE02 0408 		.string	"\376\002\004\b\020 @\200\376"
- 1066      1020 4080 
- 1066      FE00 
- 1067 0338 00        		.string	""
- 1068 0339 00        		.string	""
- 1069 033a 1E10 1010 		.string	"\036\020\020\020\020\020\020\020\020\020\020\020\036"
- 1069      1010 1010 
- 1069      1010 1010 
- 1069      1E00 
- 1070 0348 4020 2020 		.string	"@   \020\020\030\b\b\004\004\004\002"
- 1070      1010 1808 
- 1070      0804 0404 
- 1070      0200 
- 1071 0356 7808 0808 		.string	"x\b\b\b\b\b\b\b\b\b\b\bx"
- 1071      0808 0808 
- 1071      0808 0808 
- 1071      7800 
- 1072 0364 00        		.string	""
- 1073 0365 0808 1814 		.string	"\b\b\030\024\024$\"B"
- 1073      1424 2242 
- 1073      00
- 1074 036e 00        		.string	""
- 1075 036f 00        		.string	""
- 1076 0370 00        		.string	""
- 1077 0371 00        		.string	""
- 1078 0372 00        		.string	""
- 1079 0373 00        		.string	""
- 1080 0374 00        		.string	""
- 1081 0375 00        		.string	""
- 1082 0376 00        		.string	""
- 1083 0377 00        		.string	""
- 1084 0378 00        		.string	""
- 1085 0379 00        		.string	""
- 1086 037a 00        		.string	""
- 1087 037b 00        		.string	""
- 1088 037c 00        		.string	""
- 1089 037d FF00      		.string	"\377"
- 1090 037f 00        		.string	""
- 1091 0380 0804 00   		.string	"\b\004"
- 1092 0383 00        		.string	""
- 1093 0384 00        		.string	""
- 1094 0385 00        		.string	""
- 1095 0386 00        		.string	""
- 1096 0387 00        		.string	""
- 1097 0388 00        		.string	""
- 1098 0389 00        		.string	""
- 1099 038a 00        		.string	""
- 1100 038b 00        		.string	""
- 1101 038c 00        		.string	""
- 1102 038d 00        		.string	""
- 1103 038e 00        		.string	""
- 1104 038f 00        		.string	""
- 1105 0390 00        		.string	""
- 1106 0391 00        		.string	""
- 1107 0392 3C02 023E 		.string	"<\002\002>BB?"
- 1107      4242 3F00 
- 1108 039a 00        		.string	""
- 1109 039b 00        		.string	""
- 1110 039c 4040 4040 		.string	"@@@@\\bBBBb\\"
- 1110      5C62 4242 
- 1110      4262 5C00 
- 1111 03a8 00        		.string	""
- 1112 03a9 00        		.string	""
- 1113 03aa 00        		.string	""
- 1114 03ab 00        		.string	""
- 1115 03ac 00        		.string	""
- 1116 03ad 00        		.string	""
- 1117 03ae 1E20 4040 		.string	"\036 @@@ \036"
- 1117      4020 1E00 
- 1118 03b6 00        		.string	""
- 1119 03b7 00        		.string	""
- 1120 03b8 0202 0202 		.string	"\002\002\002\002:FBBBF:"
- 1120      3A46 4242 
- 1120      4246 3A00 
- 1121 03c4 00        		.string	""
- 1122 03c5 00        		.string	""
- 1123 03c6 00        		.string	""
- 1124 03c7 00        		.string	""
- 1125 03c8 00        		.string	""
- 1126 03c9 00        		.string	""
- 1127 03ca 3C22 427E 		.string	"<\"B~@@>"
- 1127      4040 3E00 
- 1128 03d2 00        		.string	""
- 1129 03d3 00        		.string	""
- 1130 03d4 0E10 1010 		.string	"\016\020\020\020~\020\020\020\020\020\020"
- 1130      7E10 1010 
- 1130      1010 1000 
- 1131 03e0 00        		.string	""
- 1132 03e1 00        		.string	""
- 1133 03e2 00        		.string	""
- 1134 03e3 00        		.string	""
- 1135 03e4 00        		.string	""
- 1136 03e5 00        		.string	""
- 1137 03e6 3E46 4242 		.string	">FBBBF:\002\002<@@@@\\bBBBBB"
- 1137      4246 3A02 
- 1137      023C 4040 
- 1137      4040 5C62 
- 1137      4242 4242 
- 1138 03fc 00        		.string	""
- 1139 03fd 00        		.string	""
- 1140 03fe 1818 00   		.string	"\030\030"
- 1141 0401 00        		.string	""
- 1142 0402 7808 0808 		.string	"x\b\b\b\b\b\b"
- 1142      0808 0800 
- 1143 040a 00        		.string	""
- 1144 040b 00        		.string	""
- 1145 040c 0C0C 00   		.string	"\f\f"
- 1146 040f 00        		.string	""
- 1147 0410 3C04 0404 		.string	"<\004\004\004\004\004\004\004\004x@@@@DHP`XDB"
- 1147      0404 0404 
- 1147      0478 4040 
- 1147      4040 4448 
- 1147      5060 5844 
- 1148 0426 00        		.string	""
- 1149 0427 00        		.string	""
- 1150 0428 7808 0808 		.string	"x\b\b\b\b\b\b\b\b\b\b"
- 1150      0808 0808 
- 1150      0808 0800 
- 1151 0434 00        		.string	""
- 1152 0435 00        		.string	""
- 1153 0436 00        		.string	""
- 1154 0437 00        		.string	""
- 1155 0438 00        		.string	""
- 1156 0439 00        		.string	""
- 1157 043a B6DA 9292 		.string	"\266\332\222\222\222\222\222"
- 1157      9292 9200 
- 1158 0442 00        		.string	""
- 1159 0443 00        		.string	""
- 1160 0444 00        		.string	""
- 1161 0445 00        		.string	""
- 1162 0446 00        		.string	""
- 1163 0447 00        		.string	""
- 1164 0448 5C62 4242 		.string	"\\bBBBBB"
- 1164      4242 4200 
- 1165 0450 00        		.string	""
- 1166 0451 00        		.string	""
- 1167 0452 00        		.string	""
- 1168 0453 00        		.string	""
- 1169 0454 00        		.string	""
- 1170 0455 00        		.string	""
- 1171 0456 3844 8282 		.string	"8D\202\202\202D8"
- 1171      8244 3800 
- 1172 045e 00        		.string	""
- 1173 045f 00        		.string	""
- 1174 0460 00        		.string	""
- 1175 0461 00        		.string	""
- 1176 0462 00        		.string	""
- 1177 0463 00        		.string	""
- 1178 0464 5C62 4242 		.string	"\\bBBBb\\@@@"
- 1178      4262 5C40 
- 1178      4040 00
- 1179 046f 00        		.string	""
- 1180 0470 00        		.string	""
- 1181 0471 00        		.string	""
- 1182 0472 3A46 4242 		.string	":FBBBF:\002\002\002"
- 1182      4246 3A02 
- 1182      0202 00
- 1183 047d 00        		.string	""
- 1184 047e 00        		.string	""
- 1185 047f 00        		.string	""
- 1186 0480 5C64 4040 		.string	"\\d@@@@@"
- 1186      4040 4000 
- 1187 0488 00        		.string	""
- 1188 0489 00        		.string	""
- 1189 048a 00        		.string	""
- 1190 048b 00        		.string	""
- 1191 048c 00        		.string	""
- 1192 048d 00        		.string	""
- 1193 048e 3C40 6018 		.string	"<@`\030\004\004x"
- 1193      0404 7800 
- 1194 0496 00        		.string	""
- 1195 0497 00        		.string	""
- 1196 0498 00        		.string	""
- 1197 0499 00        		.string	""
- 1198 049a 2020 FE20 		.string	"  \376     \036"
- 1198      2020 2020 
- 1198      1E00 
- 1199 04a4 00        		.string	""
- 1200 04a5 00        		.string	""
- 1201 04a6 00        		.string	""
- 1202 04a7 00        		.string	""
- 1203 04a8 00        		.string	""
- 1204 04a9 00        		.string	""
- 1205 04aa 4242 4242 		.string	"BBBBBF:"
- 1205      4246 3A00 
- 1206 04b2 00        		.string	""
- 1207 04b3 00        		.string	""
- 1208 04b4 00        		.string	""
- 1209 04b5 00        		.string	""
- 1210 04b6 00        		.string	""
- 1211 04b7 00        		.string	""
- 1212 04b8 8142 4244 		.string	"\201BBD((\020"
- 1212      2828 1000 
- 1213 04c0 00        		.string	""
- 1214 04c1 00        		.string	""
- 1215 04c2 00        		.string	""
- 1216 04c3 00        		.string	""
- 1217 04c4 00        		.string	""
- 1218 04c5 00        		.string	""
- 1219 04c6 8189 5A5A 		.string	"\201\211ZZf$$"
- 1219      6624 2400 
- 1220 04ce 00        		.string	""
- 1221 04cf 00        		.string	""
- 1222 04d0 00        		.string	""
- 1223 04d1 00        		.string	""
- 1224 04d2 00        		.string	""
- 1225 04d3 00        		.string	""
- 1226 04d4 4224 1818 		.string	"B$\030\030\030$B"
- 1226      1824 4200 
- 1227 04dc 00        		.string	""
- 1228 04dd 00        		.string	""
- 1229 04de 00        		.string	""
- 1230 04df 00        		.string	""
- 1231 04e0 00        		.string	""
- 1232 04e1 00        		.string	""
- 1233 04e2 8142 4224 		.string	"\201BB$$\030\030\0200\340"
- 1233      2418 1810 
- 1233      30E0 00
- 1234 04ed 00        		.string	""
- 1235 04ee 00        		.string	""
- 1236 04ef 00        		.string	""
- 1237 04f0 FE04 0810 		.string	"\376\004\b\020 @\376"
- 1237      2040 FE00 
- 1238 04f8 00        		.string	""
- 1239 04f9 00        		.string	""
- 1240               	.global	font8
- 1243               	font8:
- 1244 04fa 00        		.string	""
- 1245 04fb 00        		.string	""
- 1246 04fc 00        		.string	""
- 1247 04fd 00        		.string	""
- 1248 04fe 00        		.string	""
- 1249 04ff 00        		.string	""
- 1250 0500 00        		.string	""
- 1251 0501 00        		.string	""
- 1252 0502 3078 7830 		.string	"0xx00"
- 1252      3000 
- 1253 0508 3000      		.string	"0"
- 1254 050a 6C6C 6C00 		.string	"lll"
- 1255 050e 00        		.string	""
- 1256 050f 00        		.string	""
- 1257 0510 00        		.string	""
- 1258 0511 00        		.string	""
- 1259 0512 6C6C FE6C 		.string	"ll\376l\376ll"
- 1259      FE6C 6C00 
- 1260 051a 307C C078 		.string	"0|\300x\f\3700"
- 1260      0CF8 3000 
- 1261 0522 00        		.string	""
- 1262 0523 C6CC 1830 		.string	"\306\314\0300f\306"
- 1262      66C6 00
- 1263 052a 386C 3876 		.string	"8l8v\334\314v"
- 1263      DCCC 7600 
- 1264 0532 6060 C000 		.string	"``\300"
- 1265 0536 00        		.string	""
- 1266 0537 00        		.string	""
- 1267 0538 00        		.string	""
- 1268 0539 00        		.string	""
- 1269 053a 1830 6060 		.string	"\0300```0\030"
- 1269      6030 1800 
- 1270 0542 6030 1818 		.string	"`0\030\030\0300`"
- 1270      1830 6000 
- 1271 054a 386C 6C38 		.string	"8ll8"
- 1271      00
- 1272 054f 00        		.string	""
- 1273 0550 00        		.string	""
- 1274 0551 00        		.string	""
- 1275 0552 00        		.string	""
- 1276 0553 3030 FC30 		.string	"00\37400"
- 1276      3000 
- 1277 0559 00        		.string	""
- 1278 055a 00        		.string	""
- 1279 055b 00        		.string	""
- 1280 055c 00        		.string	""
- 1281 055d 00        		.string	""
- 1282 055e 00        		.string	""
- 1283 055f 7030 6000 		.string	"p0`"
- 1284 0563 00        		.string	""
- 1285 0564 00        		.string	""
- 1286 0565 FC00      		.string	"\374"
- 1287 0567 00        		.string	""
- 1288 0568 00        		.string	""
- 1289 0569 00        		.string	""
- 1290 056a 00        		.string	""
- 1291 056b 00        		.string	""
- 1292 056c 00        		.string	""
- 1293 056d 00        		.string	""
- 1294 056e 00        		.string	""
- 1295 056f 3030 00   		.string	"00"
- 1296 0572 060C 1830 		.string	"\006\f\0300`\300\200"
- 1296      60C0 8000 
- 1297 057a 78CC DCFC 		.string	"x\314\334\374\354\314x"
- 1297      ECCC 7800 
- 1298 0582 30F0 3030 		.string	"0\3600000\374"
- 1298      3030 FC00 
- 1299 058a 78CC 0C38 		.string	"x\314\f8`\314\374"
- 1299      60CC FC00 
- 1300 0592 78CC 0C38 		.string	"x\314\f8\f\314x"
- 1300      0CCC 7800 
- 1301 059a 1C3C 6CCC 		.string	"\034<l\314\376\f\f"
- 1301      FE0C 0C00 
- 1302 05a2 FCC0 F80C 		.string	"\374\300\370\f\f\314x"
- 1302      0CCC 7800 
- 1303 05aa 3860 C0F8 		.string	"8`\300\370\314\314x"
- 1303      CCCC 7800 
- 1304 05b2 FCCC 0C18 		.string	"\374\314\f\0300``"
- 1304      3060 6000 
- 1305 05ba 78CC CC78 		.string	"x\314\314x\314\314x"
- 1305      CCCC 7800 
- 1306 05c2 78CC CC7C 		.string	"x\314\314|\f\030p"
- 1306      0C18 7000 
- 1307 05ca 00        		.string	""
- 1308 05cb 00        		.string	""
- 1309 05cc 3030 00   		.string	"00"
- 1310 05cf 3030 00   		.string	"00"
- 1311 05d2 00        		.string	""
- 1312 05d3 00        		.string	""
- 1313 05d4 3030 00   		.string	"00"
- 1314 05d7 7030 6018 		.string	"p0`\0300`\300`0\030"
- 1314      3060 C060 
- 1314      3018 00
- 1315 05e2 00        		.string	""
- 1316 05e3 00        		.string	""
- 1317 05e4 FC00      		.string	"\374"
- 1318 05e6 FC00      		.string	"\374"
- 1319 05e8 00        		.string	""
- 1320 05e9 00        		.string	""
- 1321 05ea 6030 180C 		.string	"`0\030\f\0300`"
- 1321      1830 6000 
- 1322 05f2 78CC 0C18 		.string	"x\314\f\0300"
- 1322      3000 
- 1323 05f8 3000      		.string	"0"
- 1324 05fa 7CC6 DEDE 		.string	"|\306\336\336\336\300x"
- 1324      DEC0 7800 
- 1325 0602 3078 CCCC 		.string	"0x\314\314\374\314\314"
- 1325      FCCC CC00 
- 1326 060a FC66 667C 		.string	"\374ff|ff\374"
- 1326      6666 FC00 
- 1327 0612 3C66 C0C0 		.string	"<f\300\300\300f<"
- 1327      C066 3C00 
- 1328 061a FC6C 6666 		.string	"\374lfffl\374"
- 1328      666C FC00 
- 1329 0622 FE62 6878 		.string	"\376bhxhb\376"
- 1329      6862 FE00 
- 1330 062a FE62 6878 		.string	"\376bhxh`\360"
- 1330      6860 F000 
- 1331 0632 3C66 C0C0 		.string	"<f\300\300\316f>"
- 1331      CE66 3E00 
- 1332 063a CCCC CCFC 		.string	"\314\314\314\374\314\314\314"
- 1332      CCCC CC00 
- 1333 0642 7830 3030 		.string	"x00000x"
- 1333      3030 7800 
- 1334 064a 1E0C 0C0C 		.string	"\036\f\f\f\314\314x"
- 1334      CCCC 7800 
- 1335 0652 E666 6C78 		.string	"\346flxlf\346"
- 1335      6C66 E600 
- 1336 065a F060 6060 		.string	"\360```bf\376"
- 1336      6266 FE00 
- 1337 0662 C6EE FED6 		.string	"\306\356\376\326\306\306\306"
- 1337      C6C6 C600 
- 1338 066a C6E6 F6DE 		.string	"\306\346\366\336\316\306\306"
- 1338      CEC6 C600 
- 1339 0672 386C C6C6 		.string	"8l\306\306\306l8"
- 1339      C66C 3800 
- 1340 067a FC66 667C 		.string	"\374ff|``\360"
- 1340      6060 F000 
- 1341 0682 78CC CCCC 		.string	"x\314\314\314\334x\034"
- 1341      DC78 1C00 
- 1342 068a FC66 667C 		.string	"\374ff|xl\346"
- 1342      786C E600 
- 1343 0692 78CC E038 		.string	"x\314\3408\034\314x"
- 1343      1CCC 7800 
- 1344 069a FCB4 3030 		.string	"\374\2640000x"
- 1344      3030 7800 
- 1345 06a2 CCCC CCCC 		.string	"\314\314\314\314\314\314\374"
- 1345      CCCC FC00 
- 1346 06aa CCCC CCCC 		.string	"\314\314\314\314\314x0"
- 1346      CC78 3000 
- 1347 06b2 C6C6 C6D6 		.string	"\306\306\306\326\376\356\306"
- 1347      FEEE C600 
- 1348 06ba C6C6 6C38 		.string	"\306\306l8l\306\306"
- 1348      6CC6 C600 
- 1349 06c2 CCCC CC78 		.string	"\314\314\314x00x"
- 1349      3030 7800 
- 1350 06ca FECC 9830 		.string	"\376\314\2300b\306\376"
- 1350      62C6 FE00 
- 1351 06d2 7860 6060 		.string	"x`````x"
- 1351      6060 7800 
- 1352 06da C060 3018 		.string	"\300`0\030\f\006\002"
- 1352      0C06 0200 
- 1353 06e2 7818 1818 		.string	"x\030\030\030\030\030x"
- 1353      1818 7800 
- 1354 06ea 1038 6CC6 		.string	"\0208l\306"
- 1354      00
- 1355 06ef 00        		.string	""
- 1356 06f0 00        		.string	""
- 1357 06f1 00        		.string	""
- 1358 06f2 00        		.string	""
- 1359 06f3 00        		.string	""
- 1360 06f4 00        		.string	""
- 1361 06f5 00        		.string	""
- 1362 06f6 00        		.string	""
- 1363 06f7 00        		.string	""
- 1364 06f8 00        		.string	""
- 1365 06f9 FF30 3018 		.string	"\37700\030"
- 1365      00
- 1366 06fe 00        		.string	""
- 1367 06ff 00        		.string	""
- 1368 0700 00        		.string	""
- 1369 0701 00        		.string	""
- 1370 0702 00        		.string	""
- 1371 0703 00        		.string	""
- 1372 0704 780C 7CCC 		.string	"x\f|\314v"
- 1372      7600 
- 1373 070a E060 7C66 		.string	"\340`|fff\274"
- 1373      6666 BC00 
- 1374 0712 00        		.string	""
- 1375 0713 00        		.string	""
- 1376 0714 78CC C0CC 		.string	"x\314\300\314x"
- 1376      7800 
- 1377 071a 1C0C 0C7C 		.string	"\034\f\f|\314\314v"
- 1377      CCCC 7600 
- 1378 0722 00        		.string	""
- 1379 0723 00        		.string	""
- 1380 0724 78CC FCC0 		.string	"x\314\374\300x"
- 1380      7800 
- 1381 072a 386C 60F0 		.string	"8l`\360``\360"
- 1381      6060 F000 
- 1382 0732 00        		.string	""
- 1383 0733 00        		.string	""
- 1384 0734 76CC CC7C 		.string	"v\314\314|\f\370\340`lvff\346"
- 1384      0CF8 E060 
- 1384      6C76 6666 
- 1384      E600 
- 1385 0742 3000      		.string	"0"
- 1386 0744 7030 3030 		.string	"p000x"
- 1386      7800 
- 1387 074a 1800      		.string	"\030"
- 1388 074c 7818 1818 		.string	"x\030\030\030\330p\340`flxl\346"
- 1388      D870 E060 
- 1388      666C 786C 
- 1388      E600 
- 1389 075a 7030 3030 		.string	"p00000x"
- 1389      3030 7800 
- 1390 0762 00        		.string	""
- 1391 0763 00        		.string	""
- 1392 0764 ECFE D6C6 		.string	"\354\376\326\306\306"
- 1392      C600 
- 1393 076a 00        		.string	""
- 1394 076b 00        		.string	""
- 1395 076c F8CC CCCC 		.string	"\370\314\314\314\314"
- 1395      CC00 
- 1396 0772 00        		.string	""
- 1397 0773 00        		.string	""
- 1398 0774 78CC CCCC 		.string	"x\314\314\314x"
- 1398      7800 
- 1399 077a 00        		.string	""
- 1400 077b 00        		.string	""
- 1401 077c DC66 667C 		.string	"\334ff|`\360"
- 1401      60F0 00
- 1402 0783 00        		.string	""
- 1403 0784 76CC CC7C 		.string	"v\314\314|\f\036"
- 1403      0C1E 00
- 1404 078b 00        		.string	""
- 1405 078c D86C 6C60 		.string	"\330ll`\360"
- 1405      F000 
- 1406 0792 00        		.string	""
- 1407 0793 00        		.string	""
- 1408 0794 7CC0 780C 		.string	"|\300x\f\370"
- 1408      F800 
- 1409 079a 1030 7C30 		.string	"\0200|004\030"
- 1409      3034 1800 
- 1410 07a2 00        		.string	""
- 1411 07a3 00        		.string	""
- 1412 07a4 CCCC CCCC 		.string	"\314\314\314\314v"
- 1412      7600 
- 1413 07aa 00        		.string	""
- 1414 07ab 00        		.string	""
- 1415 07ac CCCC CC78 		.string	"\314\314\314x0"
- 1415      3000 
- 1416 07b2 00        		.string	""
- 1417 07b3 00        		.string	""
- 1418 07b4 C6C6 D6FE 		.string	"\306\306\326\376l"
- 1418      6C00 
- 1419 07ba 00        		.string	""
- 1420 07bb 00        		.string	""
- 1421 07bc C66C 386C 		.string	"\306l8l\306"
- 1421      C600 
- 1422 07c2 00        		.string	""
- 1423 07c3 00        		.string	""
- 1424 07c4 CCCC CC7C 		.string	"\314\314\314|\f\370"
- 1424      0CF8 00
- 1425 07cb 00        		.string	""
- 1426 07cc FC98 3064 		.string	"\374\2300d\374"
- 1426      FC00 
- 1427               		.text
- 1428               	.Letext0:
- 1429               		.file 2 "/usr/avr/include/stdint.h"
- 1430               		.file 3 "fonts.h"
- 1431               		.file 4 "spi.h"
- 1432               		.file 5 "ssd1306.h"
- 1433               		.file 6 "grn_TWI.h"
- 1434               		.file 7 "grn_sht21.h"
- 1435               		.file 8 "/usr/avr/include/stdio.h"
+ 199:main.c        **** }
+ 548               		.loc 1 199 1 view .LVU155
+ 549 00b6 C901      		movw r24,r18
+ 550               	/* epilogue start */
+ 551 00b8 0F90      		pop __tmp_reg__
+ 552 00ba 0F90      		pop __tmp_reg__
+ 553 00bc 0F90      		pop __tmp_reg__
+ 554 00be 0F90      		pop __tmp_reg__
+ 555 00c0 DF91      		pop r29
+ 556 00c2 CF91      		pop r28
+ 557 00c4 0895      		ret
+ 558               		.cfi_endproc
+ 559               	.LFE14:
+ 561               	.global	nach_komma
+ 563               	nach_komma:
+ 564               	.LVL2:
+ 565               	.LFB15:
+ 200:main.c        **** uint8_t nach_komma(uint32_t value)
+ 201:main.c        **** {
+ 566               		.loc 1 201 1 is_stmt 1 view -0
+ 567               		.cfi_startproc
+ 568               		.loc 1 201 1 is_stmt 0 view .LVU157
+ 569 00c6 CF93      		push r28
+ 570               	.LCFI17:
+ 571               		.cfi_def_cfa_offset 3
+ 572               		.cfi_offset 28, -2
+ 573               	/* prologue: function */
+ 574               	/* frame size = 0 */
+ 575               	/* stack size = 1 */
+ 576               	.L__stack_usage = 1
+ 577 00c8 C62F      		mov r28,r22
+ 202:main.c        **** 	uint8_t temp;
+ 578               		.loc 1 202 2 is_stmt 1 view .LVU158
+ 203:main.c        **** 	temp = value/100;
+ 579               		.loc 1 203 2 view .LVU159
+ 580               	.LVL3:
+ 204:main.c        **** 	return value-(temp*100);
+ 581               		.loc 1 204 2 view .LVU160
+ 203:main.c        **** 	temp = value/100;
+ 582               		.loc 1 203 14 is_stmt 0 view .LVU161
+ 583 00ca 24E6      		ldi r18,lo8(100)
+ 584 00cc 30E0      		ldi r19,0
+ 585 00ce 40E0      		ldi r20,0
+ 586 00d0 50E0      		ldi r21,0
+ 587 00d2 0E94 0000 		call __udivmodsi4
+ 588               	.LVL4:
+ 205:main.c        **** 	
+ 206:main.c        **** 	
+ 207:main.c        **** }
+ 589               		.loc 1 207 1 view .LVU162
+ 590 00d6 8C2F      		mov r24,r28
+ 591               	.LVL5:
+ 592               		.loc 1 207 1 view .LVU163
+ 593 00d8 94E6      		ldi r25,lo8(100)
+ 594 00da 299F      		mul r18,r25
+ 595 00dc 8019      		sub r24,r0
+ 596 00de 1124      		clr __zero_reg__
+ 597               	/* epilogue start */
+ 598 00e0 CF91      		pop r28
+ 599               		.loc 1 207 1 view .LVU164
+ 600 00e2 0895      		ret
+ 601               		.cfi_endproc
+ 602               	.LFE15:
+ 604               	.global	buff
+ 605               		.section .bss
+ 608               	buff:
+ 609 0000 0000 0000 		.zero	20
+ 609      0000 0000 
+ 609      0000 0000 
+ 609      0000 0000 
+ 609      0000 0000 
+ 610               	.global	buffer
+ 613               	buffer:
+ 614 0014 0000 0000 		.zero	20
+ 614      0000 0000 
+ 614      0000 0000 
+ 614      0000 0000 
+ 614      0000 0000 
+ 615               	.global	toggle_alt
+ 618               	toggle_alt:
+ 619 0028 00        		.zero	1
+ 620               	.global	toggle
+ 623               	toggle:
+ 624 0029 00        		.zero	1
+ 625               	.global	screentoggle
+ 628               	screentoggle:
+ 629 002a 00        		.zero	1
+ 630               	.global	entprell
+ 633               	entprell:
+ 634 002b 00        		.zero	1
+ 635               	.global	min
+ 638               	min:
+ 639 002c 00        		.zero	1
+ 640               	.global	sec
+ 643               	sec:
+ 644 002d 00        		.zero	1
+ 645               	.global	ms100
+ 648               	ms100:
+ 649 002e 00        		.zero	1
+ 650               	.global	ms10
+ 653               	ms10:
+ 654 002f 00        		.zero	1
+ 655               	.global	state
+ 658               	state:
+ 659 0030 00        		.zero	1
+ 660               	.global	hum
+ 663               	hum:
+ 664 0031 0000      		.zero	2
+ 665               	.global	test
+ 668               	test:
+ 669 0033 0000      		.zero	2
+ 670               	.global	temp
+ 673               	temp:
+ 674 0035 0000      		.zero	2
+ 675               	.global	font14
+ 676               		.section	.progmem.data,"a",@progbits
+ 679               	font14:
+ 680 0000 00        		.string	""
+ 681 0001 00        		.string	""
+ 682 0002 00        		.string	""
+ 683 0003 00        		.string	""
+ 684 0004 00        		.string	""
+ 685 0005 00        		.string	""
+ 686 0006 00        		.string	""
+ 687 0007 00        		.string	""
+ 688 0008 00        		.string	""
+ 689 0009 00        		.string	""
+ 690 000a 00        		.string	""
+ 691 000b 00        		.string	""
+ 692 000c 00        		.string	""
+ 693 000d 00        		.string	""
+ 694 000e 00        		.string	""
+ 695 000f 1010 1010 		.string	"\020\020\020\020\020\020\020"
+ 695      1010 1000 
+ 696 0017 1010 00   		.string	"\020\020"
+ 697 001a 00        		.string	""
+ 698 001b 00        		.string	""
+ 699 001c 2424 2424 		.string	"$$$$"
+ 699      00
+ 700 0021 00        		.string	""
+ 701 0022 00        		.string	""
+ 702 0023 00        		.string	""
+ 703 0024 00        		.string	""
+ 704 0025 00        		.string	""
+ 705 0026 00        		.string	""
+ 706 0027 00        		.string	""
+ 707 0028 00        		.string	""
+ 708 0029 00        		.string	""
+ 709 002a 00        		.string	""
+ 710 002b 0909 127F 		.string	"\t\t\022\177\022$\377$HH"
+ 710      1224 FF24 
+ 710      4848 00
+ 711 0036 00        		.string	""
+ 712 0037 00        		.string	""
+ 713 0038 103C 5050 		.string	"\020<PPP0\030\024\024\024x\020"
+ 713      5030 1814 
+ 713      1414 7810 
+ 713      00
+ 714 0045 00        		.string	""
+ 715 0046 00        		.string	""
+ 716 0047 6192 9494 		.string	"a\222\224\224h\026))I\206"
+ 716      6816 2929 
+ 716      4986 00
+ 717 0052 00        		.string	""
+ 718 0053 00        		.string	""
+ 719 0054 00        		.string	""
+ 720 0055 1824 2428 		.string	"\030$$(0\321\211\216\306\177"
+ 720      30D1 898E 
+ 720      C67F 00
+ 721 0060 00        		.string	""
+ 722 0061 00        		.string	""
+ 723 0062 1010 1010 		.string	"\020\020\020\020"
+ 723      00
+ 724 0067 00        		.string	""
+ 725 0068 00        		.string	""
+ 726 0069 00        		.string	""
+ 727 006a 00        		.string	""
+ 728 006b 00        		.string	""
+ 729 006c 00        		.string	""
+ 730 006d 00        		.string	""
+ 731 006e 00        		.string	""
+ 732 006f 00        		.string	""
+ 733 0070 060C 1010 		.string	"\006\f\020\020     \020\020\f\006"
+ 733      2020 2020 
+ 733      2010 100C 
+ 733      0600 
+ 734 007e 6030 0808 		.string	"`0\b\b\004\004\004\004\004\b\b0`"
+ 734      0404 0404 
+ 734      0408 0830 
+ 734      6000 
+ 735 008c 00        		.string	""
+ 736 008d 1028 1000 		.string	"\020(\020"
+ 737 0091 00        		.string	""
+ 738 0092 00        		.string	""
+ 739 0093 00        		.string	""
+ 740 0094 00        		.string	""
+ 741 0095 00        		.string	""
+ 742 0096 00        		.string	""
+ 743 0097 00        		.string	""
+ 744 0098 00        		.string	""
+ 745 0099 00        		.string	""
+ 746 009a 00        		.string	""
+ 747 009b 00        		.string	""
+ 748 009c 00        		.string	""
+ 749 009d 00        		.string	""
+ 750 009e 1010 10FE 		.string	"\020\020\020\376\020\020\020"
+ 750      1010 1000 
+ 751 00a6 00        		.string	""
+ 752 00a7 00        		.string	""
+ 753 00a8 00        		.string	""
+ 754 00a9 00        		.string	""
+ 755 00aa 00        		.string	""
+ 756 00ab 00        		.string	""
+ 757 00ac 00        		.string	""
+ 758 00ad 00        		.string	""
+ 759 00ae 00        		.string	""
+ 760 00af 00        		.string	""
+ 761 00b0 00        		.string	""
+ 762 00b1 1818 0810 		.string	"\030\030\b\020"
+ 762      00
+ 763 00b6 00        		.string	""
+ 764 00b7 00        		.string	""
+ 765 00b8 00        		.string	""
+ 766 00b9 00        		.string	""
+ 767 00ba 00        		.string	""
+ 768 00bb 00        		.string	""
+ 769 00bc 7E00      		.string	"~"
+ 770 00be 00        		.string	""
+ 771 00bf 00        		.string	""
+ 772 00c0 00        		.string	""
+ 773 00c1 00        		.string	""
+ 774 00c2 00        		.string	""
+ 775 00c3 00        		.string	""
+ 776 00c4 00        		.string	""
+ 777 00c5 00        		.string	""
+ 778 00c6 00        		.string	""
+ 779 00c7 00        		.string	""
+ 780 00c8 00        		.string	""
+ 781 00c9 00        		.string	""
+ 782 00ca 00        		.string	""
+ 783 00cb 00        		.string	""
+ 784 00cc 00        		.string	""
+ 785 00cd 1818 00   		.string	"\030\030"
+ 786 00d0 00        		.string	""
+ 787 00d1 00        		.string	""
+ 788 00d2 0204 0404 		.string	"\002\004\004\004\b\b\030\020\020   @"
+ 788      0808 1810 
+ 788      1020 2020 
+ 788      4000 
+ 789 00e0 00        		.string	""
+ 790 00e1 1824 4242 		.string	"\030$BBBBBB$\030"
+ 790      4242 4242 
+ 790      2418 00
+ 791 00ec 00        		.string	""
+ 792 00ed 00        		.string	""
+ 793 00ee 00        		.string	""
+ 794 00ef 0878 0808 		.string	"\bx\b\b\b\b\b\b\b\177"
+ 794      0808 0808 
+ 794      087F 00
+ 795 00fa 00        		.string	""
+ 796 00fb 00        		.string	""
+ 797 00fc 00        		.string	""
+ 798 00fd 7804 0404 		.string	"x\004\004\004\b\b\020 @|"
+ 798      0808 1020 
+ 798      407C 00
+ 799 0108 00        		.string	""
+ 800 0109 00        		.string	""
+ 801 010a 00        		.string	""
+ 802 010b 3C02 0202 		.string	"<\002\002\002\034\002\002\002\002<"
+ 802      1C02 0202 
+ 802      023C 00
+ 803 0116 00        		.string	""
+ 804 0117 00        		.string	""
+ 805 0118 00        		.string	""
+ 806 0119 040C 1414 		.string	"\004\f\024\024$D~\004\004\004"
+ 806      2444 7E04 
+ 806      0404 00
+ 807 0124 00        		.string	""
+ 808 0125 00        		.string	""
+ 809 0126 00        		.string	""
+ 810 0127 3E20 2020 		.string	">   8\006\002\002\002<"
+ 810      3806 0202 
+ 810      023C 00
+ 811 0132 00        		.string	""
+ 812 0133 00        		.string	""
+ 813 0134 00        		.string	""
+ 814 0135 1C20 4040 		.string	"\034 @@\\bBB\"\034"
+ 814      5C62 4242 
+ 814      221C 00
+ 815 0140 00        		.string	""
+ 816 0141 00        		.string	""
+ 817 0142 00        		.string	""
+ 818 0143 7E02 0404 		.string	"~\002\004\004\b\020\020\020  "
+ 818      0810 1010 
+ 818      2020 00
+ 819 014e 00        		.string	""
+ 820 014f 00        		.string	""
+ 821 0150 00        		.string	""
+ 822 0151 3C42 4244 		.string	"<BBD8$BBB<"
+ 822      3824 4242 
+ 822      423C 00
+ 823 015c 00        		.string	""
+ 824 015d 00        		.string	""
+ 825 015e 00        		.string	""
+ 826 015f 3844 4242 		.string	"8DBBF:\002\002\0048"
+ 826      463A 0202 
+ 826      0438 00
+ 827 016a 00        		.string	""
+ 828 016b 00        		.string	""
+ 829 016c 00        		.string	""
+ 830 016d 00        		.string	""
+ 831 016e 00        		.string	""
+ 832 016f 00        		.string	""
+ 833 0170 1818 00   		.string	"\030\030"
+ 834 0173 00        		.string	""
+ 835 0174 00        		.string	""
+ 836 0175 1818 00   		.string	"\030\030"
+ 837 0178 00        		.string	""
+ 838 0179 00        		.string	""
+ 839 017a 00        		.string	""
+ 840 017b 00        		.string	""
+ 841 017c 00        		.string	""
+ 842 017d 00        		.string	""
+ 843 017e 1818 00   		.string	"\030\030"
+ 844 0181 00        		.string	""
+ 845 0182 00        		.string	""
+ 846 0183 1818 0810 		.string	"\030\030\b\020"
+ 846      00
+ 847 0188 00        		.string	""
+ 848 0189 00        		.string	""
+ 849 018a 00        		.string	""
+ 850 018b 00        		.string	""
+ 851 018c 020C 1060 		.string	"\002\f\020`\020\f\002"
+ 851      100C 0200 
+ 852 0194 00        		.string	""
+ 853 0195 00        		.string	""
+ 854 0196 00        		.string	""
+ 855 0197 00        		.string	""
+ 856 0198 00        		.string	""
+ 857 0199 00        		.string	""
+ 858 019a 00        		.string	""
+ 859 019b 7E00      		.string	"~"
+ 860 019d 00        		.string	""
+ 861 019e 7E00      		.string	"~"
+ 862 01a0 00        		.string	""
+ 863 01a1 00        		.string	""
+ 864 01a2 00        		.string	""
+ 865 01a3 00        		.string	""
+ 866 01a4 00        		.string	""
+ 867 01a5 00        		.string	""
+ 868 01a6 00        		.string	""
+ 869 01a7 00        		.string	""
+ 870 01a8 4030 0806 		.string	"@0\b\006\b0@"
+ 870      0830 4000 
+ 871 01b0 00        		.string	""
+ 872 01b1 00        		.string	""
+ 873 01b2 00        		.string	""
+ 874 01b3 7C42 0204 		.string	"|B\002\004\b\020\020"
+ 874      0810 1000 
+ 875 01bb 1010 00   		.string	"\020\020"
+ 876 01be 00        		.string	""
+ 877 01bf 00        		.string	""
+ 878 01c0 00        		.string	""
+ 879 01c1 3C62 4E92 		.string	"<bN\222\222\222\226\333D<"
+ 879      9292 96DB 
+ 879      443C 00
+ 880 01cc 00        		.string	""
+ 881 01cd 00        		.string	""
+ 882 01ce 00        		.string	""
+ 883 01cf 00        		.string	""
+ 884 01d0 0818 1424 		.string	"\b\030\024$$B~B\201"
+ 884      2442 7E42 
+ 884      8100 
+ 885 01da 00        		.string	""
+ 886 01db 00        		.string	""
+ 887 01dc 00        		.string	""
+ 888 01dd 00        		.string	""
+ 889 01de 7C42 4244 		.string	"|BBDxDBB|"
+ 889      7844 4242 
+ 889      7C00 
+ 890 01e8 00        		.string	""
+ 891 01e9 00        		.string	""
+ 892 01ea 00        		.string	""
+ 893 01eb 00        		.string	""
+ 894 01ec 3E40 8080 		.string	">@\200\200\200\200\200@>"
+ 894      8080 8040 
+ 894      3E00 
+ 895 01f6 00        		.string	""
+ 896 01f7 00        		.string	""
+ 897 01f8 00        		.string	""
+ 898 01f9 00        		.string	""
+ 899 01fa F884 8282 		.string	"\370\204\202\202\202\202\202\204\370"
+ 899      8282 8284 
+ 899      F800 
+ 900 0204 00        		.string	""
+ 901 0205 00        		.string	""
+ 902 0206 00        		.string	""
+ 903 0207 00        		.string	""
+ 904 0208 7E40 4040 		.string	"~@@@|@@@~"
+ 904      7C40 4040 
+ 904      7E00 
+ 905 0212 00        		.string	""
+ 906 0213 00        		.string	""
+ 907 0214 00        		.string	""
+ 908 0215 00        		.string	""
+ 909 0216 7E40 4040 		.string	"~@@@|@@@@"
+ 909      7C40 4040 
+ 909      4000 
+ 910 0220 00        		.string	""
+ 911 0221 00        		.string	""
+ 912 0222 00        		.string	""
+ 913 0223 00        		.string	""
+ 914 0224 3E40 8080 		.string	">@\200\200\200\216\202B>"
+ 914      808E 8242 
+ 914      3E00 
+ 915 022e 00        		.string	""
+ 916 022f 00        		.string	""
+ 917 0230 00        		.string	""
+ 918 0231 00        		.string	""
+ 919 0232 4242 4242 		.string	"BBBB~BBBB"
+ 919      7E42 4242 
+ 919      4200 
+ 920 023c 00        		.string	""
+ 921 023d 00        		.string	""
+ 922 023e 00        		.string	""
+ 923 023f 00        		.string	""
+ 924 0240 7C10 1010 		.string	"|\020\020\020\020\020\020\020|"
+ 924      1010 1010 
+ 924      7C00 
+ 925 024a 00        		.string	""
+ 926 024b 00        		.string	""
+ 927 024c 00        		.string	""
+ 928 024d 00        		.string	""
+ 929 024e 3C04 0404 		.string	"<\004\004\004\004\004\004\004x"
+ 929      0404 0404 
+ 929      7800 
+ 930 0258 00        		.string	""
+ 931 0259 00        		.string	""
+ 932 025a 00        		.string	""
+ 933 025b 00        		.string	""
+ 934 025c 4244 4850 		.string	"BDHP`PHDB"
+ 934      6050 4844 
+ 934      4200 
+ 935 0266 00        		.string	""
+ 936 0267 00        		.string	""
+ 937 0268 00        		.string	""
+ 938 0269 00        		.string	""
+ 939 026a 4040 4040 		.string	"@@@@@@@@~"
+ 939      4040 4040 
+ 939      7E00 
+ 940 0274 00        		.string	""
+ 941 0275 00        		.string	""
+ 942 0276 00        		.string	""
+ 943 0277 00        		.string	""
+ 944 0278 C6C6 C6AA 		.string	"\306\306\306\252\252\252\222\202\202"
+ 944      AAAA 9282 
+ 944      8200 
+ 945 0282 00        		.string	""
+ 946 0283 00        		.string	""
+ 947 0284 00        		.string	""
+ 948 0285 00        		.string	""
+ 949 0286 4262 6252 		.string	"BbbRRJJFB"
+ 949      524A 4A46 
+ 949      4200 
+ 950 0290 00        		.string	""
+ 951 0291 00        		.string	""
+ 952 0292 00        		.string	""
+ 953 0293 00        		.string	""
+ 954 0294 3844 8282 		.string	"8D\202\202\202\202\202D8"
+ 954      8282 8244 
+ 954      3800 
+ 955 029e 00        		.string	""
+ 956 029f 00        		.string	""
+ 957 02a0 00        		.string	""
+ 958 02a1 00        		.string	""
+ 959 02a2 7C42 4242 		.string	"|BBBFx@@@"
+ 959      4678 4040 
+ 959      4000 
+ 960 02ac 00        		.string	""
+ 961 02ad 00        		.string	""
+ 962 02ae 00        		.string	""
+ 963 02af 00        		.string	""
+ 964 02b0 3844 8282 		.string	"8D\202\202\202\202\202D8\006\003"
+ 964      8282 8244 
+ 964      3806 0300 
+ 965 02bc 00        		.string	""
+ 966 02bd 00        		.string	""
+ 967 02be 7844 4444 		.string	"xDDDxHLDB"
+ 967      7848 4C44 
+ 967      4200 
+ 968 02c8 00        		.string	""
+ 969 02c9 00        		.string	""
+ 970 02ca 00        		.string	""
+ 971 02cb 00        		.string	""
+ 972 02cc 3E40 4060 		.string	">@@`\030\006\002\002|"
+ 972      1806 0202 
+ 972      7C00 
+ 973 02d6 00        		.string	""
+ 974 02d7 00        		.string	""
+ 975 02d8 00        		.string	""
+ 976 02d9 00        		.string	""
+ 977 02da FE10 1010 		.string	"\376\020\020\020\020\020\020\020\020"
+ 977      1010 1010 
+ 977      1000 
+ 978 02e4 00        		.string	""
+ 979 02e5 00        		.string	""
+ 980 02e6 00        		.string	""
+ 981 02e7 00        		.string	""
+ 982 02e8 4242 4242 		.string	"BBBBBBBB<"
+ 982      4242 4242 
+ 982      3C00 
+ 983 02f2 00        		.string	""
+ 984 02f3 00        		.string	""
+ 985 02f4 00        		.string	""
+ 986 02f5 00        		.string	""
+ 987 02f6 8142 4244 		.string	"\201BBD$((\020\020"
+ 987      2428 2810 
+ 987      1000 
+ 988 0300 00        		.string	""
+ 989 0301 00        		.string	""
+ 990 0302 00        		.string	""
+ 991 0303 00        		.string	""
+ 992 0304 8181 939A 		.string	"\201\201\223\232ZZff$"
+ 992      5A5A 6666 
+ 992      2400 
+ 993 030e 00        		.string	""
+ 994 030f 00        		.string	""
+ 995 0310 00        		.string	""
+ 996 0311 00        		.string	""
+ 997 0312 8142 2418 		.string	"\201B$\030\030\030$B\201"
+ 997      1818 2442 
+ 997      8100 
+ 998 031c 00        		.string	""
+ 999 031d 00        		.string	""
+ 1000 031e 00        		.string	""
+ 1001 031f 00        		.string	""
+ 1002 0320 8142 4428 		.string	"\201BD(\030\020\020\020\020"
+ 1002      1810 1010 
+ 1002      1000 
+ 1003 032a 00        		.string	""
+ 1004 032b 00        		.string	""
+ 1005 032c 00        		.string	""
+ 1006 032d 00        		.string	""
+ 1007 032e FE02 0408 		.string	"\376\002\004\b\020 @\200\376"
+ 1007      1020 4080 
+ 1007      FE00 
+ 1008 0338 00        		.string	""
+ 1009 0339 00        		.string	""
+ 1010 033a 1E10 1010 		.string	"\036\020\020\020\020\020\020\020\020\020\020\020\036"
+ 1010      1010 1010 
+ 1010      1010 1010 
+ 1010      1E00 
+ 1011 0348 4020 2020 		.string	"@   \020\020\030\b\b\004\004\004\002"
+ 1011      1010 1808 
+ 1011      0804 0404 
+ 1011      0200 
+ 1012 0356 7808 0808 		.string	"x\b\b\b\b\b\b\b\b\b\b\bx"
+ 1012      0808 0808 
+ 1012      0808 0808 
+ 1012      7800 
+ 1013 0364 00        		.string	""
+ 1014 0365 0808 1814 		.string	"\b\b\030\024\024$\"B"
+ 1014      1424 2242 
+ 1014      00
+ 1015 036e 00        		.string	""
+ 1016 036f 00        		.string	""
+ 1017 0370 00        		.string	""
+ 1018 0371 00        		.string	""
+ 1019 0372 00        		.string	""
+ 1020 0373 00        		.string	""
+ 1021 0374 00        		.string	""
+ 1022 0375 00        		.string	""
+ 1023 0376 00        		.string	""
+ 1024 0377 00        		.string	""
+ 1025 0378 00        		.string	""
+ 1026 0379 00        		.string	""
+ 1027 037a 00        		.string	""
+ 1028 037b 00        		.string	""
+ 1029 037c 00        		.string	""
+ 1030 037d FF00      		.string	"\377"
+ 1031 037f 00        		.string	""
+ 1032 0380 0804 00   		.string	"\b\004"
+ 1033 0383 00        		.string	""
+ 1034 0384 00        		.string	""
+ 1035 0385 00        		.string	""
+ 1036 0386 00        		.string	""
+ 1037 0387 00        		.string	""
+ 1038 0388 00        		.string	""
+ 1039 0389 00        		.string	""
+ 1040 038a 00        		.string	""
+ 1041 038b 00        		.string	""
+ 1042 038c 00        		.string	""
+ 1043 038d 00        		.string	""
+ 1044 038e 00        		.string	""
+ 1045 038f 00        		.string	""
+ 1046 0390 00        		.string	""
+ 1047 0391 00        		.string	""
+ 1048 0392 3C02 023E 		.string	"<\002\002>BB?"
+ 1048      4242 3F00 
+ 1049 039a 00        		.string	""
+ 1050 039b 00        		.string	""
+ 1051 039c 4040 4040 		.string	"@@@@\\bBBBb\\"
+ 1051      5C62 4242 
+ 1051      4262 5C00 
+ 1052 03a8 00        		.string	""
+ 1053 03a9 00        		.string	""
+ 1054 03aa 00        		.string	""
+ 1055 03ab 00        		.string	""
+ 1056 03ac 00        		.string	""
+ 1057 03ad 00        		.string	""
+ 1058 03ae 1E20 4040 		.string	"\036 @@@ \036"
+ 1058      4020 1E00 
+ 1059 03b6 00        		.string	""
+ 1060 03b7 00        		.string	""
+ 1061 03b8 0202 0202 		.string	"\002\002\002\002:FBBBF:"
+ 1061      3A46 4242 
+ 1061      4246 3A00 
+ 1062 03c4 00        		.string	""
+ 1063 03c5 00        		.string	""
+ 1064 03c6 00        		.string	""
+ 1065 03c7 00        		.string	""
+ 1066 03c8 00        		.string	""
+ 1067 03c9 00        		.string	""
+ 1068 03ca 3C22 427E 		.string	"<\"B~@@>"
+ 1068      4040 3E00 
+ 1069 03d2 00        		.string	""
+ 1070 03d3 00        		.string	""
+ 1071 03d4 0E10 1010 		.string	"\016\020\020\020~\020\020\020\020\020\020"
+ 1071      7E10 1010 
+ 1071      1010 1000 
+ 1072 03e0 00        		.string	""
+ 1073 03e1 00        		.string	""
+ 1074 03e2 00        		.string	""
+ 1075 03e3 00        		.string	""
+ 1076 03e4 00        		.string	""
+ 1077 03e5 00        		.string	""
+ 1078 03e6 3E46 4242 		.string	">FBBBF:\002\002<@@@@\\bBBBBB"
+ 1078      4246 3A02 
+ 1078      023C 4040 
+ 1078      4040 5C62 
+ 1078      4242 4242 
+ 1079 03fc 00        		.string	""
+ 1080 03fd 00        		.string	""
+ 1081 03fe 1818 00   		.string	"\030\030"
+ 1082 0401 00        		.string	""
+ 1083 0402 7808 0808 		.string	"x\b\b\b\b\b\b"
+ 1083      0808 0800 
+ 1084 040a 00        		.string	""
+ 1085 040b 00        		.string	""
+ 1086 040c 0C0C 00   		.string	"\f\f"
+ 1087 040f 00        		.string	""
+ 1088 0410 3C04 0404 		.string	"<\004\004\004\004\004\004\004\004x@@@@DHP`XDB"
+ 1088      0404 0404 
+ 1088      0478 4040 
+ 1088      4040 4448 
+ 1088      5060 5844 
+ 1089 0426 00        		.string	""
+ 1090 0427 00        		.string	""
+ 1091 0428 7808 0808 		.string	"x\b\b\b\b\b\b\b\b\b\b"
+ 1091      0808 0808 
+ 1091      0808 0800 
+ 1092 0434 00        		.string	""
+ 1093 0435 00        		.string	""
+ 1094 0436 00        		.string	""
+ 1095 0437 00        		.string	""
+ 1096 0438 00        		.string	""
+ 1097 0439 00        		.string	""
+ 1098 043a B6DA 9292 		.string	"\266\332\222\222\222\222\222"
+ 1098      9292 9200 
+ 1099 0442 00        		.string	""
+ 1100 0443 00        		.string	""
+ 1101 0444 00        		.string	""
+ 1102 0445 00        		.string	""
+ 1103 0446 00        		.string	""
+ 1104 0447 00        		.string	""
+ 1105 0448 5C62 4242 		.string	"\\bBBBBB"
+ 1105      4242 4200 
+ 1106 0450 00        		.string	""
+ 1107 0451 00        		.string	""
+ 1108 0452 00        		.string	""
+ 1109 0453 00        		.string	""
+ 1110 0454 00        		.string	""
+ 1111 0455 00        		.string	""
+ 1112 0456 3844 8282 		.string	"8D\202\202\202D8"
+ 1112      8244 3800 
+ 1113 045e 00        		.string	""
+ 1114 045f 00        		.string	""
+ 1115 0460 00        		.string	""
+ 1116 0461 00        		.string	""
+ 1117 0462 00        		.string	""
+ 1118 0463 00        		.string	""
+ 1119 0464 5C62 4242 		.string	"\\bBBBb\\@@@"
+ 1119      4262 5C40 
+ 1119      4040 00
+ 1120 046f 00        		.string	""
+ 1121 0470 00        		.string	""
+ 1122 0471 00        		.string	""
+ 1123 0472 3A46 4242 		.string	":FBBBF:\002\002\002"
+ 1123      4246 3A02 
+ 1123      0202 00
+ 1124 047d 00        		.string	""
+ 1125 047e 00        		.string	""
+ 1126 047f 00        		.string	""
+ 1127 0480 5C64 4040 		.string	"\\d@@@@@"
+ 1127      4040 4000 
+ 1128 0488 00        		.string	""
+ 1129 0489 00        		.string	""
+ 1130 048a 00        		.string	""
+ 1131 048b 00        		.string	""
+ 1132 048c 00        		.string	""
+ 1133 048d 00        		.string	""
+ 1134 048e 3C40 6018 		.string	"<@`\030\004\004x"
+ 1134      0404 7800 
+ 1135 0496 00        		.string	""
+ 1136 0497 00        		.string	""
+ 1137 0498 00        		.string	""
+ 1138 0499 00        		.string	""
+ 1139 049a 2020 FE20 		.string	"  \376     \036"
+ 1139      2020 2020 
+ 1139      1E00 
+ 1140 04a4 00        		.string	""
+ 1141 04a5 00        		.string	""
+ 1142 04a6 00        		.string	""
+ 1143 04a7 00        		.string	""
+ 1144 04a8 00        		.string	""
+ 1145 04a9 00        		.string	""
+ 1146 04aa 4242 4242 		.string	"BBBBBF:"
+ 1146      4246 3A00 
+ 1147 04b2 00        		.string	""
+ 1148 04b3 00        		.string	""
+ 1149 04b4 00        		.string	""
+ 1150 04b5 00        		.string	""
+ 1151 04b6 00        		.string	""
+ 1152 04b7 00        		.string	""
+ 1153 04b8 8142 4244 		.string	"\201BBD((\020"
+ 1153      2828 1000 
+ 1154 04c0 00        		.string	""
+ 1155 04c1 00        		.string	""
+ 1156 04c2 00        		.string	""
+ 1157 04c3 00        		.string	""
+ 1158 04c4 00        		.string	""
+ 1159 04c5 00        		.string	""
+ 1160 04c6 8189 5A5A 		.string	"\201\211ZZf$$"
+ 1160      6624 2400 
+ 1161 04ce 00        		.string	""
+ 1162 04cf 00        		.string	""
+ 1163 04d0 00        		.string	""
+ 1164 04d1 00        		.string	""
+ 1165 04d2 00        		.string	""
+ 1166 04d3 00        		.string	""
+ 1167 04d4 4224 1818 		.string	"B$\030\030\030$B"
+ 1167      1824 4200 
+ 1168 04dc 00        		.string	""
+ 1169 04dd 00        		.string	""
+ 1170 04de 00        		.string	""
+ 1171 04df 00        		.string	""
+ 1172 04e0 00        		.string	""
+ 1173 04e1 00        		.string	""
+ 1174 04e2 8142 4224 		.string	"\201BB$$\030\030\0200\340"
+ 1174      2418 1810 
+ 1174      30E0 00
+ 1175 04ed 00        		.string	""
+ 1176 04ee 00        		.string	""
+ 1177 04ef 00        		.string	""
+ 1178 04f0 FE04 0810 		.string	"\376\004\b\020 @\376"
+ 1178      2040 FE00 
+ 1179 04f8 00        		.string	""
+ 1180 04f9 00        		.string	""
+ 1181               	.global	font8
+ 1184               	font8:
+ 1185 04fa 00        		.string	""
+ 1186 04fb 00        		.string	""
+ 1187 04fc 00        		.string	""
+ 1188 04fd 00        		.string	""
+ 1189 04fe 00        		.string	""
+ 1190 04ff 00        		.string	""
+ 1191 0500 00        		.string	""
+ 1192 0501 00        		.string	""
+ 1193 0502 3078 7830 		.string	"0xx00"
+ 1193      3000 
+ 1194 0508 3000      		.string	"0"
+ 1195 050a 6C6C 6C00 		.string	"lll"
+ 1196 050e 00        		.string	""
+ 1197 050f 00        		.string	""
+ 1198 0510 00        		.string	""
+ 1199 0511 00        		.string	""
+ 1200 0512 6C6C FE6C 		.string	"ll\376l\376ll"
+ 1200      FE6C 6C00 
+ 1201 051a 307C C078 		.string	"0|\300x\f\3700"
+ 1201      0CF8 3000 
+ 1202 0522 00        		.string	""
+ 1203 0523 C6CC 1830 		.string	"\306\314\0300f\306"
+ 1203      66C6 00
+ 1204 052a 386C 3876 		.string	"8l8v\334\314v"
+ 1204      DCCC 7600 
+ 1205 0532 6060 C000 		.string	"``\300"
+ 1206 0536 00        		.string	""
+ 1207 0537 00        		.string	""
+ 1208 0538 00        		.string	""
+ 1209 0539 00        		.string	""
+ 1210 053a 1830 6060 		.string	"\0300```0\030"
+ 1210      6030 1800 
+ 1211 0542 6030 1818 		.string	"`0\030\030\0300`"
+ 1211      1830 6000 
+ 1212 054a 386C 6C38 		.string	"8ll8"
+ 1212      00
+ 1213 054f 00        		.string	""
+ 1214 0550 00        		.string	""
+ 1215 0551 00        		.string	""
+ 1216 0552 00        		.string	""
+ 1217 0553 3030 FC30 		.string	"00\37400"
+ 1217      3000 
+ 1218 0559 00        		.string	""
+ 1219 055a 00        		.string	""
+ 1220 055b 00        		.string	""
+ 1221 055c 00        		.string	""
+ 1222 055d 00        		.string	""
+ 1223 055e 00        		.string	""
+ 1224 055f 7030 6000 		.string	"p0`"
+ 1225 0563 00        		.string	""
+ 1226 0564 00        		.string	""
+ 1227 0565 FC00      		.string	"\374"
+ 1228 0567 00        		.string	""
+ 1229 0568 00        		.string	""
+ 1230 0569 00        		.string	""
+ 1231 056a 00        		.string	""
+ 1232 056b 00        		.string	""
+ 1233 056c 00        		.string	""
+ 1234 056d 00        		.string	""
+ 1235 056e 00        		.string	""
+ 1236 056f 3030 00   		.string	"00"
+ 1237 0572 060C 1830 		.string	"\006\f\0300`\300\200"
+ 1237      60C0 8000 
+ 1238 057a 78CC DCFC 		.string	"x\314\334\374\354\314x"
+ 1238      ECCC 7800 
+ 1239 0582 30F0 3030 		.string	"0\3600000\374"
+ 1239      3030 FC00 
+ 1240 058a 78CC 0C38 		.string	"x\314\f8`\314\374"
+ 1240      60CC FC00 
+ 1241 0592 78CC 0C38 		.string	"x\314\f8\f\314x"
+ 1241      0CCC 7800 
+ 1242 059a 1C3C 6CCC 		.string	"\034<l\314\376\f\f"
+ 1242      FE0C 0C00 
+ 1243 05a2 FCC0 F80C 		.string	"\374\300\370\f\f\314x"
+ 1243      0CCC 7800 
+ 1244 05aa 3860 C0F8 		.string	"8`\300\370\314\314x"
+ 1244      CCCC 7800 
+ 1245 05b2 FCCC 0C18 		.string	"\374\314\f\0300``"
+ 1245      3060 6000 
+ 1246 05ba 78CC CC78 		.string	"x\314\314x\314\314x"
+ 1246      CCCC 7800 
+ 1247 05c2 78CC CC7C 		.string	"x\314\314|\f\030p"
+ 1247      0C18 7000 
+ 1248 05ca 00        		.string	""
+ 1249 05cb 00        		.string	""
+ 1250 05cc 3030 00   		.string	"00"
+ 1251 05cf 3030 00   		.string	"00"
+ 1252 05d2 00        		.string	""
+ 1253 05d3 00        		.string	""
+ 1254 05d4 3030 00   		.string	"00"
+ 1255 05d7 7030 6018 		.string	"p0`\0300`\300`0\030"
+ 1255      3060 C060 
+ 1255      3018 00
+ 1256 05e2 00        		.string	""
+ 1257 05e3 00        		.string	""
+ 1258 05e4 FC00      		.string	"\374"
+ 1259 05e6 FC00      		.string	"\374"
+ 1260 05e8 00        		.string	""
+ 1261 05e9 00        		.string	""
+ 1262 05ea 6030 180C 		.string	"`0\030\f\0300`"
+ 1262      1830 6000 
+ 1263 05f2 78CC 0C18 		.string	"x\314\f\0300"
+ 1263      3000 
+ 1264 05f8 3000      		.string	"0"
+ 1265 05fa 7CC6 DEDE 		.string	"|\306\336\336\336\300x"
+ 1265      DEC0 7800 
+ 1266 0602 3078 CCCC 		.string	"0x\314\314\374\314\314"
+ 1266      FCCC CC00 
+ 1267 060a FC66 667C 		.string	"\374ff|ff\374"
+ 1267      6666 FC00 
+ 1268 0612 3C66 C0C0 		.string	"<f\300\300\300f<"
+ 1268      C066 3C00 
+ 1269 061a FC6C 6666 		.string	"\374lfffl\374"
+ 1269      666C FC00 
+ 1270 0622 FE62 6878 		.string	"\376bhxhb\376"
+ 1270      6862 FE00 
+ 1271 062a FE62 6878 		.string	"\376bhxh`\360"
+ 1271      6860 F000 
+ 1272 0632 3C66 C0C0 		.string	"<f\300\300\316f>"
+ 1272      CE66 3E00 
+ 1273 063a CCCC CCFC 		.string	"\314\314\314\374\314\314\314"
+ 1273      CCCC CC00 
+ 1274 0642 7830 3030 		.string	"x00000x"
+ 1274      3030 7800 
+ 1275 064a 1E0C 0C0C 		.string	"\036\f\f\f\314\314x"
+ 1275      CCCC 7800 
+ 1276 0652 E666 6C78 		.string	"\346flxlf\346"
+ 1276      6C66 E600 
+ 1277 065a F060 6060 		.string	"\360```bf\376"
+ 1277      6266 FE00 
+ 1278 0662 C6EE FED6 		.string	"\306\356\376\326\306\306\306"
+ 1278      C6C6 C600 
+ 1279 066a C6E6 F6DE 		.string	"\306\346\366\336\316\306\306"
+ 1279      CEC6 C600 
+ 1280 0672 386C C6C6 		.string	"8l\306\306\306l8"
+ 1280      C66C 3800 
+ 1281 067a FC66 667C 		.string	"\374ff|``\360"
+ 1281      6060 F000 
+ 1282 0682 78CC CCCC 		.string	"x\314\314\314\334x\034"
+ 1282      DC78 1C00 
+ 1283 068a FC66 667C 		.string	"\374ff|xl\346"
+ 1283      786C E600 
+ 1284 0692 78CC E038 		.string	"x\314\3408\034\314x"
+ 1284      1CCC 7800 
+ 1285 069a FCB4 3030 		.string	"\374\2640000x"
+ 1285      3030 7800 
+ 1286 06a2 CCCC CCCC 		.string	"\314\314\314\314\314\314\374"
+ 1286      CCCC FC00 
+ 1287 06aa CCCC CCCC 		.string	"\314\314\314\314\314x0"
+ 1287      CC78 3000 
+ 1288 06b2 C6C6 C6D6 		.string	"\306\306\306\326\376\356\306"
+ 1288      FEEE C600 
+ 1289 06ba C6C6 6C38 		.string	"\306\306l8l\306\306"
+ 1289      6CC6 C600 
+ 1290 06c2 CCCC CC78 		.string	"\314\314\314x00x"
+ 1290      3030 7800 
+ 1291 06ca FECC 9830 		.string	"\376\314\2300b\306\376"
+ 1291      62C6 FE00 
+ 1292 06d2 7860 6060 		.string	"x`````x"
+ 1292      6060 7800 
+ 1293 06da C060 3018 		.string	"\300`0\030\f\006\002"
+ 1293      0C06 0200 
+ 1294 06e2 7818 1818 		.string	"x\030\030\030\030\030x"
+ 1294      1818 7800 
+ 1295 06ea 1038 6CC6 		.string	"\0208l\306"
+ 1295      00
+ 1296 06ef 00        		.string	""
+ 1297 06f0 00        		.string	""
+ 1298 06f1 00        		.string	""
+ 1299 06f2 00        		.string	""
+ 1300 06f3 00        		.string	""
+ 1301 06f4 00        		.string	""
+ 1302 06f5 00        		.string	""
+ 1303 06f6 00        		.string	""
+ 1304 06f7 00        		.string	""
+ 1305 06f8 00        		.string	""
+ 1306 06f9 FF30 3018 		.string	"\37700\030"
+ 1306      00
+ 1307 06fe 00        		.string	""
+ 1308 06ff 00        		.string	""
+ 1309 0700 00        		.string	""
+ 1310 0701 00        		.string	""
+ 1311 0702 00        		.string	""
+ 1312 0703 00        		.string	""
+ 1313 0704 780C 7CCC 		.string	"x\f|\314v"
+ 1313      7600 
+ 1314 070a E060 7C66 		.string	"\340`|fff\274"
+ 1314      6666 BC00 
+ 1315 0712 00        		.string	""
+ 1316 0713 00        		.string	""
+ 1317 0714 78CC C0CC 		.string	"x\314\300\314x"
+ 1317      7800 
+ 1318 071a 1C0C 0C7C 		.string	"\034\f\f|\314\314v"
+ 1318      CCCC 7600 
+ 1319 0722 00        		.string	""
+ 1320 0723 00        		.string	""
+ 1321 0724 78CC FCC0 		.string	"x\314\374\300x"
+ 1321      7800 
+ 1322 072a 386C 60F0 		.string	"8l`\360``\360"
+ 1322      6060 F000 
+ 1323 0732 00        		.string	""
+ 1324 0733 00        		.string	""
+ 1325 0734 76CC CC7C 		.string	"v\314\314|\f\370\340`lvff\346"
+ 1325      0CF8 E060 
+ 1325      6C76 6666 
+ 1325      E600 
+ 1326 0742 3000      		.string	"0"
+ 1327 0744 7030 3030 		.string	"p000x"
+ 1327      7800 
+ 1328 074a 1800      		.string	"\030"
+ 1329 074c 7818 1818 		.string	"x\030\030\030\330p\340`flxl\346"
+ 1329      D870 E060 
+ 1329      666C 786C 
+ 1329      E600 
+ 1330 075a 7030 3030 		.string	"p00000x"
+ 1330      3030 7800 
+ 1331 0762 00        		.string	""
+ 1332 0763 00        		.string	""
+ 1333 0764 ECFE D6C6 		.string	"\354\376\326\306\306"
+ 1333      C600 
+ 1334 076a 00        		.string	""
+ 1335 076b 00        		.string	""
+ 1336 076c F8CC CCCC 		.string	"\370\314\314\314\314"
+ 1336      CC00 
+ 1337 0772 00        		.string	""
+ 1338 0773 00        		.string	""
+ 1339 0774 78CC CCCC 		.string	"x\314\314\314x"
+ 1339      7800 
+ 1340 077a 00        		.string	""
+ 1341 077b 00        		.string	""
+ 1342 077c DC66 667C 		.string	"\334ff|`\360"
+ 1342      60F0 00
+ 1343 0783 00        		.string	""
+ 1344 0784 76CC CC7C 		.string	"v\314\314|\f\036"
+ 1344      0C1E 00
+ 1345 078b 00        		.string	""
+ 1346 078c D86C 6C60 		.string	"\330ll`\360"
+ 1346      F000 
+ 1347 0792 00        		.string	""
+ 1348 0793 00        		.string	""
+ 1349 0794 7CC0 780C 		.string	"|\300x\f\370"
+ 1349      F800 
+ 1350 079a 1030 7C30 		.string	"\0200|004\030"
+ 1350      3034 1800 
+ 1351 07a2 00        		.string	""
+ 1352 07a3 00        		.string	""
+ 1353 07a4 CCCC CCCC 		.string	"\314\314\314\314v"
+ 1353      7600 
+ 1354 07aa 00        		.string	""
+ 1355 07ab 00        		.string	""
+ 1356 07ac CCCC CC78 		.string	"\314\314\314x0"
+ 1356      3000 
+ 1357 07b2 00        		.string	""
+ 1358 07b3 00        		.string	""
+ 1359 07b4 C6C6 D6FE 		.string	"\306\306\326\376l"
+ 1359      6C00 
+ 1360 07ba 00        		.string	""
+ 1361 07bb 00        		.string	""
+ 1362 07bc C66C 386C 		.string	"\306l8l\306"
+ 1362      C600 
+ 1363 07c2 00        		.string	""
+ 1364 07c3 00        		.string	""
+ 1365 07c4 CCCC CC7C 		.string	"\314\314\314|\f\370"
+ 1365      0CF8 00
+ 1366 07cb 00        		.string	""
+ 1367 07cc FC98 3064 		.string	"\374\2300d\374"
+ 1367      FC00 
+ 1368               		.text
+ 1369               	.Letext0:
+ 1370               		.file 2 "/usr/avr/include/stdint.h"
+ 1371               		.file 3 "fonts.h"
 DEFINED SYMBOLS
                             *ABS*:0000000000000000 main.c
-     /tmp/ccj1xW35.s:2      *ABS*:000000000000003e __SP_H__
-     /tmp/ccj1xW35.s:3      *ABS*:000000000000003d __SP_L__
-     /tmp/ccj1xW35.s:4      *ABS*:000000000000003f __SREG__
-     /tmp/ccj1xW35.s:5      *ABS*:0000000000000000 __tmp_reg__
-     /tmp/ccj1xW35.s:6      *ABS*:0000000000000001 __zero_reg__
-     /tmp/ccj1xW35.s:36     .text.startup:0000000000000000 main
-     /tmp/ccj1xW35.s:712    .bss:000000000000001b ms10
-     /tmp/ccj1xW35.s:707    .bss:000000000000001a ms100
-     /tmp/ccj1xW35.s:702    .bss:0000000000000019 sec
-     /tmp/ccj1xW35.s:697    .bss:0000000000000018 min
-     /tmp/ccj1xW35.s:692    .bss:0000000000000017 entprell
-     /tmp/ccj1xW35.s:687    .bss:0000000000000016 screentoggle
-     /tmp/ccj1xW35.s:682    .bss:0000000000000015 toggle
-     /tmp/ccj1xW35.s:677    .bss:0000000000000014 toggle_alt
-     /tmp/ccj1xW35.s:717    .bss:000000000000001c state
-     /tmp/ccj1xW35.s:732    .bss:0000000000000021 temp
-     /tmp/ccj1xW35.s:672    .bss:0000000000000000 buffer
-     /tmp/ccj1xW35.s:727    .bss:000000000000001f test
-     /tmp/ccj1xW35.s:466    .text:0000000000000000 __vector_11
+     /tmp/cczkbmqB.s:2      *ABS*:000000000000003e __SP_H__
+     /tmp/cczkbmqB.s:3      *ABS*:000000000000003d __SP_L__
+     /tmp/cczkbmqB.s:4      *ABS*:000000000000003f __SREG__
+     /tmp/cczkbmqB.s:5      *ABS*:0000000000000000 __tmp_reg__
+     /tmp/cczkbmqB.s:6      *ABS*:0000000000000001 __zero_reg__
+     /tmp/cczkbmqB.s:34     .text.startup:0000000000000000 main
+     /tmp/cczkbmqB.s:653    .bss:000000000000002f ms10
+     /tmp/cczkbmqB.s:648    .bss:000000000000002e ms100
+     /tmp/cczkbmqB.s:643    .bss:000000000000002d sec
+     /tmp/cczkbmqB.s:638    .bss:000000000000002c min
+     /tmp/cczkbmqB.s:633    .bss:000000000000002b entprell
+     /tmp/cczkbmqB.s:628    .bss:000000000000002a screentoggle
+     /tmp/cczkbmqB.s:623    .bss:0000000000000029 toggle
+     /tmp/cczkbmqB.s:618    .bss:0000000000000028 toggle_alt
+     /tmp/cczkbmqB.s:658    .bss:0000000000000030 state
+     /tmp/cczkbmqB.s:613    .bss:0000000000000014 buffer
+     /tmp/cczkbmqB.s:608    .bss:0000000000000000 buff
+     /tmp/cczkbmqB.s:673    .bss:0000000000000035 temp
+     /tmp/cczkbmqB.s:663    .bss:0000000000000031 hum
+     /tmp/cczkbmqB.s:402    .text:0000000000000000 __vector_11
                             *ABS*:0000000000000003 __gcc_isr.n_pushed.001
-     /tmp/ccj1xW35.s:578    .text:000000000000009e vor_komma
-     /tmp/ccj1xW35.s:627    .text:00000000000000c6 nach_komma
-     /tmp/ccj1xW35.s:722    .bss:000000000000001d roman
-     /tmp/ccj1xW35.s:738    .progmem.data:0000000000000000 font14
-     /tmp/ccj1xW35.s:1243   .progmem.data:00000000000004fa font8
+     /tmp/cczkbmqB.s:514    .text:000000000000009e vor_komma
+     /tmp/cczkbmqB.s:563    .text:00000000000000c6 nach_komma
+     /tmp/cczkbmqB.s:668    .bss:0000000000000033 test
+     /tmp/cczkbmqB.s:679    .progmem.data:0000000000000000 font14
+     /tmp/cczkbmqB.s:1184   .progmem.data:00000000000004fa font8
 
 UNDEFINED SYMBOLS
 SPI_MasterInit
@@ -2006,7 +1902,7 @@ TWIInit
 sht21_init
 Write_String
 sht21_measure
-__udivmodsi4
 sprintf
+__udivmodsi4
 __do_copy_data
 __do_clear_bss

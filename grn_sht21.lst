@@ -30,74 +30,73 @@
   17:grn_sht21.c   **** #define SHT21_HUM_HOLDMASTER 0xF3		//Humidity hold master = on => 0b11100101
   18:grn_sht21.c   **** #define SHT21_SOFTRESET 0xFE				//Softreset
   19:grn_sht21.c   **** #define POLYNOMINAL 0x131				//P(x) = x^8+x^5+x^4+1 = 0b100110001
-  20:grn_sht21.c   **** 
-  21:grn_sht21.c   **** #define T_HOLD 	0
-  22:grn_sht21.c   **** #define RH_HOLD 	1
-  23:grn_sht21.c   **** 
-  24:grn_sht21.c   **** typedef float ft;						//Float VAriable zur Umrechnung vor Rueckgabe
-  25:grn_sht21.c   **** uint8_t sht21_init(void)
-  26:grn_sht21.c   **** {
-  15               		.loc 1 26 1 view -0
+  20:grn_sht21.c   **** #define T_HOLD 	0
+  21:grn_sht21.c   **** #define RH_HOLD 	1
+  22:grn_sht21.c   **** 
+  23:grn_sht21.c   **** typedef float ft;						//Float VAriable zur Umrechnung vor Rueckgabe
+  24:grn_sht21.c   **** uint8_t sht21_init(void)
+  25:grn_sht21.c   **** {
+  15               		.loc 1 25 1 view -0
   16               		.cfi_startproc
   17               	/* prologue: function */
   18               	/* frame size = 0 */
   19               	/* stack size = 0 */
   20               	.L__stack_usage = 0
-  27:grn_sht21.c   **** 	/*	
-  28:grn_sht21.c   **** 	 * Softreset Sensor
-  29:grn_sht21.c   **** 	 */
-  30:grn_sht21.c   **** 	TWIStart();
-  21               		.loc 1 30 2 view .LVU1
+  26:grn_sht21.c   **** 	/*	
+  27:grn_sht21.c   **** 	 * Softreset Sensor
+  28:grn_sht21.c   **** 	 */
+  29:grn_sht21.c   **** 	TWIStart();
+  21               		.loc 1 29 2 view .LVU1
   22 0000 0E94 0000 		call TWIStart
   23               	.LVL0:
-  31:grn_sht21.c   **** 	if(TWIGetStatus() != 0x08)return 1; 
-  24               		.loc 1 31 2 view .LVU2
-  25               		.loc 1 31 5 is_stmt 0 view .LVU3
+  30:grn_sht21.c   **** 	if(TWIGetStatus() != 0x08)return 1; 
+  24               		.loc 1 30 2 view .LVU2
+  25               		.loc 1 30 5 is_stmt 0 view .LVU3
   26 0004 0E94 0000 		call TWIGetStatus
   27               	.LVL1:
-  28               		.loc 1 31 4 view .LVU4
+  28               		.loc 1 30 4 view .LVU4
   29 0008 8830      		cpi r24,lo8(8)
   30 000a 01F0      		breq .L7
-  31               		.loc 1 31 35 view .LVU5
+  31               		.loc 1 30 35 view .LVU5
   32 000c 81E0      		ldi r24,lo8(1)
   33 000e 0895      		ret
   34               	.L7:
-  32:grn_sht21.c   **** 	TWIWrite(SHT21_W);
-  35               		.loc 1 32 2 is_stmt 1 view .LVU6
+  31:grn_sht21.c   **** 	TWIWrite(SHT21_W);
+  35               		.loc 1 31 2 is_stmt 1 view .LVU6
   36 0010 80E8      		ldi r24,lo8(-128)
   37 0012 0E94 0000 		call TWIWrite
   38               	.LVL2:
-  33:grn_sht21.c   **** 	if(TWIGetStatus() != 0x18)return 2;
-  39               		.loc 1 33 2 view .LVU7
-  40               		.loc 1 33 5 is_stmt 0 view .LVU8
+  32:grn_sht21.c   **** 	if(TWIGetStatus() != 0x18)return 2;
+  39               		.loc 1 32 2 view .LVU7
+  40               		.loc 1 32 5 is_stmt 0 view .LVU8
   41 0016 0E94 0000 		call TWIGetStatus
   42               	.LVL3:
-  43               		.loc 1 33 4 view .LVU9
+  43               		.loc 1 32 4 view .LVU9
   44 001a 8831      		cpi r24,lo8(24)
   45 001c 01F0      		breq .L8
-  46               		.loc 1 33 35 view .LVU10
+  46               		.loc 1 32 35 view .LVU10
   47 001e 82E0      		ldi r24,lo8(2)
   48 0020 0895      		ret
   49               	.L8:
-  34:grn_sht21.c   **** 	TWIWrite(SHT21_SOFTRESET);
-  50               		.loc 1 34 2 is_stmt 1 view .LVU11
+  33:grn_sht21.c   **** 	TWIWrite(SHT21_SOFTRESET);
+  50               		.loc 1 33 2 is_stmt 1 view .LVU11
   51 0022 8EEF      		ldi r24,lo8(-2)
   52 0024 0E94 0000 		call TWIWrite
   53               	.LVL4:
-  35:grn_sht21.c   **** 	if(TWIGetStatus() != 0x28)return 3;
-  54               		.loc 1 35 2 view .LVU12
-  55               		.loc 1 35 5 is_stmt 0 view .LVU13
+  34:grn_sht21.c   **** 	if(TWIGetStatus() != 0x28)return 3;
+  54               		.loc 1 34 2 view .LVU12
+  55               		.loc 1 34 5 is_stmt 0 view .LVU13
   56 0028 0E94 0000 		call TWIGetStatus
   57               	.LVL5:
-  58               		.loc 1 35 4 view .LVU14
+  58               		.loc 1 34 4 view .LVU14
   59 002c 8832      		cpi r24,lo8(40)
   60 002e 01F4      		brne .L5
-  36:grn_sht21.c   **** 	TWIStop();
-  61               		.loc 1 36 2 is_stmt 1 view .LVU15
+  35:grn_sht21.c   **** 	TWIStop();
+  61               		.loc 1 35 2 is_stmt 1 view .LVU15
   62 0030 0E94 0000 		call TWIStop
   63               	.LVL6:
-  37:grn_sht21.c   **** 	_delay_ms(15);	//Startuptime after Reset <15ms (Datasheet)
-  64               		.loc 1 37 2 view .LVU16
+  36:grn_sht21.c   **** 	_delay_ms(15);	//Startuptime after Reset <15ms (Datasheet)
+  64               		.loc 1 36 2 view .LVU16
   65               	.LBB12:
   66               	.LBI12:
   67               		.file 2 "/usr/avr/include/util/delay.h"
@@ -443,8 +442,8 @@
   94               	.LBE14:
   95               	.LBE13:
   96               	.LBE12:
-  38:grn_sht21.c   **** 	return 0;
-  97               		.loc 1 38 9 view .LVU28
+  37:grn_sht21.c   **** 	return 0;
+  97               		.loc 1 37 9 view .LVU28
   98 003c 80E0      		ldi r24,0
   99               	.LBB19:
  100               	.LBB18:
@@ -465,12 +464,12 @@
  109               	.LBE17:
  110               	.LBE18:
  111               	.LBE19:
-  35:grn_sht21.c   **** 	TWIStop();
- 112               		.loc 1 35 35 view .LVU31
+  34:grn_sht21.c   **** 	TWIStop();
+ 112               		.loc 1 34 35 view .LVU31
  113 0040 83E0      		ldi r24,lo8(3)
  114               	/* epilogue start */
-  39:grn_sht21.c   **** }
- 115               		.loc 1 39 1 view .LVU32
+  38:grn_sht21.c   **** }
+ 115               		.loc 1 38 1 view .LVU32
  116 0042 0895      		ret
  117               		.cfi_endproc
  118               	.LFE7:
@@ -482,11 +481,11 @@
  126               	sht21_measure:
  127               	.LVL9:
  128               	.LFB8:
-  40:grn_sht21.c   **** int16_t sht21_measure(uint8_t measure_mode)
-  41:grn_sht21.c   **** {
- 129               		.loc 1 41 1 is_stmt 1 view -0
+  39:grn_sht21.c   **** int16_t sht21_measure(uint8_t measure_mode)
+  40:grn_sht21.c   **** {
+ 129               		.loc 1 40 1 is_stmt 1 view -0
  130               		.cfi_startproc
- 131               		.loc 1 41 1 is_stmt 0 view .LVU34
+ 131               		.loc 1 40 1 is_stmt 0 view .LVU34
  132 0044 FF92      		push r15
  133               	.LCFI0:
  134               		.cfi_def_cfa_offset 3
@@ -521,830 +520,868 @@
  163               	/* stack size = 10 */
  164               	.L__stack_usage = 10
  165 0058 8983      		std Y+1,r24
-  42:grn_sht21.c   **** 	/*
-  43:grn_sht21.c   **** 	 * 	Temperaturmessung / Überprüfung der Checksumme	
-  44:grn_sht21.c   **** 	 * 
-  45:grn_sht21.c   **** 	 * 	Rückgabewert: 	16 bit Temperaturwert x 100 
-  46:grn_sht21.c   **** 	 * 					(letzte 2 Stellen sind Nachkommastellen)
-  47:grn_sht21.c   **** 	 * 
-  48:grn_sht21.c   **** 	 * For float as return value, you have to change the following line in 
-  49:grn_sht21.c   **** 	 * the Makefile and add mat.h library since only a minimalistic sprintf library is included
-  50:grn_sht21.c   **** 	 * by default. To add the full float library add/change the following 
-  51:grn_sht21.c   **** 	 * line to the Makefile.
-  52:grn_sht21.c   **** 	 * 
-  53:grn_sht21.c   **** 	 * # Minimalistic printf version
-  54:grn_sht21.c   **** 		PRINTF_LIB_MIN = -Wl,-u,vfprintf -lprintf_min
-  55:grn_sht21.c   **** 
-  56:grn_sht21.c   **** 		# Floating point printf version (requires MATH_LIB = -lm below)
-  57:grn_sht21.c   **** 		PRINTF_LIB_FLOAT = -Wl,-u,vfprintf -lprintf_flt
+  41:grn_sht21.c   **** 	/*
+  42:grn_sht21.c   **** 	 * 	Temperaturmessung / Überprüfung der Checksumme	
+  43:grn_sht21.c   **** 	 * 
+  44:grn_sht21.c   **** 	 * 	Rückgabewert: 	16 bit Temperaturwert x 100 
+  45:grn_sht21.c   **** 	 * 					(letzte 2 Stellen sind Nachkommastellen)
+  46:grn_sht21.c   **** 	 * 
+  47:grn_sht21.c   **** 	 * For float as return value, you have to change the following line in 
+  48:grn_sht21.c   **** 	 * the Makefile and add mat.h library since only a minimalistic sprintf library is included
+  49:grn_sht21.c   **** 	 * by default. To add the full float library add/change the following 
+  50:grn_sht21.c   **** 	 * line to the Makefile.
+  51:grn_sht21.c   **** 	 * 
+  52:grn_sht21.c   **** 	 * # Minimalistic printf version
+  53:grn_sht21.c   **** 		PRINTF_LIB_MIN = -Wl,-u,vfprintf -lprintf_min
+  54:grn_sht21.c   **** 
+  55:grn_sht21.c   **** 		# Floating point printf version (requires MATH_LIB = -lm below)
+  56:grn_sht21.c   **** 		PRINTF_LIB_FLOAT = -Wl,-u,vfprintf -lprintf_flt
+  57:grn_sht21.c   **** 
   58:grn_sht21.c   **** 
-  59:grn_sht21.c   **** 
-  60:grn_sht21.c   **** 		PRINTF_LIB = $(PRINTF_LIB_FLOAT) 
+  59:grn_sht21.c   **** 		PRINTF_LIB = $(PRINTF_LIB_FLOAT) 
+  60:grn_sht21.c   **** 	 * 
   61:grn_sht21.c   **** 	 * 
-  62:grn_sht21.c   **** 	 * 
-  63:grn_sht21.c   **** 	 * 	Checksum error: Rückgabewert = 99;
-  64:grn_sht21.c   **** 	 */ 
-  65:grn_sht21.c   **** 	 
-  66:grn_sht21.c   **** 	uint8_t raw[]={0,0,0};
- 166               		.loc 1 66 2 is_stmt 1 view .LVU35
+  62:grn_sht21.c   **** 	 * 	Checksum error: Rückgabewert = 99;
+  63:grn_sht21.c   **** 	 */ 
+  64:grn_sht21.c   **** 	 
+  65:grn_sht21.c   **** 	uint8_t raw[]={0,0,0};
+ 166               		.loc 1 65 2 is_stmt 1 view .LVU35
  167               	.LVL10:
-  67:grn_sht21.c   **** 	uint16_t messwert;
- 168               		.loc 1 67 2 view .LVU36
-  68:grn_sht21.c   **** 	int16_t rueckgabewert;
- 169               		.loc 1 68 2 view .LVU37
+  66:grn_sht21.c   **** 	uint16_t messwert,i;
+ 168               		.loc 1 66 2 view .LVU36
+  67:grn_sht21.c   **** 	int16_t rueckgabewert;
+ 169               		.loc 1 67 2 view .LVU37
+  68:grn_sht21.c   **** 	uint8_t ret=0;
+ 170               		.loc 1 68 2 view .LVU38
   69:grn_sht21.c   **** 	
   70:grn_sht21.c   **** 	messwert=0;
- 170               		.loc 1 70 2 view .LVU38
+ 171               		.loc 1 70 2 view .LVU39
   71:grn_sht21.c   **** 	rueckgabewert=0;
- 171               		.loc 1 71 2 view .LVU39
-  72:grn_sht21.c   **** 
-  73:grn_sht21.c   **** 		
-  74:grn_sht21.c   **** 	TWIStart();							//start TWI
- 172               		.loc 1 74 2 view .LVU40
- 173 005a 0E94 0000 		call TWIStart
- 174               	.LVL11:
-  75:grn_sht21.c   **** 	if(TWIGetStatus() != 0x08)return 11; //kontrolle ob erfolgreich sonst Abbruch mit Error Code
- 175               		.loc 1 75 2 view .LVU41
- 176               		.loc 1 75 5 is_stmt 0 view .LVU42
- 177 005e 0E94 0000 		call TWIGetStatus
- 178               	.LVL12:
- 179 0062 8D83      		std Y+5,r24
- 180               		.loc 1 75 4 view .LVU43
- 181 0064 8830      		cpi r24,lo8(8)
- 182 0066 01F0      		breq .L45
- 183               		.loc 1 75 35 view .LVU44
- 184 0068 8BE0      		ldi r24,lo8(11)
- 185 006a 90E0      		ldi r25,0
- 186               	.LVL13:
- 187               	.L9:
- 188               	/* epilogue start */
-  76:grn_sht21.c   **** 	TWIWrite(SHT21_W);					//Adresse und Schreiben
-  77:grn_sht21.c   **** 	if(TWIGetStatus() != 0x18)return 22;	//kontrolle ob erfolgreich sonst Abbruch mit Error Code
-  78:grn_sht21.c   **** 	switch(measure_mode)
-  79:grn_sht21.c   **** 	{
-  80:grn_sht21.c   **** 		case T_HOLD:	TWIWrite(SHT21_TEMP_HOLDMASTER);break;	//Modus = Temperatur master hold = on
-  81:grn_sht21.c   **** 		case RH_HOLD:	TWIWrite(SHT21_HUM_HOLDMASTER);break;	//Modus = Temperatur master hold = on
-  82:grn_sht21.c   **** 	}
-  83:grn_sht21.c   **** 	if(TWIGetStatus() != 0x28)return 33;	//kontrolle ob erfolgreich sonst Abbruch mit Error Code
-  84:grn_sht21.c   **** 
-  85:grn_sht21.c   **** 	DDRC &= ~(1<<PC5);					//set SCL as Input
-  86:grn_sht21.c   **** 	while(!(PINC &= ~(1<<PC5)));		//wait to end conversion (Master hold mode)
-  87:grn_sht21.c   **** 	DDRC |= (1<<PC5);					//set SCL as Output
-  88:grn_sht21.c   **** 
-  89:grn_sht21.c   **** 	TWIStart();							//restart TWI
-  90:grn_sht21.c   **** 	if(TWIGetStatus() != 0x10)return 44; //kontrolle ob erfolgreich sonst Abbruch mit Error Code
-  91:grn_sht21.c   **** 	TWIWrite(SHT21_R);					//Adresse und lesen
-  92:grn_sht21.c   **** 	if(TWIGetStatus() != 0x40)return 55;	//kontrolle ob erfolgreich sonst Abbruch mit Error Code
-  93:grn_sht21.c   **** 	raw[0] = TWIReadACK();				//empfange MSB
-  94:grn_sht21.c   **** 	if(TWIGetStatus() != 0x50)return 66;	//kontrolle ob erfolgreich sonst Abbruch mit Error Code
-  95:grn_sht21.c   **** 	raw[1] = TWIReadACK();				//empfange LSB / durch NACK wird checksumme nicht empfangen
-  96:grn_sht21.c   **** 	if(TWIGetStatus() != 0x50)return 77;	//kontrolle ob erfolgreich sonst Abbruch mit Error Code
-  97:grn_sht21.c   **** 	raw[2] = TWIReadNACK();				//receive checksum
-  98:grn_sht21.c   **** 	TWIStop();							//close TWI
-  99:grn_sht21.c   **** 	
- 100:grn_sht21.c   **** 	messwert=(raw[0]<<8)|raw[1];						//8 bit werte zu 16bit Wert zusammensetzen
- 101:grn_sht21.c   **** 	messwert &= ~0x003;								//Loescht letzte 2 Bits (Status Bits)
- 102:grn_sht21.c   **** 	switch(measure_mode)
- 103:grn_sht21.c   **** 	{
- 104:grn_sht21.c   **** 		case T_HOLD:	rueckgabewert = 100*(-46.85 + 175.72/65536 * messwert);break;
- 105:grn_sht21.c   **** 		case RH_HOLD:	rueckgabewert = 100*(-6.0 + 125.0/65536 * messwert);break; // return relative humid
- 106:grn_sht21.c   **** 	}
- 107:grn_sht21.c   **** 	 
- 108:grn_sht21.c   **** 	if(sht21_checksum(raw,2,raw[2])) 	//check result with checksum
- 109:grn_sht21.c   **** 	{
- 110:grn_sht21.c   **** 		return 1;
- 111:grn_sht21.c   **** 	}else return rueckgabewert;	
- 112:grn_sht21.c   **** }//End of SHT21_read_temp
- 189               		.loc 1 112 1 view .LVU45
- 190 006c 0F90      		pop __tmp_reg__
- 191 006e 0F90      		pop __tmp_reg__
- 192 0070 0F90      		pop __tmp_reg__
- 193 0072 0F90      		pop __tmp_reg__
- 194 0074 0F90      		pop __tmp_reg__
- 195 0076 DF91      		pop r29
- 196 0078 CF91      		pop r28
- 197 007a 1F91      		pop r17
- 198 007c 0F91      		pop r16
- 199 007e FF90      		pop r15
- 200 0080 0895      		ret
- 201               	.LVL14:
- 202               	.L45:
-  76:grn_sht21.c   **** 	TWIWrite(SHT21_W);					//Adresse und Schreiben
- 203               		.loc 1 76 2 is_stmt 1 view .LVU46
- 204 0082 80E8      		ldi r24,lo8(-128)
- 205 0084 0E94 0000 		call TWIWrite
- 206               	.LVL15:
-  77:grn_sht21.c   **** 	switch(measure_mode)
- 207               		.loc 1 77 2 view .LVU47
-  77:grn_sht21.c   **** 	switch(measure_mode)
- 208               		.loc 1 77 5 is_stmt 0 view .LVU48
- 209 0088 0E94 0000 		call TWIGetStatus
- 210               	.LVL16:
-  77:grn_sht21.c   **** 	switch(measure_mode)
- 211               		.loc 1 77 4 view .LVU49
- 212 008c 8831      		cpi r24,lo8(24)
- 213 008e 01F4      		brne .L29
-  78:grn_sht21.c   **** 	{
- 214               		.loc 1 78 2 is_stmt 1 view .LVU50
- 215 0090 2981      		ldd r18,Y+1
- 216 0092 2223      		tst r18
- 217 0094 01F0      		breq .L11
- 218 0096 2130      		cpi r18,lo8(1)
- 219 0098 01F0      		breq .L12
- 220               	.L13:
-  83:grn_sht21.c   **** 
- 221               		.loc 1 83 2 view .LVU51
-  83:grn_sht21.c   **** 
- 222               		.loc 1 83 5 is_stmt 0 view .LVU52
- 223 009a 0E94 0000 		call TWIGetStatus
- 224               	.LVL17:
-  83:grn_sht21.c   **** 
- 225               		.loc 1 83 4 view .LVU53
- 226 009e 8832      		cpi r24,lo8(40)
- 227 00a0 01F4      		brne .L30
- 228               	.L47:
-  85:grn_sht21.c   **** 	while(!(PINC &= ~(1<<PC5)));		//wait to end conversion (Master hold mode)
- 229               		.loc 1 85 2 is_stmt 1 view .LVU54
-  85:grn_sht21.c   **** 	while(!(PINC &= ~(1<<PC5)));		//wait to end conversion (Master hold mode)
- 230               		.loc 1 85 7 is_stmt 0 view .LVU55
- 231 00a2 3D98      		cbi 0x7,5
-  86:grn_sht21.c   **** 	DDRC |= (1<<PC5);					//set SCL as Output
- 232               		.loc 1 86 2 is_stmt 1 view .LVU56
- 233               	.L14:
-  86:grn_sht21.c   **** 	DDRC |= (1<<PC5);					//set SCL as Output
- 234               		.loc 1 86 29 discriminator 1 view .LVU57
-  86:grn_sht21.c   **** 	DDRC |= (1<<PC5);					//set SCL as Output
- 235               		.loc 1 86 7 discriminator 1 view .LVU58
-  86:grn_sht21.c   **** 	DDRC |= (1<<PC5);					//set SCL as Output
- 236               		.loc 1 86 15 is_stmt 0 discriminator 1 view .LVU59
- 237 00a4 96B1      		in r25,0x6
- 238 00a6 9F7D      		andi r25,lo8(-33)
- 239 00a8 96B9      		out 0x6,r25
-  86:grn_sht21.c   **** 	DDRC |= (1<<PC5);					//set SCL as Output
- 240               		.loc 1 86 7 discriminator 1 view .LVU60
- 241 00aa 9923      		tst r25
- 242 00ac 01F0      		breq .L14
-  87:grn_sht21.c   **** 
- 243               		.loc 1 87 2 is_stmt 1 view .LVU61
-  87:grn_sht21.c   **** 
- 244               		.loc 1 87 7 is_stmt 0 view .LVU62
- 245 00ae 3D9A      		sbi 0x7,5
-  89:grn_sht21.c   **** 	if(TWIGetStatus() != 0x10)return 44; //kontrolle ob erfolgreich sonst Abbruch mit Error Code
- 246               		.loc 1 89 2 is_stmt 1 view .LVU63
- 247 00b0 0E94 0000 		call TWIStart
- 248               	.LVL18:
-  90:grn_sht21.c   **** 	TWIWrite(SHT21_R);					//Adresse und lesen
- 249               		.loc 1 90 2 view .LVU64
-  90:grn_sht21.c   **** 	TWIWrite(SHT21_R);					//Adresse und lesen
- 250               		.loc 1 90 5 is_stmt 0 view .LVU65
- 251 00b4 0E94 0000 		call TWIGetStatus
- 252               	.LVL19:
-  90:grn_sht21.c   **** 	TWIWrite(SHT21_R);					//Adresse und lesen
- 253               		.loc 1 90 4 view .LVU66
- 254 00b8 8031      		cpi r24,lo8(16)
- 255 00ba 01F0      		breq .L46
-  90:grn_sht21.c   **** 	TWIWrite(SHT21_R);					//Adresse und lesen
- 256               		.loc 1 90 35 view .LVU67
- 257 00bc 8CE2      		ldi r24,lo8(44)
- 258 00be 90E0      		ldi r25,0
- 259 00c0 00C0      		rjmp .L9
- 260               	.L12:
-  81:grn_sht21.c   **** 	}
- 261               		.loc 1 81 17 is_stmt 1 view .LVU68
- 262 00c2 83EF      		ldi r24,lo8(-13)
- 263 00c4 0E94 0000 		call TWIWrite
- 264               	.LVL20:
-  81:grn_sht21.c   **** 	}
- 265               		.loc 1 81 48 view .LVU69
-  83:grn_sht21.c   **** 
- 266               		.loc 1 83 2 view .LVU70
-  83:grn_sht21.c   **** 
- 267               		.loc 1 83 5 is_stmt 0 view .LVU71
- 268 00c8 0E94 0000 		call TWIGetStatus
- 269               	.LVL21:
-  83:grn_sht21.c   **** 
- 270               		.loc 1 83 4 view .LVU72
- 271 00cc 8832      		cpi r24,lo8(40)
- 272 00ce 01F0      		breq .L47
- 273               	.L30:
-  83:grn_sht21.c   **** 
- 274               		.loc 1 83 35 view .LVU73
- 275 00d0 81E2      		ldi r24,lo8(33)
- 276 00d2 90E0      		ldi r25,0
- 277 00d4 00C0      		rjmp .L9
- 278               	.L46:
-  91:grn_sht21.c   **** 	if(TWIGetStatus() != 0x40)return 55;	//kontrolle ob erfolgreich sonst Abbruch mit Error Code
- 279               		.loc 1 91 2 is_stmt 1 view .LVU74
- 280 00d6 81E8      		ldi r24,lo8(-127)
- 281 00d8 0E94 0000 		call TWIWrite
- 282               	.LVL22:
-  92:grn_sht21.c   **** 	raw[0] = TWIReadACK();				//empfange MSB
- 283               		.loc 1 92 2 view .LVU75
-  92:grn_sht21.c   **** 	raw[0] = TWIReadACK();				//empfange MSB
- 284               		.loc 1 92 5 is_stmt 0 view .LVU76
- 285 00dc 0E94 0000 		call TWIGetStatus
- 286               	.LVL23:
-  92:grn_sht21.c   **** 	raw[0] = TWIReadACK();				//empfange MSB
- 287               		.loc 1 92 4 view .LVU77
- 288 00e0 8034      		cpi r24,lo8(64)
- 289 00e2 01F0      		breq .L48
-  92:grn_sht21.c   **** 	raw[0] = TWIReadACK();				//empfange MSB
- 290               		.loc 1 92 35 view .LVU78
- 291 00e4 87E3      		ldi r24,lo8(55)
- 292 00e6 90E0      		ldi r25,0
- 293 00e8 00C0      		rjmp .L9
- 294               	.L29:
-  77:grn_sht21.c   **** 	switch(measure_mode)
- 295               		.loc 1 77 35 view .LVU79
- 296 00ea 86E1      		ldi r24,lo8(22)
- 297 00ec 90E0      		ldi r25,0
- 298 00ee 00C0      		rjmp .L9
- 299               	.L11:
-  80:grn_sht21.c   **** 		case RH_HOLD:	TWIWrite(SHT21_HUM_HOLDMASTER);break;	//Modus = Temperatur master hold = on
- 300               		.loc 1 80 16 is_stmt 1 view .LVU80
- 301 00f0 83EE      		ldi r24,lo8(-29)
- 302 00f2 0E94 0000 		call TWIWrite
- 303               	.LVL24:
-  80:grn_sht21.c   **** 		case RH_HOLD:	TWIWrite(SHT21_HUM_HOLDMASTER);break;	//Modus = Temperatur master hold = on
- 304               		.loc 1 80 48 view .LVU81
-  80:grn_sht21.c   **** 		case RH_HOLD:	TWIWrite(SHT21_HUM_HOLDMASTER);break;	//Modus = Temperatur master hold = on
- 305               		.loc 1 80 3 is_stmt 0 view .LVU82
- 306 00f6 00C0      		rjmp .L13
- 307               	.L48:
-  93:grn_sht21.c   **** 	if(TWIGetStatus() != 0x50)return 66;	//kontrolle ob erfolgreich sonst Abbruch mit Error Code
- 308               		.loc 1 93 2 is_stmt 1 view .LVU83
-  93:grn_sht21.c   **** 	if(TWIGetStatus() != 0x50)return 66;	//kontrolle ob erfolgreich sonst Abbruch mit Error Code
- 309               		.loc 1 93 11 is_stmt 0 view .LVU84
- 310 00f8 0E94 0000 		call TWIReadACK
- 311               	.LVL25:
- 312 00fc 182F      		mov r17,r24
- 313               	.LVL26:
-  94:grn_sht21.c   **** 	raw[1] = TWIReadACK();				//empfange LSB / durch NACK wird checksumme nicht empfangen
- 314               		.loc 1 94 2 is_stmt 1 view .LVU85
-  94:grn_sht21.c   **** 	raw[1] = TWIReadACK();				//empfange LSB / durch NACK wird checksumme nicht empfangen
- 315               		.loc 1 94 5 is_stmt 0 view .LVU86
- 316 00fe 0E94 0000 		call TWIGetStatus
- 317               	.LVL27:
-  94:grn_sht21.c   **** 	raw[1] = TWIReadACK();				//empfange LSB / durch NACK wird checksumme nicht empfangen
- 318               		.loc 1 94 4 view .LVU87
- 319 0102 8035      		cpi r24,lo8(80)
- 320 0104 01F0      		breq .+2
- 321 0106 00C0      		rjmp .L33
-  95:grn_sht21.c   **** 	if(TWIGetStatus() != 0x50)return 77;	//kontrolle ob erfolgreich sonst Abbruch mit Error Code
- 322               		.loc 1 95 2 is_stmt 1 view .LVU88
-  95:grn_sht21.c   **** 	if(TWIGetStatus() != 0x50)return 77;	//kontrolle ob erfolgreich sonst Abbruch mit Error Code
- 323               		.loc 1 95 11 is_stmt 0 view .LVU89
- 324 0108 0E94 0000 		call TWIReadACK
- 325               	.LVL28:
- 326 010c 082F      		mov r16,r24
- 327               	.LVL29:
-  96:grn_sht21.c   **** 	raw[2] = TWIReadNACK();				//receive checksum
- 328               		.loc 1 96 2 is_stmt 1 view .LVU90
-  96:grn_sht21.c   **** 	raw[2] = TWIReadNACK();				//receive checksum
- 329               		.loc 1 96 5 is_stmt 0 view .LVU91
- 330 010e 0E94 0000 		call TWIGetStatus
- 331               	.LVL30:
-  96:grn_sht21.c   **** 	raw[2] = TWIReadNACK();				//receive checksum
- 332               		.loc 1 96 4 view .LVU92
- 333 0112 8035      		cpi r24,lo8(80)
- 334 0114 01F0      		breq .+2
- 335 0116 00C0      		rjmp .L34
-  97:grn_sht21.c   **** 	TWIStop();							//close TWI
- 336               		.loc 1 97 2 is_stmt 1 view .LVU93
-  97:grn_sht21.c   **** 	TWIStop();							//close TWI
- 337               		.loc 1 97 11 is_stmt 0 view .LVU94
- 338 0118 0E94 0000 		call TWIReadNACK
- 339               	.LVL31:
- 340 011c F82E      		mov r15,r24
- 341               	.LVL32:
-  98:grn_sht21.c   **** 	
- 342               		.loc 1 98 2 is_stmt 1 view .LVU95
- 343 011e 0E94 0000 		call TWIStop
- 344               	.LVL33:
- 100:grn_sht21.c   **** 	messwert &= ~0x003;								//Loescht letzte 2 Bits (Status Bits)
- 345               		.loc 1 100 2 view .LVU96
- 100:grn_sht21.c   **** 	messwert &= ~0x003;								//Loescht letzte 2 Bits (Status Bits)
- 346               		.loc 1 100 22 is_stmt 0 view .LVU97
- 347 0122 C801      		movw r24,r16
- 348               	.LVL34:
- 101:grn_sht21.c   **** 	switch(measure_mode)
- 349               		.loc 1 101 2 is_stmt 1 view .LVU98
- 101:grn_sht21.c   **** 	switch(measure_mode)
- 350               		.loc 1 101 11 is_stmt 0 view .LVU99
- 351 0124 8C7F      		andi r24,252
- 352               	.LVL35:
- 102:grn_sht21.c   **** 	{
- 353               		.loc 1 102 2 is_stmt 1 view .LVU100
- 354 0126 3981      		ldd r19,Y+1
- 355 0128 3323      		tst r19
- 356 012a 01F4      		brne .+2
- 357 012c 00C0      		rjmp .L15
- 358 012e 3130      		cpi r19,lo8(1)
- 359 0130 01F0      		breq .+2
- 360 0132 00C0      		rjmp .L49
- 105:grn_sht21.c   **** 	}
- 361               		.loc 1 105 17 view .LVU101
- 105:grn_sht21.c   **** 	}
- 362               		.loc 1 105 57 is_stmt 0 view .LVU102
- 363 0134 9C01      		movw r18,r24
- 364 0136 50E0      		ldi r21,0
- 365 0138 40E0      		ldi r20,0
- 366 013a 2983      		std Y+1,r18
- 367 013c 3A83      		std Y+2,r19
- 368 013e 4B83      		std Y+3,r20
- 369 0140 5C83      		std Y+4,r21
- 370 0142 CA01      		movw r24,r20
- 371               	.LVL36:
- 105:grn_sht21.c   **** 	}
- 372               		.loc 1 105 57 view .LVU103
- 373 0144 B901      		movw r22,r18
- 374 0146 0E94 0000 		call __floatunsisf
- 375               	.LVL37:
- 105:grn_sht21.c   **** 	}
- 376               		.loc 1 105 57 view .LVU104
- 377 014a E62F      		mov r30,r22
- 378 014c 20E0      		ldi r18,0
- 379 014e 30E0      		ldi r19,0
- 380 0150 4AEF      		ldi r20,lo8(-6)
- 381 0152 5AE3      		ldi r21,lo8(58)
- 382 0154 E983      		std Y+1,r30
- 383 0156 7A83      		std Y+2,r23
- 384 0158 8B83      		std Y+3,r24
- 385 015a 9C83      		std Y+4,r25
- 386 015c 6981      		ldd r22,Y+1
- 387 015e 7A81      		ldd r23,Y+2
- 388 0160 8B81      		ldd r24,Y+3
- 389 0162 9C81      		ldd r25,Y+4
- 390 0164 0E94 0000 		call __mulsf3
- 391               	.LVL38:
- 392 0168 E62F      		mov r30,r22
- 393 016a 682F      		mov r22,r24
- 394 016c 892F      		mov r24,r25
- 105:grn_sht21.c   **** 	}
- 395               		.loc 1 105 43 view .LVU105
- 396 016e 20E0      		ldi r18,0
- 397 0170 30E0      		ldi r19,0
- 398 0172 40EC      		ldi r20,lo8(-64)
- 399 0174 50E4      		ldi r21,lo8(64)
- 400               	.L44:
- 401 0176 E983      		std Y+1,r30
- 402 0178 7A83      		std Y+2,r23
- 403 017a 6B83      		std Y+3,r22
- 404 017c 8C83      		std Y+4,r24
- 405 017e 6981      		ldd r22,Y+1
- 406 0180 7A81      		ldd r23,Y+2
- 407 0182 8B81      		ldd r24,Y+3
- 408 0184 9C81      		ldd r25,Y+4
- 409 0186 0E94 0000 		call __subsf3
- 410               	.LVL39:
- 411 018a E62F      		mov r30,r22
- 105:grn_sht21.c   **** 	}
- 412               		.loc 1 105 36 view .LVU106
- 413 018c 20E0      		ldi r18,0
- 414 018e 30E0      		ldi r19,0
- 415 0190 48EC      		ldi r20,lo8(-56)
- 416 0192 52E4      		ldi r21,lo8(66)
- 417 0194 E983      		std Y+1,r30
- 418 0196 7A83      		std Y+2,r23
- 419 0198 8B83      		std Y+3,r24
- 420 019a 9C83      		std Y+4,r25
- 421 019c 6981      		ldd r22,Y+1
- 422 019e 7A81      		ldd r23,Y+2
- 423 01a0 8B81      		ldd r24,Y+3
- 424 01a2 9C81      		ldd r25,Y+4
- 425 01a4 0E94 0000 		call __mulsf3
- 426               	.LVL40:
- 105:grn_sht21.c   **** 	}
- 427               		.loc 1 105 31 view .LVU107
- 428 01a8 6983      		std Y+1,r22
- 429 01aa 7A83      		std Y+2,r23
- 430 01ac 8B83      		std Y+3,r24
- 431 01ae 9C83      		std Y+4,r25
- 432 01b0 6981      		ldd r22,Y+1
- 433 01b2 7A81      		ldd r23,Y+2
- 434 01b4 8B81      		ldd r24,Y+3
- 435 01b6 9C81      		ldd r25,Y+4
- 436 01b8 0E94 0000 		call __fixsfsi
- 437               	.LVL41:
- 438 01bc CB01      		movw r24,r22
- 439               	.LVL42:
- 105:grn_sht21.c   **** 	}
- 440               		.loc 1 105 69 is_stmt 1 view .LVU108
- 441               	.L17:
- 108:grn_sht21.c   **** 	{
- 442               		.loc 1 108 2 view .LVU109
- 443               	.LBB23:
- 444               	.LBI23:
- 113:grn_sht21.c   **** 
- 114:grn_sht21.c   **** uint8_t sht21_checksum(uint8_t data[], uint8_t no_of_bytes, uint8_t checksum) 
- 445               		.loc 1 114 9 view .LVU110
- 446               	.LBB24:
- 115:grn_sht21.c   **** {
- 116:grn_sht21.c   **** 	uint8_t crc = 0;	
- 447               		.loc 1 116 2 view .LVU111
- 117:grn_sht21.c   ****   	uint8_t byteCtr;
- 448               		.loc 1 117 4 view .LVU112
- 118:grn_sht21.c   **** 
- 119:grn_sht21.c   ****  	 //calculates 8-Bit checksum with given polynomial
- 120:grn_sht21.c   ****   	for (byteCtr = 0; byteCtr < no_of_bytes; ++byteCtr)
- 449               		.loc 1 120 4 view .LVU113
- 450               		.loc 1 120 22 view .LVU114
- 121:grn_sht21.c   ****  	 { crc ^= (data[byteCtr]);
- 451               		.loc 1 121 6 view .LVU115
- 122:grn_sht21.c   ****  	   for (uint8_t bit = 8; bit > 0; --bit)
- 452               		.loc 1 122 6 view .LVU116
- 453               	.LBB25:
- 454               		.loc 1 122 11 view .LVU117
- 455               		.loc 1 122 28 view .LVU118
- 456               	.LBE25:
- 457               	.LBE24:
- 458               	.LBE23:
- 102:grn_sht21.c   **** 	{
- 459               		.loc 1 102 2 is_stmt 0 view .LVU119
- 460 01be 28E0      		ldi r18,lo8(8)
- 461               	.LBB30:
- 462               	.LBB28:
- 463               	.LBB26:
- 123:grn_sht21.c   ****  	   { if (crc & 0x80) crc = (crc << 1) ^ POLYNOMINAL;
- 464               		.loc 1 123 41 view .LVU120
- 465 01c0 31E3      		ldi r19,lo8(49)
- 466 01c2 00C0      		rjmp .L20
- 467               	.LVL43:
- 468               	.L40:
- 124:grn_sht21.c   ****  	     else crc = (crc << 1);
- 469               		.loc 1 124 13 is_stmt 1 view .LVU121
- 470               		.loc 1 124 17 is_stmt 0 view .LVU122
- 471 01c4 110F      		lsl r17
- 472               	.LVL44:
- 473               	.L22:
- 122:grn_sht21.c   ****  	   { if (crc & 0x80) crc = (crc << 1) ^ POLYNOMINAL;
- 474               		.loc 1 122 37 is_stmt 1 view .LVU123
- 122:grn_sht21.c   ****  	   { if (crc & 0x80) crc = (crc << 1) ^ POLYNOMINAL;
- 475               		.loc 1 122 28 view .LVU124
- 122:grn_sht21.c   ****  	   { if (crc & 0x80) crc = (crc << 1) ^ POLYNOMINAL;
- 476               		.loc 1 122 6 is_stmt 0 view .LVU125
- 477 01c6 2150      		subi r18,lo8(-(-1))
- 478               	.LVL45:
- 122:grn_sht21.c   ****  	   { if (crc & 0x80) crc = (crc << 1) ^ POLYNOMINAL;
- 479               		.loc 1 122 6 view .LVU126
- 480 01c8 01F0      		breq .L50
- 481               	.LVL46:
- 482               	.L20:
- 123:grn_sht21.c   ****  	   { if (crc & 0x80) crc = (crc << 1) ^ POLYNOMINAL;
- 483               		.loc 1 123 8 is_stmt 1 view .LVU127
- 123:grn_sht21.c   ****  	   { if (crc & 0x80) crc = (crc << 1) ^ POLYNOMINAL;
- 484               		.loc 1 123 11 is_stmt 0 view .LVU128
- 485 01ca 17FF      		sbrs r17,7
- 486 01cc 00C0      		rjmp .L40
- 123:grn_sht21.c   ****  	   { if (crc & 0x80) crc = (crc << 1) ^ POLYNOMINAL;
- 487               		.loc 1 123 24 is_stmt 1 view .LVU129
- 123:grn_sht21.c   ****  	   { if (crc & 0x80) crc = (crc << 1) ^ POLYNOMINAL;
- 488               		.loc 1 123 35 is_stmt 0 view .LVU130
- 489 01ce 110F      		lsl r17
- 490               	.LVL47:
- 123:grn_sht21.c   ****  	   { if (crc & 0x80) crc = (crc << 1) ^ POLYNOMINAL;
- 491               		.loc 1 123 41 view .LVU131
- 492 01d0 1327      		eor r17,r19
- 493               	.LVL48:
- 123:grn_sht21.c   ****  	   { if (crc & 0x80) crc = (crc << 1) ^ POLYNOMINAL;
- 494               		.loc 1 123 41 view .LVU132
- 495 01d2 00C0      		rjmp .L22
- 496               	.LVL49:
- 497               	.L33:
- 123:grn_sht21.c   ****  	   { if (crc & 0x80) crc = (crc << 1) ^ POLYNOMINAL;
- 498               		.loc 1 123 41 view .LVU133
- 499               	.LBE26:
- 500               	.LBE28:
- 501               	.LBE30:
-  94:grn_sht21.c   **** 	raw[1] = TWIReadACK();				//empfange LSB / durch NACK wird checksumme nicht empfangen
- 502               		.loc 1 94 35 view .LVU134
- 503 01d4 82E4      		ldi r24,lo8(66)
- 504 01d6 90E0      		ldi r25,0
- 505 01d8 00C0      		rjmp .L9
- 506               	.LVL50:
- 507               	.L34:
-  96:grn_sht21.c   **** 	raw[2] = TWIReadNACK();				//receive checksum
- 508               		.loc 1 96 35 view .LVU135
- 509 01da 8DE4      		ldi r24,lo8(77)
- 510 01dc 90E0      		ldi r25,0
- 511 01de 00C0      		rjmp .L9
- 512               	.LVL51:
- 513               	.L50:
- 514               	.LBB31:
- 515               	.LBB29:
- 120:grn_sht21.c   ****  	 { crc ^= (data[byteCtr]);
- 516               		.loc 1 120 45 is_stmt 1 view .LVU136
- 120:grn_sht21.c   ****  	 { crc ^= (data[byteCtr]);
- 517               		.loc 1 120 22 view .LVU137
- 121:grn_sht21.c   ****  	   for (uint8_t bit = 8; bit > 0; --bit)
- 518               		.loc 1 121 6 view .LVU138
- 121:grn_sht21.c   ****  	   for (uint8_t bit = 8; bit > 0; --bit)
- 519               		.loc 1 121 10 is_stmt 0 view .LVU139
- 520 01e0 1027      		eor r17,r16
- 521               	.LVL52:
- 122:grn_sht21.c   ****  	   { if (crc & 0x80) crc = (crc << 1) ^ POLYNOMINAL;
- 522               		.loc 1 122 6 is_stmt 1 view .LVU140
- 523               	.LBB27:
- 122:grn_sht21.c   ****  	   { if (crc & 0x80) crc = (crc << 1) ^ POLYNOMINAL;
- 524               		.loc 1 122 11 view .LVU141
- 122:grn_sht21.c   ****  	   { if (crc & 0x80) crc = (crc << 1) ^ POLYNOMINAL;
- 525               		.loc 1 122 28 view .LVU142
- 123:grn_sht21.c   ****  	     else crc = (crc << 1);
- 526               		.loc 1 123 41 is_stmt 0 view .LVU143
- 527 01e2 21E3      		ldi r18,lo8(49)
- 528 01e4 00C0      		rjmp .L25
- 529               	.LVL53:
- 530               	.L42:
- 531               		.loc 1 124 13 is_stmt 1 view .LVU144
- 532               		.loc 1 124 17 is_stmt 0 view .LVU145
- 533 01e6 110F      		lsl r17
- 534               	.LVL54:
- 535               	.L27:
- 122:grn_sht21.c   ****  	   { if (crc & 0x80) crc = (crc << 1) ^ POLYNOMINAL;
- 536               		.loc 1 122 37 is_stmt 1 view .LVU146
- 122:grn_sht21.c   ****  	   { if (crc & 0x80) crc = (crc << 1) ^ POLYNOMINAL;
- 537               		.loc 1 122 28 view .LVU147
- 122:grn_sht21.c   ****  	   { if (crc & 0x80) crc = (crc << 1) ^ POLYNOMINAL;
- 538               		.loc 1 122 6 is_stmt 0 view .LVU148
- 539 01e8 3D81      		ldd r19,Y+5
- 540 01ea 3150      		subi r19,lo8(-(-1))
- 541               	.LVL55:
- 122:grn_sht21.c   ****  	   { if (crc & 0x80) crc = (crc << 1) ^ POLYNOMINAL;
- 542               		.loc 1 122 6 view .LVU149
- 543 01ec 3D83      		std Y+5,r19
- 544 01ee 3323      		tst r19
- 545 01f0 01F0      		breq .L51
- 546               	.LVL56:
- 547               	.L25:
- 123:grn_sht21.c   ****  	     else crc = (crc << 1);
- 548               		.loc 1 123 8 is_stmt 1 view .LVU150
- 123:grn_sht21.c   ****  	     else crc = (crc << 1);
- 549               		.loc 1 123 11 is_stmt 0 view .LVU151
- 550 01f2 17FF      		sbrs r17,7
- 551 01f4 00C0      		rjmp .L42
- 123:grn_sht21.c   ****  	     else crc = (crc << 1);
- 552               		.loc 1 123 24 is_stmt 1 view .LVU152
- 123:grn_sht21.c   ****  	     else crc = (crc << 1);
- 553               		.loc 1 123 35 is_stmt 0 view .LVU153
- 554 01f6 110F      		lsl r17
- 555               	.LVL57:
- 123:grn_sht21.c   ****  	     else crc = (crc << 1);
- 556               		.loc 1 123 41 view .LVU154
- 557 01f8 1227      		eor r17,r18
- 558               	.LVL58:
- 123:grn_sht21.c   ****  	     else crc = (crc << 1);
- 559               		.loc 1 123 41 view .LVU155
- 560 01fa 00C0      		rjmp .L27
- 561               	.LVL59:
- 562               	.L51:
- 123:grn_sht21.c   ****  	     else crc = (crc << 1);
- 563               		.loc 1 123 41 view .LVU156
- 564               	.LBE27:
- 120:grn_sht21.c   ****  	 { crc ^= (data[byteCtr]);
- 565               		.loc 1 120 45 is_stmt 1 view .LVU157
- 120:grn_sht21.c   ****  	 { crc ^= (data[byteCtr]);
- 566               		.loc 1 120 22 view .LVU158
- 125:grn_sht21.c   ****  	   }
- 126:grn_sht21.c   ****  	 }
- 127:grn_sht21.c   ****  	 if (crc != checksum) return 1;
- 567               		.loc 1 127 4 view .LVU159
- 568               		.loc 1 127 7 is_stmt 0 view .LVU160
- 569 01fc F116      		cp r15,r17
- 570 01fe 01F4      		brne .+2
- 571 0200 00C0      		rjmp .L9
- 572               	.LBE29:
- 573               	.LBE31:
- 110:grn_sht21.c   **** 	}else return rueckgabewert;	
- 574               		.loc 1 110 10 view .LVU161
- 575 0202 81E0      		ldi r24,lo8(1)
- 576 0204 90E0      		ldi r25,0
- 577               	.LVL60:
- 110:grn_sht21.c   **** 	}else return rueckgabewert;	
- 578               		.loc 1 110 10 view .LVU162
- 579 0206 00C0      		rjmp .L9
- 580               	.LVL61:
- 581               	.L49:
- 102:grn_sht21.c   **** 	{
- 582               		.loc 1 102 2 view .LVU163
- 583 0208 90E0      		ldi r25,0
- 584 020a 80E0      		ldi r24,0
- 585               	.LVL62:
- 102:grn_sht21.c   **** 	{
- 586               		.loc 1 102 2 view .LVU164
- 587 020c 00C0      		rjmp .L17
- 588               	.LVL63:
- 589               	.L15:
- 104:grn_sht21.c   **** 		case RH_HOLD:	rueckgabewert = 100*(-6.0 + 125.0/65536 * messwert);break; // return relative humid
- 590               		.loc 1 104 16 is_stmt 1 view .LVU165
- 104:grn_sht21.c   **** 		case RH_HOLD:	rueckgabewert = 100*(-6.0 + 125.0/65536 * messwert);break; // return relative humid
- 591               		.loc 1 104 59 is_stmt 0 view .LVU166
- 592 020e 9C01      		movw r18,r24
- 593 0210 50E0      		ldi r21,0
- 594 0212 40E0      		ldi r20,0
- 595 0214 2983      		std Y+1,r18
- 596 0216 3A83      		std Y+2,r19
- 597 0218 4B83      		std Y+3,r20
- 598 021a 5C83      		std Y+4,r21
- 599 021c CA01      		movw r24,r20
- 600               	.LVL64:
- 104:grn_sht21.c   **** 		case RH_HOLD:	rueckgabewert = 100*(-6.0 + 125.0/65536 * messwert);break; // return relative humid
- 601               		.loc 1 104 59 view .LVU167
- 602 021e B901      		movw r22,r18
- 603 0220 0E94 0000 		call __floatunsisf
- 604               	.LVL65:
- 104:grn_sht21.c   **** 		case RH_HOLD:	rueckgabewert = 100*(-6.0 + 125.0/65536 * messwert);break; // return relative humid
- 605               		.loc 1 104 59 view .LVU168
- 606 0224 E62F      		mov r30,r22
- 607 0226 22E5      		ldi r18,lo8(82)
- 608 0228 38EB      		ldi r19,lo8(-72)
- 609 022a 4FE2      		ldi r20,lo8(47)
- 610 022c 5BE3      		ldi r21,lo8(59)
- 611 022e E983      		std Y+1,r30
- 612 0230 7A83      		std Y+2,r23
- 613 0232 8B83      		std Y+3,r24
- 614 0234 9C83      		std Y+4,r25
- 615 0236 6981      		ldd r22,Y+1
- 616 0238 7A81      		ldd r23,Y+2
- 617 023a 8B81      		ldd r24,Y+3
- 618 023c 9C81      		ldd r25,Y+4
- 619 023e 0E94 0000 		call __mulsf3
- 620               	.LVL66:
- 621 0242 E62F      		mov r30,r22
- 622 0244 682F      		mov r22,r24
- 623 0246 892F      		mov r24,r25
- 104:grn_sht21.c   **** 		case RH_HOLD:	rueckgabewert = 100*(-6.0 + 125.0/65536 * messwert);break; // return relative humid
- 624               		.loc 1 104 44 view .LVU169
- 625 0248 26E6      		ldi r18,lo8(102)
- 626 024a 36E6      		ldi r19,lo8(102)
- 627 024c 4BE3      		ldi r20,lo8(59)
- 628 024e 52E4      		ldi r21,lo8(66)
- 629 0250 00C0      		rjmp .L44
- 630               		.cfi_endproc
- 631               	.LFE8:
- 633               	.global	sht21_checksum
- 635               	sht21_checksum:
- 636               	.LVL67:
- 637               	.LFB9:
- 115:grn_sht21.c   **** 	uint8_t crc = 0;	
- 638               		.loc 1 115 1 is_stmt 1 view -0
- 639               		.cfi_startproc
- 640               	/* prologue: function */
- 641               	/* frame size = 0 */
- 642               	/* stack size = 0 */
- 643               	.L__stack_usage = 0
- 116:grn_sht21.c   ****   	uint8_t byteCtr;
- 644               		.loc 1 116 2 view .LVU171
- 117:grn_sht21.c   **** 
- 645               		.loc 1 117 4 view .LVU172
- 120:grn_sht21.c   ****  	 { crc ^= (data[byteCtr]);
- 646               		.loc 1 120 4 view .LVU173
- 120:grn_sht21.c   ****  	 { crc ^= (data[byteCtr]);
- 647               		.loc 1 120 22 view .LVU174
- 120:grn_sht21.c   ****  	 { crc ^= (data[byteCtr]);
- 648               		.loc 1 120 4 is_stmt 0 view .LVU175
- 649 0252 6623      		tst r22
- 650 0254 01F0      		breq .L53
- 651 0256 FC01      		movw r30,r24
- 652 0258 9C01      		movw r18,r24
- 653 025a 2F5F      		subi r18,-1
- 654 025c 3F4F      		sbci r19,-1
- 655 025e 6150      		subi r22,lo8(-(-1))
- 656               	.LVL68:
- 120:grn_sht21.c   ****  	 { crc ^= (data[byteCtr]);
- 657               		.loc 1 120 4 view .LVU176
- 658 0260 260F      		add r18,r22
- 659 0262 311D      		adc r19,__zero_reg__
- 116:grn_sht21.c   ****   	uint8_t byteCtr;
- 660               		.loc 1 116 10 view .LVU177
- 661 0264 60E0      		ldi r22,0
- 662               	.LVL69:
- 663               	.LBB32:
- 123:grn_sht21.c   ****  	     else crc = (crc << 1);
- 664               		.loc 1 123 41 view .LVU178
- 665 0266 91E3      		ldi r25,lo8(49)
- 666               	.LVL70:
- 667               	.L57:
- 123:grn_sht21.c   ****  	     else crc = (crc << 1);
- 668               		.loc 1 123 41 view .LVU179
- 669               	.LBE32:
- 121:grn_sht21.c   ****  	   for (uint8_t bit = 8; bit > 0; --bit)
- 670               		.loc 1 121 6 is_stmt 1 view .LVU180
- 121:grn_sht21.c   ****  	   for (uint8_t bit = 8; bit > 0; --bit)
- 671               		.loc 1 121 18 is_stmt 0 view .LVU181
- 672 0268 8191      		ld r24,Z+
- 673               	.LVL71:
- 121:grn_sht21.c   ****  	   for (uint8_t bit = 8; bit > 0; --bit)
- 674               		.loc 1 121 10 view .LVU182
- 675 026a 6827      		eor r22,r24
- 676               	.LVL72:
- 122:grn_sht21.c   ****  	   { if (crc & 0x80) crc = (crc << 1) ^ POLYNOMINAL;
- 677               		.loc 1 122 6 is_stmt 1 view .LVU183
- 678               	.LBB33:
- 122:grn_sht21.c   ****  	   { if (crc & 0x80) crc = (crc << 1) ^ POLYNOMINAL;
- 679               		.loc 1 122 11 view .LVU184
- 122:grn_sht21.c   ****  	   { if (crc & 0x80) crc = (crc << 1) ^ POLYNOMINAL;
- 680               		.loc 1 122 28 view .LVU185
- 681               	.LBE33:
- 121:grn_sht21.c   ****  	   for (uint8_t bit = 8; bit > 0; --bit)
- 682               		.loc 1 121 10 is_stmt 0 view .LVU186
- 683 026c 88E0      		ldi r24,lo8(8)
- 684 026e 00C0      		rjmp .L56
- 685               	.LVL73:
- 686               	.L54:
- 687               	.LBB34:
- 124:grn_sht21.c   ****  	   }
- 688               		.loc 1 124 13 is_stmt 1 view .LVU187
- 124:grn_sht21.c   ****  	   }
- 689               		.loc 1 124 17 is_stmt 0 view .LVU188
- 690 0270 660F      		lsl r22
- 691               	.LVL74:
- 122:grn_sht21.c   ****  	   { if (crc & 0x80) crc = (crc << 1) ^ POLYNOMINAL;
- 692               		.loc 1 122 37 is_stmt 1 view .LVU189
- 122:grn_sht21.c   ****  	   { if (crc & 0x80) crc = (crc << 1) ^ POLYNOMINAL;
- 693               		.loc 1 122 28 view .LVU190
- 122:grn_sht21.c   ****  	   { if (crc & 0x80) crc = (crc << 1) ^ POLYNOMINAL;
- 694               		.loc 1 122 6 is_stmt 0 view .LVU191
- 695 0272 8150      		subi r24,lo8(-(-1))
- 696               	.LVL75:
- 122:grn_sht21.c   ****  	   { if (crc & 0x80) crc = (crc << 1) ^ POLYNOMINAL;
- 697               		.loc 1 122 6 view .LVU192
- 698 0274 01F0      		breq .L64
- 699               	.LVL76:
- 700               	.L56:
- 123:grn_sht21.c   ****  	     else crc = (crc << 1);
- 701               		.loc 1 123 8 is_stmt 1 view .LVU193
- 123:grn_sht21.c   ****  	     else crc = (crc << 1);
- 702               		.loc 1 123 11 is_stmt 0 view .LVU194
- 703 0276 67FF      		sbrs r22,7
- 704 0278 00C0      		rjmp .L54
- 123:grn_sht21.c   ****  	     else crc = (crc << 1);
- 705               		.loc 1 123 24 is_stmt 1 discriminator 1 view .LVU195
- 123:grn_sht21.c   ****  	     else crc = (crc << 1);
- 706               		.loc 1 123 35 is_stmt 0 discriminator 1 view .LVU196
- 707 027a 660F      		lsl r22
- 708               	.LVL77:
- 123:grn_sht21.c   ****  	     else crc = (crc << 1);
- 709               		.loc 1 123 41 discriminator 1 view .LVU197
- 710 027c 6927      		eor r22,r25
- 711               	.LVL78:
- 122:grn_sht21.c   ****  	   { if (crc & 0x80) crc = (crc << 1) ^ POLYNOMINAL;
- 712               		.loc 1 122 37 is_stmt 1 discriminator 1 view .LVU198
- 122:grn_sht21.c   ****  	   { if (crc & 0x80) crc = (crc << 1) ^ POLYNOMINAL;
- 713               		.loc 1 122 28 discriminator 1 view .LVU199
- 122:grn_sht21.c   ****  	   { if (crc & 0x80) crc = (crc << 1) ^ POLYNOMINAL;
- 714               		.loc 1 122 6 is_stmt 0 discriminator 1 view .LVU200
- 715 027e 8150      		subi r24,lo8(-(-1))
- 716               	.LVL79:
- 122:grn_sht21.c   ****  	   { if (crc & 0x80) crc = (crc << 1) ^ POLYNOMINAL;
- 717               		.loc 1 122 6 discriminator 1 view .LVU201
- 718 0280 01F4      		brne .L56
- 719               	.L64:
- 122:grn_sht21.c   ****  	   { if (crc & 0x80) crc = (crc << 1) ^ POLYNOMINAL;
- 720               		.loc 1 122 6 discriminator 1 view .LVU202
- 721               	.LBE34:
- 120:grn_sht21.c   ****  	 { crc ^= (data[byteCtr]);
- 722               		.loc 1 120 45 is_stmt 1 discriminator 2 view .LVU203
- 723               	.LVL80:
- 120:grn_sht21.c   ****  	 { crc ^= (data[byteCtr]);
- 724               		.loc 1 120 22 discriminator 2 view .LVU204
- 120:grn_sht21.c   ****  	 { crc ^= (data[byteCtr]);
- 725               		.loc 1 120 4 is_stmt 0 discriminator 2 view .LVU205
- 726 0282 E217      		cp r30,r18
- 727 0284 F307      		cpc r31,r19
- 728 0286 01F4      		brne .L57
- 729               	.LVL81:
- 730               	.L53:
- 731               		.loc 1 127 4 is_stmt 1 view .LVU206
- 732               		.loc 1 127 7 is_stmt 0 view .LVU207
- 733 0288 81E0      		ldi r24,lo8(1)
- 734 028a 4613      		cpse r20,r22
- 735               	/* epilogue start */
- 128:grn_sht21.c   ****  	 else return 0;
- 129:grn_sht21.c   **** }
- 736               		.loc 1 129 1 view .LVU208
- 737 028c 0895      		ret
- 738               	.L65:
- 127:grn_sht21.c   ****  	 else return 0;
- 739               		.loc 1 127 7 view .LVU209
- 740 028e 80E0      		ldi r24,0
- 741               	/* epilogue start */
- 742               		.loc 1 129 1 view .LVU210
- 743 0290 0895      		ret
- 744               		.cfi_endproc
- 745               	.LFE9:
- 747               	.Letext0:
- 748               		.file 4 "/usr/avr/include/stdint.h"
- 749               		.file 5 "grn_TWI.h"
+ 172               		.loc 1 71 2 view .LVU40
+  72:grn_sht21.c   **** 	/*
+  73:grn_sht21.c   **** 0x00	No errors
+  74:grn_sht21.c   **** 0x08	START condition transmitted
+  75:grn_sht21.c   **** 0x10	Repeated START condition transmitted
+  76:grn_sht21.c   **** 0x18	SLA+W transmitted; ACK received
+  77:grn_sht21.c   **** 0x20	SLA+W transmitted; NAK received
+  78:grn_sht21.c   **** 0x28	Data byte transmitted; ACK received
+  79:grn_sht21.c   **** 0x30	Data byte transmitted; NAK received
+  80:grn_sht21.c   **** 0x38	Arbitration lost in SLA; or NAK received
+  81:grn_sht21.c   **** 0x40	SLA+R transmitted; ACK received
+  82:grn_sht21.c   **** 0x48	SLA+R transmitted; NAK received
+  83:grn_sht21.c   **** 0x50	Data received; ACK has been returned
+  84:grn_sht21.c   **** 0x58	Data received; NAK has been returned
+  85:grn_sht21.c   **** 0xE0	Arbitration lost
+  86:grn_sht21.c   **** 0xE1	Arbitration lost in START
+  87:grn_sht21.c   **** 0xE2	Arbitration lost in STOP
+  88:grn_sht21.c   **** 0xE3	Arbitration lost in read ACK
+  89:grn_sht21.c   **** 0xE4	Arbitration lost in read NAK
+  90:grn_sht21.c   **** 0xE5	Arbitration lost in write
+  91:grn_sht21.c   **** 0xF8	Unknown error
+  92:grn_sht21.c   **** 0xFF	Illegal START or STOP condition
+  93:grn_sht21.c   **** 	*/
+  94:grn_sht21.c   **** 	TWIStart();		
+ 173               		.loc 1 94 2 view .LVU41
+ 174 005a 0E94 0000 		call TWIStart
+ 175               	.LVL11:
+  95:grn_sht21.c   **** 	ret=TWIGetStatus();						//start TWI
+ 176               		.loc 1 95 2 view .LVU42
+ 177               		.loc 1 95 6 is_stmt 0 view .LVU43
+ 178 005e 0E94 0000 		call TWIGetStatus
+ 179               	.LVL12:
+ 180 0062 8D83      		std Y+5,r24
+ 181               	.LVL13:
+  96:grn_sht21.c   **** 	if(ret != 0x08)return ret; 	//start condition transmitted?
+ 182               		.loc 1 96 2 is_stmt 1 view .LVU44
+ 183               		.loc 1 96 24 is_stmt 0 view .LVU45
+ 184 0064 90E0      		ldi r25,0
+ 185               		.loc 1 96 4 view .LVU46
+ 186 0066 8830      		cpi r24,lo8(8)
+ 187 0068 01F0      		breq .L45
+ 188               	.LVL14:
+ 189               	.L9:
+ 190               	/* epilogue start */
+  97:grn_sht21.c   **** 	TWIWrite(SHT21_W);			//send write adress
+  98:grn_sht21.c   **** 	if(TWIGetStatus() != 0x18)return 22;	//SLA+W transmitted?
+  99:grn_sht21.c   **** 	switch(measure_mode)
+ 100:grn_sht21.c   **** 	{
+ 101:grn_sht21.c   **** 		case T_HOLD:	TWIWrite(SHT21_TEMP_HOLDMASTER);break;	//Modus = Temperatur master hold = on
+ 102:grn_sht21.c   **** 		case RH_HOLD:	TWIWrite(SHT21_HUM_HOLDMASTER);break;	//Modus = Temperatur master hold = on
+ 103:grn_sht21.c   **** 	}
+ 104:grn_sht21.c   **** 	if(TWIGetStatus() != 0x28)return 33;	//kontrolle ob erfolgreich sonst Abbruch mit Error Code
+ 105:grn_sht21.c   **** 	TWIStart();								//restart TWI
+ 106:grn_sht21.c   **** 	if(TWIGetStatus() != 0x10)return 44; 	//kontrolle ob erfolgreich sonst Abbruch mit Error Code
+ 107:grn_sht21.c   **** 	TWIWrite(SHT21_R);						//Adresse und lesen
+ 108:grn_sht21.c   **** 	if(TWIGetStatus() != 0x40)return 55;	//kontrolle ob erfolgreich sonst Abbruch mit Error Code
+ 109:grn_sht21.c   **** 	
+ 110:grn_sht21.c   **** 	DDRC &= ~(1<<PC5);					//set SCL as Input
+ 111:grn_sht21.c   **** 	for(i=0;i<1000;i++)					//wait for timeout or
+ 112:grn_sht21.c   **** 	{
+ 113:grn_sht21.c   **** 		if(PINC &= ~(1<<PC5))break;		//wait for end of conversion (Master hold mode)
+ 114:grn_sht21.c   **** 	}
+ 115:grn_sht21.c   **** 	DDRC |= (1<<PC5);					//set SCL as Output again
+ 116:grn_sht21.c   **** 	
+ 117:grn_sht21.c   **** 	raw[0] = TWIReadACK();				//empfange MSB
+ 118:grn_sht21.c   **** 	if(TWIGetStatus() != 0x50)return 66;	//kontrolle ob erfolgreich sonst Abbruch mit Error Code
+ 119:grn_sht21.c   **** 	raw[1] = TWIReadACK();				//empfange LSB / durch NACK wird checksumme nicht empfangen
+ 120:grn_sht21.c   **** 	if(TWIGetStatus() != 0x50)return 77;	//kontrolle ob erfolgreich sonst Abbruch mit Error Code
+ 121:grn_sht21.c   **** 	raw[2] = TWIReadNACK();				//receive checksum
+ 122:grn_sht21.c   **** 	TWIStop();							//close TWI
+ 123:grn_sht21.c   **** 	
+ 124:grn_sht21.c   **** 	messwert=(raw[0]<<8)|raw[1];						//8 bit werte zu 16bit Wert zusammensetzen
+ 125:grn_sht21.c   **** 	messwert &= ~0x003;								//Loescht letzte 2 Bits (Status Bits)
+ 126:grn_sht21.c   **** 	switch(measure_mode)
+ 127:grn_sht21.c   **** 	{
+ 128:grn_sht21.c   **** 		case T_HOLD:	rueckgabewert = 100*(-46.85 + 175.72/65536 * messwert);break;
+ 129:grn_sht21.c   **** 		case RH_HOLD:	rueckgabewert = 100*(-6.0 + 125.0/65536 * messwert);break; // return relative humid
+ 130:grn_sht21.c   **** 	}
+ 131:grn_sht21.c   **** 	 
+ 132:grn_sht21.c   **** 	if(sht21_checksum(raw,2,raw[2])) 	//check result with checksum
+ 133:grn_sht21.c   **** 	{
+ 134:grn_sht21.c   **** 		return 1;
+ 135:grn_sht21.c   **** 	}else return rueckgabewert;	
+ 136:grn_sht21.c   **** }//End of SHT21_read_temp
+ 191               		.loc 1 136 1 view .LVU47
+ 192 006a 0F90      		pop __tmp_reg__
+ 193 006c 0F90      		pop __tmp_reg__
+ 194 006e 0F90      		pop __tmp_reg__
+ 195 0070 0F90      		pop __tmp_reg__
+ 196 0072 0F90      		pop __tmp_reg__
+ 197 0074 DF91      		pop r29
+ 198 0076 CF91      		pop r28
+ 199 0078 1F91      		pop r17
+ 200 007a 0F91      		pop r16
+ 201 007c FF90      		pop r15
+ 202 007e 0895      		ret
+ 203               	.LVL15:
+ 204               	.L45:
+  97:grn_sht21.c   **** 	TWIWrite(SHT21_W);			//send write adress
+ 205               		.loc 1 97 2 is_stmt 1 view .LVU48
+ 206 0080 80E8      		ldi r24,lo8(-128)
+ 207               	.LVL16:
+  97:grn_sht21.c   **** 	TWIWrite(SHT21_W);			//send write adress
+ 208               		.loc 1 97 2 is_stmt 0 view .LVU49
+ 209 0082 0E94 0000 		call TWIWrite
+ 210               	.LVL17:
+  98:grn_sht21.c   **** 	switch(measure_mode)
+ 211               		.loc 1 98 2 is_stmt 1 view .LVU50
+  98:grn_sht21.c   **** 	switch(measure_mode)
+ 212               		.loc 1 98 5 is_stmt 0 view .LVU51
+ 213 0086 0E94 0000 		call TWIGetStatus
+ 214               	.LVL18:
+  98:grn_sht21.c   **** 	switch(measure_mode)
+ 215               		.loc 1 98 4 view .LVU52
+ 216 008a 8831      		cpi r24,lo8(24)
+ 217 008c 01F4      		brne .L30
+  99:grn_sht21.c   **** 	{
+ 218               		.loc 1 99 2 is_stmt 1 view .LVU53
+ 219 008e 2981      		ldd r18,Y+1
+ 220 0090 2223      		tst r18
+ 221 0092 01F0      		breq .L12
+ 222 0094 2130      		cpi r18,lo8(1)
+ 223 0096 01F0      		breq .L13
+ 224               	.L14:
+ 104:grn_sht21.c   **** 	TWIStart();								//restart TWI
+ 225               		.loc 1 104 2 view .LVU54
+ 104:grn_sht21.c   **** 	TWIStart();								//restart TWI
+ 226               		.loc 1 104 5 is_stmt 0 view .LVU55
+ 227 0098 0E94 0000 		call TWIGetStatus
+ 228               	.LVL19:
+ 104:grn_sht21.c   **** 	TWIStart();								//restart TWI
+ 229               		.loc 1 104 4 view .LVU56
+ 230 009c 8832      		cpi r24,lo8(40)
+ 231 009e 01F0      		breq .L46
+ 104:grn_sht21.c   **** 	TWIStart();								//restart TWI
+ 232               		.loc 1 104 35 view .LVU57
+ 233 00a0 81E2      		ldi r24,lo8(33)
+ 234 00a2 90E0      		ldi r25,0
+ 235 00a4 00C0      		rjmp .L9
+ 236               	.L13:
+ 102:grn_sht21.c   **** 	}
+ 237               		.loc 1 102 17 is_stmt 1 view .LVU58
+ 238 00a6 83EF      		ldi r24,lo8(-13)
+ 239 00a8 0E94 0000 		call TWIWrite
+ 240               	.LVL20:
+ 102:grn_sht21.c   **** 	}
+ 241               		.loc 1 102 48 view .LVU59
+ 102:grn_sht21.c   **** 	}
+ 242               		.loc 1 102 3 is_stmt 0 view .LVU60
+ 243 00ac 00C0      		rjmp .L14
+ 244               	.L46:
+ 105:grn_sht21.c   **** 	if(TWIGetStatus() != 0x10)return 44; 	//kontrolle ob erfolgreich sonst Abbruch mit Error Code
+ 245               		.loc 1 105 2 is_stmt 1 view .LVU61
+ 246 00ae 0E94 0000 		call TWIStart
+ 247               	.LVL21:
+ 106:grn_sht21.c   **** 	TWIWrite(SHT21_R);						//Adresse und lesen
+ 248               		.loc 1 106 2 view .LVU62
+ 106:grn_sht21.c   **** 	TWIWrite(SHT21_R);						//Adresse und lesen
+ 249               		.loc 1 106 5 is_stmt 0 view .LVU63
+ 250 00b2 0E94 0000 		call TWIGetStatus
+ 251               	.LVL22:
+ 106:grn_sht21.c   **** 	TWIWrite(SHT21_R);						//Adresse und lesen
+ 252               		.loc 1 106 4 view .LVU64
+ 253 00b6 8031      		cpi r24,lo8(16)
+ 254 00b8 01F0      		breq .L47
+ 106:grn_sht21.c   **** 	TWIWrite(SHT21_R);						//Adresse und lesen
+ 255               		.loc 1 106 35 view .LVU65
+ 256 00ba 8CE2      		ldi r24,lo8(44)
+ 257 00bc 90E0      		ldi r25,0
+ 258 00be 00C0      		rjmp .L9
+ 259               	.L12:
+ 101:grn_sht21.c   **** 		case RH_HOLD:	TWIWrite(SHT21_HUM_HOLDMASTER);break;	//Modus = Temperatur master hold = on
+ 260               		.loc 1 101 16 is_stmt 1 view .LVU66
+ 261 00c0 83EE      		ldi r24,lo8(-29)
+ 262 00c2 0E94 0000 		call TWIWrite
+ 263               	.LVL23:
+ 101:grn_sht21.c   **** 		case RH_HOLD:	TWIWrite(SHT21_HUM_HOLDMASTER);break;	//Modus = Temperatur master hold = on
+ 264               		.loc 1 101 48 view .LVU67
+ 101:grn_sht21.c   **** 		case RH_HOLD:	TWIWrite(SHT21_HUM_HOLDMASTER);break;	//Modus = Temperatur master hold = on
+ 265               		.loc 1 101 3 is_stmt 0 view .LVU68
+ 266 00c6 00C0      		rjmp .L14
+ 267               	.L30:
+  98:grn_sht21.c   **** 	switch(measure_mode)
+ 268               		.loc 1 98 35 view .LVU69
+ 269 00c8 86E1      		ldi r24,lo8(22)
+ 270 00ca 90E0      		ldi r25,0
+ 271 00cc 00C0      		rjmp .L9
+ 272               	.L47:
+ 107:grn_sht21.c   **** 	if(TWIGetStatus() != 0x40)return 55;	//kontrolle ob erfolgreich sonst Abbruch mit Error Code
+ 273               		.loc 1 107 2 is_stmt 1 view .LVU70
+ 274 00ce 81E8      		ldi r24,lo8(-127)
+ 275 00d0 0E94 0000 		call TWIWrite
+ 276               	.LVL24:
+ 108:grn_sht21.c   **** 	
+ 277               		.loc 1 108 2 view .LVU71
+ 108:grn_sht21.c   **** 	
+ 278               		.loc 1 108 5 is_stmt 0 view .LVU72
+ 279 00d4 0E94 0000 		call TWIGetStatus
+ 280               	.LVL25:
+ 108:grn_sht21.c   **** 	
+ 281               		.loc 1 108 4 view .LVU73
+ 282 00d8 8034      		cpi r24,lo8(64)
+ 283 00da 01F0      		breq .+2
+ 284 00dc 00C0      		rjmp .L33
+ 110:grn_sht21.c   **** 	for(i=0;i<1000;i++)					//wait for timeout or
+ 285               		.loc 1 110 2 is_stmt 1 view .LVU74
+ 110:grn_sht21.c   **** 	for(i=0;i<1000;i++)					//wait for timeout or
+ 286               		.loc 1 110 7 is_stmt 0 view .LVU75
+ 287 00de 3D98      		cbi 0x7,5
+ 111:grn_sht21.c   **** 	{
+ 288               		.loc 1 111 2 is_stmt 1 view .LVU76
+ 289               	.LVL26:
+ 111:grn_sht21.c   **** 	{
+ 290               		.loc 1 111 10 view .LVU77
+ 110:grn_sht21.c   **** 	for(i=0;i<1000;i++)					//wait for timeout or
+ 291               		.loc 1 110 7 is_stmt 0 view .LVU78
+ 292 00e0 28EE      		ldi r18,lo8(-24)
+ 293 00e2 33E0      		ldi r19,lo8(3)
+ 294 00e4 00C0      		rjmp .L16
+ 295               	.LVL27:
+ 296               	.L48:
+ 111:grn_sht21.c   **** 	{
+ 297               		.loc 1 111 17 is_stmt 1 discriminator 2 view .LVU79
+ 111:grn_sht21.c   **** 	{
+ 298               		.loc 1 111 10 discriminator 2 view .LVU80
+ 111:grn_sht21.c   **** 	{
+ 299               		.loc 1 111 2 is_stmt 0 discriminator 2 view .LVU81
+ 300 00e6 2150      		subi r18,1
+ 301 00e8 3109      		sbc r19,__zero_reg__
+ 302               	.LVL28:
+ 111:grn_sht21.c   **** 	{
+ 303               		.loc 1 111 2 discriminator 2 view .LVU82
+ 304 00ea 01F0      		breq .L15
+ 305               	.LVL29:
+ 306               	.L16:
+ 113:grn_sht21.c   **** 	}
+ 307               		.loc 1 113 3 is_stmt 1 view .LVU83
+ 113:grn_sht21.c   **** 	}
+ 308               		.loc 1 113 11 is_stmt 0 view .LVU84
+ 309 00ec 96B1      		in r25,0x6
+ 310 00ee 9F7D      		andi r25,lo8(-33)
+ 311 00f0 96B9      		out 0x6,r25
+ 113:grn_sht21.c   **** 	}
+ 312               		.loc 1 113 5 view .LVU85
+ 313 00f2 9923      		tst r25
+ 314 00f4 01F0      		breq .L48
+ 315               	.LVL30:
+ 316               	.L15:
+ 115:grn_sht21.c   **** 	
+ 317               		.loc 1 115 2 is_stmt 1 view .LVU86
+ 115:grn_sht21.c   **** 	
+ 318               		.loc 1 115 7 is_stmt 0 view .LVU87
+ 319 00f6 3D9A      		sbi 0x7,5
+ 117:grn_sht21.c   **** 	if(TWIGetStatus() != 0x50)return 66;	//kontrolle ob erfolgreich sonst Abbruch mit Error Code
+ 320               		.loc 1 117 2 is_stmt 1 view .LVU88
+ 117:grn_sht21.c   **** 	if(TWIGetStatus() != 0x50)return 66;	//kontrolle ob erfolgreich sonst Abbruch mit Error Code
+ 321               		.loc 1 117 11 is_stmt 0 view .LVU89
+ 322 00f8 0E94 0000 		call TWIReadACK
+ 323               	.LVL31:
+ 324 00fc 182F      		mov r17,r24
+ 325               	.LVL32:
+ 118:grn_sht21.c   **** 	raw[1] = TWIReadACK();				//empfange LSB / durch NACK wird checksumme nicht empfangen
+ 326               		.loc 1 118 2 is_stmt 1 view .LVU90
+ 118:grn_sht21.c   **** 	raw[1] = TWIReadACK();				//empfange LSB / durch NACK wird checksumme nicht empfangen
+ 327               		.loc 1 118 5 is_stmt 0 view .LVU91
+ 328 00fe 0E94 0000 		call TWIGetStatus
+ 329               	.LVL33:
+ 118:grn_sht21.c   **** 	raw[1] = TWIReadACK();				//empfange LSB / durch NACK wird checksumme nicht empfangen
+ 330               		.loc 1 118 4 view .LVU92
+ 331 0102 8035      		cpi r24,lo8(80)
+ 332 0104 01F0      		breq .+2
+ 333 0106 00C0      		rjmp .L34
+ 119:grn_sht21.c   **** 	if(TWIGetStatus() != 0x50)return 77;	//kontrolle ob erfolgreich sonst Abbruch mit Error Code
+ 334               		.loc 1 119 2 is_stmt 1 view .LVU93
+ 119:grn_sht21.c   **** 	if(TWIGetStatus() != 0x50)return 77;	//kontrolle ob erfolgreich sonst Abbruch mit Error Code
+ 335               		.loc 1 119 11 is_stmt 0 view .LVU94
+ 336 0108 0E94 0000 		call TWIReadACK
+ 337               	.LVL34:
+ 338 010c 082F      		mov r16,r24
+ 339               	.LVL35:
+ 120:grn_sht21.c   **** 	raw[2] = TWIReadNACK();				//receive checksum
+ 340               		.loc 1 120 2 is_stmt 1 view .LVU95
+ 120:grn_sht21.c   **** 	raw[2] = TWIReadNACK();				//receive checksum
+ 341               		.loc 1 120 5 is_stmt 0 view .LVU96
+ 342 010e 0E94 0000 		call TWIGetStatus
+ 343               	.LVL36:
+ 120:grn_sht21.c   **** 	raw[2] = TWIReadNACK();				//receive checksum
+ 344               		.loc 1 120 4 view .LVU97
+ 345 0112 8035      		cpi r24,lo8(80)
+ 346 0114 01F0      		breq .+2
+ 347 0116 00C0      		rjmp .L35
+ 121:grn_sht21.c   **** 	TWIStop();							//close TWI
+ 348               		.loc 1 121 2 is_stmt 1 view .LVU98
+ 121:grn_sht21.c   **** 	TWIStop();							//close TWI
+ 349               		.loc 1 121 11 is_stmt 0 view .LVU99
+ 350 0118 0E94 0000 		call TWIReadNACK
+ 351               	.LVL37:
+ 352 011c F82E      		mov r15,r24
+ 353               	.LVL38:
+ 122:grn_sht21.c   **** 	
+ 354               		.loc 1 122 2 is_stmt 1 view .LVU100
+ 355 011e 0E94 0000 		call TWIStop
+ 356               	.LVL39:
+ 124:grn_sht21.c   **** 	messwert &= ~0x003;								//Loescht letzte 2 Bits (Status Bits)
+ 357               		.loc 1 124 2 view .LVU101
+ 124:grn_sht21.c   **** 	messwert &= ~0x003;								//Loescht letzte 2 Bits (Status Bits)
+ 358               		.loc 1 124 22 is_stmt 0 view .LVU102
+ 359 0122 C801      		movw r24,r16
+ 360               	.LVL40:
+ 125:grn_sht21.c   **** 	switch(measure_mode)
+ 361               		.loc 1 125 2 is_stmt 1 view .LVU103
+ 125:grn_sht21.c   **** 	switch(measure_mode)
+ 362               		.loc 1 125 11 is_stmt 0 view .LVU104
+ 363 0124 8C7F      		andi r24,252
+ 364               	.LVL41:
+ 126:grn_sht21.c   **** 	{
+ 365               		.loc 1 126 2 is_stmt 1 view .LVU105
+ 366 0126 3981      		ldd r19,Y+1
+ 367 0128 3323      		tst r19
+ 368 012a 01F4      		brne .+2
+ 369 012c 00C0      		rjmp .L17
+ 370 012e 3130      		cpi r19,lo8(1)
+ 371 0130 01F0      		breq .+2
+ 372 0132 00C0      		rjmp .L49
+ 129:grn_sht21.c   **** 	}
+ 373               		.loc 1 129 17 view .LVU106
+ 129:grn_sht21.c   **** 	}
+ 374               		.loc 1 129 57 is_stmt 0 view .LVU107
+ 375 0134 9C01      		movw r18,r24
+ 376 0136 50E0      		ldi r21,0
+ 377 0138 40E0      		ldi r20,0
+ 378 013a 2983      		std Y+1,r18
+ 379 013c 3A83      		std Y+2,r19
+ 380 013e 4B83      		std Y+3,r20
+ 381 0140 5C83      		std Y+4,r21
+ 382 0142 CA01      		movw r24,r20
+ 383               	.LVL42:
+ 129:grn_sht21.c   **** 	}
+ 384               		.loc 1 129 57 view .LVU108
+ 385 0144 B901      		movw r22,r18
+ 386 0146 0E94 0000 		call __floatunsisf
+ 387               	.LVL43:
+ 129:grn_sht21.c   **** 	}
+ 388               		.loc 1 129 57 view .LVU109
+ 389 014a 20E0      		ldi r18,0
+ 390 014c 30E0      		ldi r19,0
+ 391 014e 4AEF      		ldi r20,lo8(-6)
+ 392 0150 5AE3      		ldi r21,lo8(58)
+ 393 0152 6983      		std Y+1,r22
+ 394 0154 7A83      		std Y+2,r23
+ 395 0156 8B83      		std Y+3,r24
+ 396 0158 9C83      		std Y+4,r25
+ 397 015a 6981      		ldd r22,Y+1
+ 398 015c 7A81      		ldd r23,Y+2
+ 399 015e 8B81      		ldd r24,Y+3
+ 400 0160 9C81      		ldd r25,Y+4
+ 401 0162 0E94 0000 		call __mulsf3
+ 402               	.LVL44:
+ 129:grn_sht21.c   **** 	}
+ 403               		.loc 1 129 43 view .LVU110
+ 404 0166 20E0      		ldi r18,0
+ 405 0168 30E0      		ldi r19,0
+ 406 016a 40EC      		ldi r20,lo8(-64)
+ 407 016c 50E4      		ldi r21,lo8(64)
+ 408               	.L44:
+ 409 016e 6983      		std Y+1,r22
+ 410 0170 7A83      		std Y+2,r23
+ 411 0172 8B83      		std Y+3,r24
+ 412 0174 9C83      		std Y+4,r25
+ 413 0176 6981      		ldd r22,Y+1
+ 414 0178 7A81      		ldd r23,Y+2
+ 415 017a 8B81      		ldd r24,Y+3
+ 416 017c 9C81      		ldd r25,Y+4
+ 417 017e 0E94 0000 		call __subsf3
+ 418               	.LVL45:
+ 129:grn_sht21.c   **** 	}
+ 419               		.loc 1 129 36 view .LVU111
+ 420 0182 20E0      		ldi r18,0
+ 421 0184 30E0      		ldi r19,0
+ 422 0186 48EC      		ldi r20,lo8(-56)
+ 423 0188 52E4      		ldi r21,lo8(66)
+ 424 018a 6983      		std Y+1,r22
+ 425 018c 7A83      		std Y+2,r23
+ 426 018e 8B83      		std Y+3,r24
+ 427 0190 9C83      		std Y+4,r25
+ 428 0192 6981      		ldd r22,Y+1
+ 429 0194 7A81      		ldd r23,Y+2
+ 430 0196 8B81      		ldd r24,Y+3
+ 431 0198 9C81      		ldd r25,Y+4
+ 432 019a 0E94 0000 		call __mulsf3
+ 433               	.LVL46:
+ 129:grn_sht21.c   **** 	}
+ 434               		.loc 1 129 31 view .LVU112
+ 435 019e 6983      		std Y+1,r22
+ 436 01a0 7A83      		std Y+2,r23
+ 437 01a2 8B83      		std Y+3,r24
+ 438 01a4 9C83      		std Y+4,r25
+ 439 01a6 6981      		ldd r22,Y+1
+ 440 01a8 7A81      		ldd r23,Y+2
+ 441 01aa 8B81      		ldd r24,Y+3
+ 442 01ac 9C81      		ldd r25,Y+4
+ 443 01ae 0E94 0000 		call __fixsfsi
+ 444               	.LVL47:
+ 445 01b2 CB01      		movw r24,r22
+ 446               	.LVL48:
+ 129:grn_sht21.c   **** 	}
+ 447               		.loc 1 129 69 is_stmt 1 view .LVU113
+ 448               	.L19:
+ 132:grn_sht21.c   **** 	{
+ 449               		.loc 1 132 2 view .LVU114
+ 450               	.LBB23:
+ 451               	.LBI23:
+ 137:grn_sht21.c   **** 
+ 138:grn_sht21.c   **** uint8_t sht21_checksum(uint8_t data[], uint8_t no_of_bytes, uint8_t checksum) 
+ 452               		.loc 1 138 9 view .LVU115
+ 453               	.LBB24:
+ 139:grn_sht21.c   **** {
+ 140:grn_sht21.c   **** 	uint8_t crc = 0;	
+ 454               		.loc 1 140 2 view .LVU116
+ 141:grn_sht21.c   ****   	uint8_t byteCtr;
+ 455               		.loc 1 141 4 view .LVU117
+ 142:grn_sht21.c   **** 
+ 143:grn_sht21.c   ****  	 //calculates 8-Bit checksum with given polynomial
+ 144:grn_sht21.c   ****   	for (byteCtr = 0; byteCtr < no_of_bytes; ++byteCtr)
+ 456               		.loc 1 144 4 view .LVU118
+ 457               		.loc 1 144 22 view .LVU119
+ 145:grn_sht21.c   ****  	 { crc ^= (data[byteCtr]);
+ 458               		.loc 1 145 6 view .LVU120
+ 146:grn_sht21.c   ****  	   for (uint8_t bit = 8; bit > 0; --bit)
+ 459               		.loc 1 146 6 view .LVU121
+ 460               	.LBB25:
+ 461               		.loc 1 146 11 view .LVU122
+ 462               		.loc 1 146 28 view .LVU123
+ 463               	.LBE25:
+ 464               	.LBE24:
+ 465               	.LBE23:
+ 126:grn_sht21.c   **** 	{
+ 466               		.loc 1 126 2 is_stmt 0 view .LVU124
+ 467 01b4 28E0      		ldi r18,lo8(8)
+ 468               	.LBB30:
+ 469               	.LBB28:
+ 470               	.LBB26:
+ 147:grn_sht21.c   ****  	   { if (crc & 0x80) crc = (crc << 1) ^ POLYNOMINAL;
+ 471               		.loc 1 147 41 view .LVU125
+ 472 01b6 31E3      		ldi r19,lo8(49)
+ 473 01b8 00C0      		rjmp .L22
+ 474               	.LVL49:
+ 475               	.L40:
+ 148:grn_sht21.c   ****  	     else crc = (crc << 1);
+ 476               		.loc 1 148 13 is_stmt 1 view .LVU126
+ 477               		.loc 1 148 17 is_stmt 0 view .LVU127
+ 478 01ba 110F      		lsl r17
+ 479               	.LVL50:
+ 480               	.L24:
+ 146:grn_sht21.c   ****  	   { if (crc & 0x80) crc = (crc << 1) ^ POLYNOMINAL;
+ 481               		.loc 1 146 37 is_stmt 1 view .LVU128
+ 146:grn_sht21.c   ****  	   { if (crc & 0x80) crc = (crc << 1) ^ POLYNOMINAL;
+ 482               		.loc 1 146 28 view .LVU129
+ 146:grn_sht21.c   ****  	   { if (crc & 0x80) crc = (crc << 1) ^ POLYNOMINAL;
+ 483               		.loc 1 146 6 is_stmt 0 view .LVU130
+ 484 01bc 2150      		subi r18,lo8(-(-1))
+ 485               	.LVL51:
+ 146:grn_sht21.c   ****  	   { if (crc & 0x80) crc = (crc << 1) ^ POLYNOMINAL;
+ 486               		.loc 1 146 6 view .LVU131
+ 487 01be 01F0      		breq .L50
+ 488               	.LVL52:
+ 489               	.L22:
+ 147:grn_sht21.c   ****  	   { if (crc & 0x80) crc = (crc << 1) ^ POLYNOMINAL;
+ 490               		.loc 1 147 8 is_stmt 1 view .LVU132
+ 147:grn_sht21.c   ****  	   { if (crc & 0x80) crc = (crc << 1) ^ POLYNOMINAL;
+ 491               		.loc 1 147 11 is_stmt 0 view .LVU133
+ 492 01c0 17FF      		sbrs r17,7
+ 493 01c2 00C0      		rjmp .L40
+ 147:grn_sht21.c   ****  	   { if (crc & 0x80) crc = (crc << 1) ^ POLYNOMINAL;
+ 494               		.loc 1 147 24 is_stmt 1 view .LVU134
+ 147:grn_sht21.c   ****  	   { if (crc & 0x80) crc = (crc << 1) ^ POLYNOMINAL;
+ 495               		.loc 1 147 35 is_stmt 0 view .LVU135
+ 496 01c4 110F      		lsl r17
+ 497               	.LVL53:
+ 147:grn_sht21.c   ****  	   { if (crc & 0x80) crc = (crc << 1) ^ POLYNOMINAL;
+ 498               		.loc 1 147 41 view .LVU136
+ 499 01c6 1327      		eor r17,r19
+ 500               	.LVL54:
+ 147:grn_sht21.c   ****  	   { if (crc & 0x80) crc = (crc << 1) ^ POLYNOMINAL;
+ 501               		.loc 1 147 41 view .LVU137
+ 502 01c8 00C0      		rjmp .L24
+ 503               	.LVL55:
+ 504               	.L33:
+ 147:grn_sht21.c   ****  	   { if (crc & 0x80) crc = (crc << 1) ^ POLYNOMINAL;
+ 505               		.loc 1 147 41 view .LVU138
+ 506               	.LBE26:
+ 507               	.LBE28:
+ 508               	.LBE30:
+ 108:grn_sht21.c   **** 	
+ 509               		.loc 1 108 35 view .LVU139
+ 510 01ca 87E3      		ldi r24,lo8(55)
+ 511 01cc 90E0      		ldi r25,0
+ 512 01ce 00C0      		rjmp .L9
+ 513               	.LVL56:
+ 514               	.L34:
+ 118:grn_sht21.c   **** 	raw[1] = TWIReadACK();				//empfange LSB / durch NACK wird checksumme nicht empfangen
+ 515               		.loc 1 118 35 view .LVU140
+ 516 01d0 82E4      		ldi r24,lo8(66)
+ 517 01d2 90E0      		ldi r25,0
+ 518 01d4 00C0      		rjmp .L9
+ 519               	.LVL57:
+ 520               	.L35:
+ 120:grn_sht21.c   **** 	raw[2] = TWIReadNACK();				//receive checksum
+ 521               		.loc 1 120 35 view .LVU141
+ 522 01d6 8DE4      		ldi r24,lo8(77)
+ 523 01d8 90E0      		ldi r25,0
+ 524 01da 00C0      		rjmp .L9
+ 525               	.LVL58:
+ 526               	.L50:
+ 527               	.LBB31:
+ 528               	.LBB29:
+ 144:grn_sht21.c   ****  	 { crc ^= (data[byteCtr]);
+ 529               		.loc 1 144 45 is_stmt 1 view .LVU142
+ 144:grn_sht21.c   ****  	 { crc ^= (data[byteCtr]);
+ 530               		.loc 1 144 22 view .LVU143
+ 145:grn_sht21.c   ****  	   for (uint8_t bit = 8; bit > 0; --bit)
+ 531               		.loc 1 145 6 view .LVU144
+ 145:grn_sht21.c   ****  	   for (uint8_t bit = 8; bit > 0; --bit)
+ 532               		.loc 1 145 10 is_stmt 0 view .LVU145
+ 533 01dc 1027      		eor r17,r16
+ 534               	.LVL59:
+ 146:grn_sht21.c   ****  	   { if (crc & 0x80) crc = (crc << 1) ^ POLYNOMINAL;
+ 535               		.loc 1 146 6 is_stmt 1 view .LVU146
+ 536               	.LBB27:
+ 146:grn_sht21.c   ****  	   { if (crc & 0x80) crc = (crc << 1) ^ POLYNOMINAL;
+ 537               		.loc 1 146 11 view .LVU147
+ 146:grn_sht21.c   ****  	   { if (crc & 0x80) crc = (crc << 1) ^ POLYNOMINAL;
+ 538               		.loc 1 146 28 view .LVU148
+ 147:grn_sht21.c   ****  	     else crc = (crc << 1);
+ 539               		.loc 1 147 41 is_stmt 0 view .LVU149
+ 540 01de 21E3      		ldi r18,lo8(49)
+ 541 01e0 00C0      		rjmp .L27
+ 542               	.LVL60:
+ 543               	.L42:
+ 544               		.loc 1 148 13 is_stmt 1 view .LVU150
+ 545               		.loc 1 148 17 is_stmt 0 view .LVU151
+ 546 01e2 110F      		lsl r17
+ 547               	.LVL61:
+ 548               	.L29:
+ 146:grn_sht21.c   ****  	   { if (crc & 0x80) crc = (crc << 1) ^ POLYNOMINAL;
+ 549               		.loc 1 146 37 is_stmt 1 view .LVU152
+ 146:grn_sht21.c   ****  	   { if (crc & 0x80) crc = (crc << 1) ^ POLYNOMINAL;
+ 550               		.loc 1 146 28 view .LVU153
+ 146:grn_sht21.c   ****  	   { if (crc & 0x80) crc = (crc << 1) ^ POLYNOMINAL;
+ 551               		.loc 1 146 6 is_stmt 0 view .LVU154
+ 552 01e4 3D81      		ldd r19,Y+5
+ 553 01e6 3150      		subi r19,lo8(-(-1))
+ 554               	.LVL62:
+ 146:grn_sht21.c   ****  	   { if (crc & 0x80) crc = (crc << 1) ^ POLYNOMINAL;
+ 555               		.loc 1 146 6 view .LVU155
+ 556 01e8 3D83      		std Y+5,r19
+ 557 01ea 3323      		tst r19
+ 558 01ec 01F0      		breq .L51
+ 559               	.LVL63:
+ 560               	.L27:
+ 147:grn_sht21.c   ****  	     else crc = (crc << 1);
+ 561               		.loc 1 147 8 is_stmt 1 view .LVU156
+ 147:grn_sht21.c   ****  	     else crc = (crc << 1);
+ 562               		.loc 1 147 11 is_stmt 0 view .LVU157
+ 563 01ee 17FF      		sbrs r17,7
+ 564 01f0 00C0      		rjmp .L42
+ 147:grn_sht21.c   ****  	     else crc = (crc << 1);
+ 565               		.loc 1 147 24 is_stmt 1 view .LVU158
+ 147:grn_sht21.c   ****  	     else crc = (crc << 1);
+ 566               		.loc 1 147 35 is_stmt 0 view .LVU159
+ 567 01f2 110F      		lsl r17
+ 568               	.LVL64:
+ 147:grn_sht21.c   ****  	     else crc = (crc << 1);
+ 569               		.loc 1 147 41 view .LVU160
+ 570 01f4 1227      		eor r17,r18
+ 571               	.LVL65:
+ 147:grn_sht21.c   ****  	     else crc = (crc << 1);
+ 572               		.loc 1 147 41 view .LVU161
+ 573 01f6 00C0      		rjmp .L29
+ 574               	.LVL66:
+ 575               	.L51:
+ 147:grn_sht21.c   ****  	     else crc = (crc << 1);
+ 576               		.loc 1 147 41 view .LVU162
+ 577               	.LBE27:
+ 144:grn_sht21.c   ****  	 { crc ^= (data[byteCtr]);
+ 578               		.loc 1 144 45 is_stmt 1 view .LVU163
+ 144:grn_sht21.c   ****  	 { crc ^= (data[byteCtr]);
+ 579               		.loc 1 144 22 view .LVU164
+ 149:grn_sht21.c   ****  	   }
+ 150:grn_sht21.c   ****  	 }
+ 151:grn_sht21.c   ****  	 if (crc != checksum) return 1;
+ 580               		.loc 1 151 4 view .LVU165
+ 581               		.loc 1 151 7 is_stmt 0 view .LVU166
+ 582 01f8 F116      		cp r15,r17
+ 583 01fa 01F4      		brne .+2
+ 584 01fc 00C0      		rjmp .L9
+ 585               	.LBE29:
+ 586               	.LBE31:
+ 134:grn_sht21.c   **** 	}else return rueckgabewert;	
+ 587               		.loc 1 134 10 view .LVU167
+ 588 01fe 81E0      		ldi r24,lo8(1)
+ 589 0200 90E0      		ldi r25,0
+ 590               	.LVL67:
+ 134:grn_sht21.c   **** 	}else return rueckgabewert;	
+ 591               		.loc 1 134 10 view .LVU168
+ 592 0202 00C0      		rjmp .L9
+ 593               	.LVL68:
+ 594               	.L49:
+ 126:grn_sht21.c   **** 	{
+ 595               		.loc 1 126 2 view .LVU169
+ 596 0204 90E0      		ldi r25,0
+ 597 0206 80E0      		ldi r24,0
+ 598               	.LVL69:
+ 126:grn_sht21.c   **** 	{
+ 599               		.loc 1 126 2 view .LVU170
+ 600 0208 00C0      		rjmp .L19
+ 601               	.LVL70:
+ 602               	.L17:
+ 128:grn_sht21.c   **** 		case RH_HOLD:	rueckgabewert = 100*(-6.0 + 125.0/65536 * messwert);break; // return relative humid
+ 603               		.loc 1 128 16 is_stmt 1 view .LVU171
+ 128:grn_sht21.c   **** 		case RH_HOLD:	rueckgabewert = 100*(-6.0 + 125.0/65536 * messwert);break; // return relative humid
+ 604               		.loc 1 128 59 is_stmt 0 view .LVU172
+ 605 020a 9C01      		movw r18,r24
+ 606 020c 50E0      		ldi r21,0
+ 607 020e 40E0      		ldi r20,0
+ 608 0210 2983      		std Y+1,r18
+ 609 0212 3A83      		std Y+2,r19
+ 610 0214 4B83      		std Y+3,r20
+ 611 0216 5C83      		std Y+4,r21
+ 612 0218 CA01      		movw r24,r20
+ 613               	.LVL71:
+ 128:grn_sht21.c   **** 		case RH_HOLD:	rueckgabewert = 100*(-6.0 + 125.0/65536 * messwert);break; // return relative humid
+ 614               		.loc 1 128 59 view .LVU173
+ 615 021a B901      		movw r22,r18
+ 616 021c 0E94 0000 		call __floatunsisf
+ 617               	.LVL72:
+ 128:grn_sht21.c   **** 		case RH_HOLD:	rueckgabewert = 100*(-6.0 + 125.0/65536 * messwert);break; // return relative humid
+ 618               		.loc 1 128 59 view .LVU174
+ 619 0220 22E5      		ldi r18,lo8(82)
+ 620 0222 38EB      		ldi r19,lo8(-72)
+ 621 0224 4FE2      		ldi r20,lo8(47)
+ 622 0226 5BE3      		ldi r21,lo8(59)
+ 623 0228 6983      		std Y+1,r22
+ 624 022a 7A83      		std Y+2,r23
+ 625 022c 8B83      		std Y+3,r24
+ 626 022e 9C83      		std Y+4,r25
+ 627 0230 6981      		ldd r22,Y+1
+ 628 0232 7A81      		ldd r23,Y+2
+ 629 0234 8B81      		ldd r24,Y+3
+ 630 0236 9C81      		ldd r25,Y+4
+ 631 0238 0E94 0000 		call __mulsf3
+ 632               	.LVL73:
+ 128:grn_sht21.c   **** 		case RH_HOLD:	rueckgabewert = 100*(-6.0 + 125.0/65536 * messwert);break; // return relative humid
+ 633               		.loc 1 128 44 view .LVU175
+ 634 023c 26E6      		ldi r18,lo8(102)
+ 635 023e 36E6      		ldi r19,lo8(102)
+ 636 0240 4BE3      		ldi r20,lo8(59)
+ 637 0242 52E4      		ldi r21,lo8(66)
+ 638 0244 00C0      		rjmp .L44
+ 639               		.cfi_endproc
+ 640               	.LFE8:
+ 642               	.global	sht21_checksum
+ 644               	sht21_checksum:
+ 645               	.LVL74:
+ 646               	.LFB9:
+ 139:grn_sht21.c   **** 	uint8_t crc = 0;	
+ 647               		.loc 1 139 1 is_stmt 1 view -0
+ 648               		.cfi_startproc
+ 649               	/* prologue: function */
+ 650               	/* frame size = 0 */
+ 651               	/* stack size = 0 */
+ 652               	.L__stack_usage = 0
+ 140:grn_sht21.c   ****   	uint8_t byteCtr;
+ 653               		.loc 1 140 2 view .LVU177
+ 141:grn_sht21.c   **** 
+ 654               		.loc 1 141 4 view .LVU178
+ 144:grn_sht21.c   ****  	 { crc ^= (data[byteCtr]);
+ 655               		.loc 1 144 4 view .LVU179
+ 144:grn_sht21.c   ****  	 { crc ^= (data[byteCtr]);
+ 656               		.loc 1 144 22 view .LVU180
+ 144:grn_sht21.c   ****  	 { crc ^= (data[byteCtr]);
+ 657               		.loc 1 144 4 is_stmt 0 view .LVU181
+ 658 0246 6623      		tst r22
+ 659 0248 01F0      		breq .L53
+ 660 024a FC01      		movw r30,r24
+ 661 024c 9C01      		movw r18,r24
+ 662 024e 2F5F      		subi r18,-1
+ 663 0250 3F4F      		sbci r19,-1
+ 664 0252 6150      		subi r22,lo8(-(-1))
+ 665               	.LVL75:
+ 144:grn_sht21.c   ****  	 { crc ^= (data[byteCtr]);
+ 666               		.loc 1 144 4 view .LVU182
+ 667 0254 260F      		add r18,r22
+ 668 0256 311D      		adc r19,__zero_reg__
+ 140:grn_sht21.c   ****   	uint8_t byteCtr;
+ 669               		.loc 1 140 10 view .LVU183
+ 670 0258 60E0      		ldi r22,0
+ 671               	.LVL76:
+ 672               	.LBB32:
+ 147:grn_sht21.c   ****  	     else crc = (crc << 1);
+ 673               		.loc 1 147 41 view .LVU184
+ 674 025a 91E3      		ldi r25,lo8(49)
+ 675               	.LVL77:
+ 676               	.L57:
+ 147:grn_sht21.c   ****  	     else crc = (crc << 1);
+ 677               		.loc 1 147 41 view .LVU185
+ 678               	.LBE32:
+ 145:grn_sht21.c   ****  	   for (uint8_t bit = 8; bit > 0; --bit)
+ 679               		.loc 1 145 6 is_stmt 1 view .LVU186
+ 145:grn_sht21.c   ****  	   for (uint8_t bit = 8; bit > 0; --bit)
+ 680               		.loc 1 145 18 is_stmt 0 view .LVU187
+ 681 025c 8191      		ld r24,Z+
+ 682               	.LVL78:
+ 145:grn_sht21.c   ****  	   for (uint8_t bit = 8; bit > 0; --bit)
+ 683               		.loc 1 145 10 view .LVU188
+ 684 025e 6827      		eor r22,r24
+ 685               	.LVL79:
+ 146:grn_sht21.c   ****  	   { if (crc & 0x80) crc = (crc << 1) ^ POLYNOMINAL;
+ 686               		.loc 1 146 6 is_stmt 1 view .LVU189
+ 687               	.LBB33:
+ 146:grn_sht21.c   ****  	   { if (crc & 0x80) crc = (crc << 1) ^ POLYNOMINAL;
+ 688               		.loc 1 146 11 view .LVU190
+ 146:grn_sht21.c   ****  	   { if (crc & 0x80) crc = (crc << 1) ^ POLYNOMINAL;
+ 689               		.loc 1 146 28 view .LVU191
+ 690               	.LBE33:
+ 145:grn_sht21.c   ****  	   for (uint8_t bit = 8; bit > 0; --bit)
+ 691               		.loc 1 145 10 is_stmt 0 view .LVU192
+ 692 0260 88E0      		ldi r24,lo8(8)
+ 693 0262 00C0      		rjmp .L56
+ 694               	.LVL80:
+ 695               	.L54:
+ 696               	.LBB34:
+ 148:grn_sht21.c   ****  	   }
+ 697               		.loc 1 148 13 is_stmt 1 view .LVU193
+ 148:grn_sht21.c   ****  	   }
+ 698               		.loc 1 148 17 is_stmt 0 view .LVU194
+ 699 0264 660F      		lsl r22
+ 700               	.LVL81:
+ 146:grn_sht21.c   ****  	   { if (crc & 0x80) crc = (crc << 1) ^ POLYNOMINAL;
+ 701               		.loc 1 146 37 is_stmt 1 view .LVU195
+ 146:grn_sht21.c   ****  	   { if (crc & 0x80) crc = (crc << 1) ^ POLYNOMINAL;
+ 702               		.loc 1 146 28 view .LVU196
+ 146:grn_sht21.c   ****  	   { if (crc & 0x80) crc = (crc << 1) ^ POLYNOMINAL;
+ 703               		.loc 1 146 6 is_stmt 0 view .LVU197
+ 704 0266 8150      		subi r24,lo8(-(-1))
+ 705               	.LVL82:
+ 146:grn_sht21.c   ****  	   { if (crc & 0x80) crc = (crc << 1) ^ POLYNOMINAL;
+ 706               		.loc 1 146 6 view .LVU198
+ 707 0268 01F0      		breq .L64
+ 708               	.LVL83:
+ 709               	.L56:
+ 147:grn_sht21.c   ****  	     else crc = (crc << 1);
+ 710               		.loc 1 147 8 is_stmt 1 view .LVU199
+ 147:grn_sht21.c   ****  	     else crc = (crc << 1);
+ 711               		.loc 1 147 11 is_stmt 0 view .LVU200
+ 712 026a 67FF      		sbrs r22,7
+ 713 026c 00C0      		rjmp .L54
+ 147:grn_sht21.c   ****  	     else crc = (crc << 1);
+ 714               		.loc 1 147 24 is_stmt 1 discriminator 1 view .LVU201
+ 147:grn_sht21.c   ****  	     else crc = (crc << 1);
+ 715               		.loc 1 147 35 is_stmt 0 discriminator 1 view .LVU202
+ 716 026e 660F      		lsl r22
+ 717               	.LVL84:
+ 147:grn_sht21.c   ****  	     else crc = (crc << 1);
+ 718               		.loc 1 147 41 discriminator 1 view .LVU203
+ 719 0270 6927      		eor r22,r25
+ 720               	.LVL85:
+ 146:grn_sht21.c   ****  	   { if (crc & 0x80) crc = (crc << 1) ^ POLYNOMINAL;
+ 721               		.loc 1 146 37 is_stmt 1 discriminator 1 view .LVU204
+ 146:grn_sht21.c   ****  	   { if (crc & 0x80) crc = (crc << 1) ^ POLYNOMINAL;
+ 722               		.loc 1 146 28 discriminator 1 view .LVU205
+ 146:grn_sht21.c   ****  	   { if (crc & 0x80) crc = (crc << 1) ^ POLYNOMINAL;
+ 723               		.loc 1 146 6 is_stmt 0 discriminator 1 view .LVU206
+ 724 0272 8150      		subi r24,lo8(-(-1))
+ 725               	.LVL86:
+ 146:grn_sht21.c   ****  	   { if (crc & 0x80) crc = (crc << 1) ^ POLYNOMINAL;
+ 726               		.loc 1 146 6 discriminator 1 view .LVU207
+ 727 0274 01F4      		brne .L56
+ 728               	.L64:
+ 146:grn_sht21.c   ****  	   { if (crc & 0x80) crc = (crc << 1) ^ POLYNOMINAL;
+ 729               		.loc 1 146 6 discriminator 1 view .LVU208
+ 730               	.LBE34:
+ 144:grn_sht21.c   ****  	 { crc ^= (data[byteCtr]);
+ 731               		.loc 1 144 45 is_stmt 1 discriminator 2 view .LVU209
+ 732               	.LVL87:
+ 144:grn_sht21.c   ****  	 { crc ^= (data[byteCtr]);
+ 733               		.loc 1 144 22 discriminator 2 view .LVU210
+ 144:grn_sht21.c   ****  	 { crc ^= (data[byteCtr]);
+ 734               		.loc 1 144 4 is_stmt 0 discriminator 2 view .LVU211
+ 735 0276 E217      		cp r30,r18
+ 736 0278 F307      		cpc r31,r19
+ 737 027a 01F4      		brne .L57
+ 738               	.LVL88:
+ 739               	.L53:
+ 740               		.loc 1 151 4 is_stmt 1 view .LVU212
+ 741               		.loc 1 151 7 is_stmt 0 view .LVU213
+ 742 027c 81E0      		ldi r24,lo8(1)
+ 743 027e 4613      		cpse r20,r22
+ 744               	/* epilogue start */
+ 152:grn_sht21.c   ****  	 else return 0;
+ 153:grn_sht21.c   **** }
+ 745               		.loc 1 153 1 view .LVU214
+ 746 0280 0895      		ret
+ 747               	.L65:
+ 151:grn_sht21.c   ****  	 else return 0;
+ 748               		.loc 1 151 7 view .LVU215
+ 749 0282 80E0      		ldi r24,0
+ 750               	/* epilogue start */
+ 751               		.loc 1 153 1 view .LVU216
+ 752 0284 0895      		ret
+ 753               		.cfi_endproc
+ 754               	.LFE9:
+ 756               	.Letext0:
+ 757               		.file 4 "/usr/avr/include/stdint.h"
+ 758               		.file 5 "grn_TWI.h"
 DEFINED SYMBOLS
                             *ABS*:0000000000000000 grn_sht21.c
-     /tmp/ccn7isKN.s:2      *ABS*:000000000000003e __SP_H__
-     /tmp/ccn7isKN.s:3      *ABS*:000000000000003d __SP_L__
-     /tmp/ccn7isKN.s:4      *ABS*:000000000000003f __SREG__
-     /tmp/ccn7isKN.s:5      *ABS*:0000000000000000 __tmp_reg__
-     /tmp/ccn7isKN.s:6      *ABS*:0000000000000001 __zero_reg__
-     /tmp/ccn7isKN.s:12     .text:0000000000000000 sht21_init
-     /tmp/ccn7isKN.s:126    .text:0000000000000044 sht21_measure
-     /tmp/ccn7isKN.s:635    .text:0000000000000252 sht21_checksum
+     /tmp/ccFCQLWq.s:2      *ABS*:000000000000003e __SP_H__
+     /tmp/ccFCQLWq.s:3      *ABS*:000000000000003d __SP_L__
+     /tmp/ccFCQLWq.s:4      *ABS*:000000000000003f __SREG__
+     /tmp/ccFCQLWq.s:5      *ABS*:0000000000000000 __tmp_reg__
+     /tmp/ccFCQLWq.s:6      *ABS*:0000000000000001 __zero_reg__
+     /tmp/ccFCQLWq.s:12     .text:0000000000000000 sht21_init
+     /tmp/ccFCQLWq.s:126    .text:0000000000000044 sht21_measure
+     /tmp/ccFCQLWq.s:644    .text:0000000000000246 sht21_checksum
 
 UNDEFINED SYMBOLS
 TWIStart

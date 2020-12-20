@@ -17,7 +17,6 @@
 #define SHT21_HUM_HOLDMASTER 0xF3		//Humidity hold master = on => 0b11100101
 #define SHT21_SOFTRESET 0xFE				//Softreset
 #define POLYNOMINAL 0x131				//P(x) = x^8+x^5+x^4+1 = 0b100110001
-
 #define T_HOLD 	0
 #define RH_HOLD 	1
 
@@ -64,32 +63,57 @@ int16_t sht21_measure(uint8_t measure_mode)
 	 */ 
 	 
 	uint8_t raw[]={0,0,0};
-	uint16_t messwert;
+	uint16_t messwert,i;
 	int16_t rueckgabewert;
+	uint8_t ret=0;
 	
 	messwert=0;
 	rueckgabewert=0;
-
-		
-	TWIStart();							//start TWI
-	if(TWIGetStatus() != 0x08)return 11; //kontrolle ob erfolgreich sonst Abbruch mit Error Code
-	TWIWrite(SHT21_W);					//Adresse und Schreiben
-	if(TWIGetStatus() != 0x18)return 22;	//kontrolle ob erfolgreich sonst Abbruch mit Error Code
+	/*
+0x00	No errors
+0x08	START condition transmitted
+0x10	Repeated START condition transmitted
+0x18	SLA+W transmitted; ACK received
+0x20	SLA+W transmitted; NAK received
+0x28	Data byte transmitted; ACK received
+0x30	Data byte transmitted; NAK received
+0x38	Arbitration lost in SLA; or NAK received
+0x40	SLA+R transmitted; ACK received
+0x48	SLA+R transmitted; NAK received
+0x50	Data received; ACK has been returned
+0x58	Data received; NAK has been returned
+0xE0	Arbitration lost
+0xE1	Arbitration lost in START
+0xE2	Arbitration lost in STOP
+0xE3	Arbitration lost in read ACK
+0xE4	Arbitration lost in read NAK
+0xE5	Arbitration lost in write
+0xF8	Unknown error
+0xFF	Illegal START or STOP condition
+	*/
+	TWIStart();		
+	ret=TWIGetStatus();						//start TWI
+	if(ret != 0x08)return ret; 	//start condition transmitted?
+	TWIWrite(SHT21_W);			//send write adress
+	if(TWIGetStatus() != 0x18)return 22;	//SLA+W transmitted?
 	switch(measure_mode)
 	{
 		case T_HOLD:	TWIWrite(SHT21_TEMP_HOLDMASTER);break;	//Modus = Temperatur master hold = on
 		case RH_HOLD:	TWIWrite(SHT21_HUM_HOLDMASTER);break;	//Modus = Temperatur master hold = on
 	}
 	if(TWIGetStatus() != 0x28)return 33;	//kontrolle ob erfolgreich sonst Abbruch mit Error Code
-
-	DDRC &= ~(1<<PC5);					//set SCL as Input
-	while(!(PINC &= ~(1<<PC5)));		//wait to end conversion (Master hold mode)
-	DDRC |= (1<<PC5);					//set SCL as Output
-
-	TWIStart();							//restart TWI
-	if(TWIGetStatus() != 0x10)return 44; //kontrolle ob erfolgreich sonst Abbruch mit Error Code
-	TWIWrite(SHT21_R);					//Adresse und lesen
+	TWIStart();								//restart TWI
+	if(TWIGetStatus() != 0x10)return 44; 	//kontrolle ob erfolgreich sonst Abbruch mit Error Code
+	TWIWrite(SHT21_R);						//Adresse und lesen
 	if(TWIGetStatus() != 0x40)return 55;	//kontrolle ob erfolgreich sonst Abbruch mit Error Code
+	
+	DDRC &= ~(1<<PC5);					//set SCL as Input
+	for(i=0;i<1000;i++)					//wait for timeout or
+	{
+		if(PINC &= ~(1<<PC5))break;		//wait for end of conversion (Master hold mode)
+	}
+	DDRC |= (1<<PC5);					//set SCL as Output again
+	
 	raw[0] = TWIReadACK();				//empfange MSB
 	if(TWIGetStatus() != 0x50)return 66;	//kontrolle ob erfolgreich sonst Abbruch mit Error Code
 	raw[1] = TWIReadACK();				//empfange LSB / durch NACK wird checksumme nicht empfangen

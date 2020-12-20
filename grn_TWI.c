@@ -17,7 +17,7 @@ uint8_t TWIInit(void)
   //set sck to 400khz
 	TWSR0 = 0x02;
 	//TWBR = 0x0C;
-	 TWBR0 = ((16000000/400000)-16)/2;  /* (F_CPU / F_TWI) must be > 10 for stable operation */
+	 TWBR0 = ((8000000/400000)-16)/2;  /* (F_CPU / F_TWI) must be > 10 for stable operation */
 	//enable TWI
 	TWCR0 = (1<<TWEN);
 	return 0;
