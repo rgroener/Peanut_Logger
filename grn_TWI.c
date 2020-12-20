@@ -12,9 +12,7 @@ uint8_t TWIInit(void)
  /* initialize TWI clock: 100 kHz clock, TWPS = 0 => prescaler = 1 */
   PRR0 =0x00;
  // TWSR |= (1<<TWPS0);                          /* no prescaler */
- 
-  
-  //set sck to 400khz
+ //set sck to 400khz
 	TWSR0 = 0x02;
 	//TWBR = 0x0C;
 	 TWBR0 = ((8000000/400000)-16)/2;  /* (F_CPU / F_TWI) must be > 10 for stable operation */

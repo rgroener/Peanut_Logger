@@ -6,5 +6,5 @@
  */
 
 uint8_t sht21_init(void);
-uint16_t sht21_read_temp(void);
-uint16_t sht21_read_hum(void);
+int16_t sht21_measure(uint8_t mode);
+

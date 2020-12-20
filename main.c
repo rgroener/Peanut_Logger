@@ -134,11 +134,11 @@ int main(void)
 								Write_String(14,2,0, "  ZERO  ");
 							}
 							break;
-			case MEASURE:	temp = sht21_read_temp();
+			case MEASURE:	temp = sht21_measure(0);
 							sprintf(buffer,"%d",temp);
 							Write_String(14,0,0,buffer);
 							
-							hum = sht21_read_hum();
+							hum = sht21_measure(1);
 							sprintf(buff,"%d",hum);
 							Write_String(14,1,0,buff);
 							/*
