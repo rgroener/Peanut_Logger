@@ -22,8 +22,6 @@
 #define RH_HOLD 	1
 
 typedef float ft;						//Float VAriable zur Umrechnung vor Rueckgabe
-
-
 uint8_t sht21_init(void)
 {
 	/*	
@@ -39,7 +37,6 @@ uint8_t sht21_init(void)
 	_delay_ms(15);	//Startuptime after Reset <15ms (Datasheet)
 	return 0;
 }
-
 float sht21_measure(uint8_t measure_mode)
 {
 	/*
@@ -47,6 +44,22 @@ float sht21_measure(uint8_t measure_mode)
 	 * 
 	 * 	Rückgabewert: 	16 bit Temperaturwert x 100 
 	 * 					(letzte 2 Stellen sind Nachkommastellen)
+	 * 
+	 * 	for float as return value, you have to change the following line in 
+	 * the Makefile since only a minimalistic sprintf library is included
+	 * by default. To add the full float library add/change the following 
+	 * line to the Makefile.
+	 * 
+	 * # Minimalistic printf version
+		PRINTF_LIB_MIN = -Wl,-u,vfprintf -lprintf_min
+
+		# Floating point printf version (requires MATH_LIB = -lm below)
+		PRINTF_LIB_FLOAT = -Wl,-u,vfprintf -lprintf_flt
+
+
+		PRINTF_LIB = $(PRINTF_LIB_FLOAT) 
+	 * 
+	 * 
 	 * 	Checksum error: Rückgabewert = 99;
 	 */ 
 	 

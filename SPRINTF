@@ -1,0 +1,18 @@
+By default, the minimalistic printf library is used, which doesn't support floating point numbers and results in a "?" as a placeholder for the value. You have to tell the linker to use the floating point library.
+
+For example (from GNU makefile)
+
+PRINTF_LIB_MIN = -Wl,-u,vfprintf -lprintf_min
+
+You have to use the floating point version like so:
+
+PRINTF_LIB_FLOAT = -Wl,-u,vfprintf -lprintf_flt
+
+Depending on your base makefile, there should already be a section like this:
+
+# If this is left blank, then it will use the Standard printf version.
+PRINTF_LIB = 
+#PRINTF_LIB = $(PRINTF_LIB_MIN)
+#PRINTF_LIB = $(PRINTF_LIB_FLOAT)
+
+Just uncomment the line containing PRINTF_LIB_FLOAT.

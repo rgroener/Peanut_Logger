@@ -10,7 +10,8 @@
 #include <avr/interrupt.h>
 #include <stdlib.h>
 #include <avr/io.h>
-#include <stdio.h>                 
+#include <stdio.h>  
+#include <math.h>               
 #include <avr/pgmspace.h>
 #include "fonts.h"
 #include "grn_TWI.h"
@@ -129,7 +130,7 @@ int main(void)
 								Write_String(14,2,0, "  ZERO  ");
 							}
 							break;
-			case MEASURE:	temp = (sht21_measure(TEMPERATURE));
+			case MEASURE:	temp = (sht21_measure(0));
 							sprintf(buffer,"%f",temp);
 							Write_String(14,0,0,buffer);
 							
