@@ -136,8 +136,8 @@ int main(void)
 	 * 
 	 * */
 	 
-	uart_send_string("Feuchtigkeit\tTemperatur\n"); 
-	uart_send_string("%\tC\n");
+	uart_send_string("Feuchtigkeit\tSHT21\tDPS310\n"); 
+	uart_send_string("%\tC\tC\n");
 	while(1)
 	{ 	
 		switch(state)
@@ -171,13 +171,15 @@ int main(void)
 								Write_String(14,2,0, "  ZERO  ");
 							}
 							break;
-			case MEASURE:	temp=sht21_measure(TEMPERATURE);
-							sprintf(buffer,") %d.%d*",vor_komma(temp),nach_komma(temp));
-							Write_String(14,0,0,buffer);
-							
-							temp=sht21_measure(HUMIDITY);
+			case MEASURE:	temp=sht21_measure(HUMIDITY);
 							sprintf(buffer,"' %d.%d%%",vor_komma(temp),nach_komma(temp));
 							Write_String(14,1,0,buffer);
+							sprintf(buffer,"%d.%d\t",vor_komma(temp),nach_komma(temp));
+							uart_send_string(buffer);
+							
+							temp=sht21_measure(TEMPERATURE);
+							sprintf(buffer,") %d.%d*",vor_komma(temp),nach_komma(temp));
+							Write_String(14,0,0,buffer);
 							sprintf(buffer,"%d.%d\t",vor_komma(temp),nach_komma(temp));
 							uart_send_string(buffer);
 			
