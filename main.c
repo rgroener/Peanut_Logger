@@ -142,6 +142,34 @@ int main(void)
 	 
 	uart_send_string("Feuchtigkeit\tSHT21\tDPS310\n"); 
 	uart_send_string("%\tC\tC\n");
+	/*
+	uint16_t address=0xABCD;
+	
+	uint8_t add_high,add_low;
+	add_high=address >> 8;
+	add_low=(uint8_t) address;
+	
+	
+	sprintf(buffer,"0x%2X",add_high);
+	Write_String(14,1,0,buffer);
+	
+	sprintf(buffer,"0x%2X", add_low);
+	Write_String(14,0,0,buffer);
+	* 
+	* 
+	* */
+	uint8_t gg;
+	
+	gg=99;
+	gg=ext_ee_random_write(0,111);
+	_delay_ms(199);
+	
+	gg=ext_ee_random_read(2);
+	sprintf(buffer,"%d", gg);
+	Write_String(14,0,0,buffer);
+	
+	while(1);
+	
 	while(1)
 	{ 	
 		switch(state)
