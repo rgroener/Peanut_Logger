@@ -18,6 +18,7 @@
 #include "grn_sht21.h"
 #include "ssd1306.h"
 #include "DPS310.h"
+#include "EEPROM_64.h"
 
 
 #define BUTTON	(!(PIND & (1<<PD3))) && (entprell==0) //read button input
@@ -33,6 +34,8 @@
 #define TOGGLEMAX 4
 #define TEMPERATURE 0
 #define HUMIDITY 1
+
+
 
 uint16_t vor_komma(uint32_t value);
 uint8_t nach_komma(uint32_t value);
@@ -131,8 +134,9 @@ int main(void)
 	//Write_String(14,0,0,"test");
 	/*
 	 * 
-	 * SHT21 0x80 / 0x81
-	 * DPS310 0xee / 0xef
+	 * SHT21 	0x80 / 0x81
+	 * DPS310 	0xee / 0xef
+	 * 24LC64	0xA0 / 0xA1
 	 * 
 	 * */
 	 
