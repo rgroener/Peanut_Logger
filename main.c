@@ -42,7 +42,7 @@ uint16_t vor_komma(uint32_t value);
 uint8_t nach_komma(uint32_t value);
 int16_t temp=0;
 uint16_t test=0;
-int16_t hum=0;
+uint16_t hum=0;
 
 //TIMER
 ISR (TIMER1_COMPA_vect);
@@ -160,24 +160,6 @@ int main(void)
 	* 
 	* */
 
-	int16_t gg=0;
-	uint8_t xx=0;
-	//gg=ext_ee_random_write_16(0,0xAAAA);
-	gg=ext_ee_check_data_16(0,0xAAAA);
-	sprintf(buffer,"1: %d", gg);
-	Write_String(14,0,0,buffer);
-	gg=99;
-	//gg=ext_ee_random_write_8(99,0xAF);
-	gg=ext_ee_check_data_16(0,0xAABA);
-	sprintf(buffer,"2: %d", gg);
-	Write_String(14,1,0,buffer);
-	
-	//testcounter=ext_ee_random_read_8(99);
-	gg=ext_ee_random_read_16(0);
-	sprintf(buffer,"c: 0x%2X", gg);
-	Write_String(14,2,0,buffer);
-	while(1);
-	
 	
 
 	while(1)
@@ -213,24 +195,18 @@ int main(void)
 								Write_String(14,2,0, "  ZERO  ");
 							}
 							break;
-			case MEASURE:	gg=sht21_measure(HUMIDITY);
-							sprintf(buffer,"%d",gg);
+			case MEASURE:	hum=sht21_measure(HUMIDITY);
+							sprintf(buffer,"%d",hum);
 							Write_String(14,2,0,buffer);
-							sprintf(buffer,"Humidity: %d",gg/10);
+							sprintf(buffer,"Humidity: %d",hum);
 							uart_send_string(buffer);
 							
-							gg=sht21_measure(TEMPERATURE);
-							sprintf(buffer,"%d",gg);
+							temp=sht21_measure(TEMPERATURE);
+							sprintf(buffer,"%d",temp);
 							Write_String(14,1,0,buffer);
-							sprintf(buffer,"\t Temperature: %d\n",gg);
+							sprintf(buffer,"\t Temperature: %d\n",temp);
 							uart_send_string(buffer);
-							gg=ext_ee_random_read_16(xx);
-							sprintf(buffer,"\t eeprom: %d\n",gg);
-							uart_send_string(buffer);
-							xx+=2;
-							sprintf(buffer,"%d",xx);
-							Write_String(14,0,0,buffer);
-			
+							
 			
 			
 			
