@@ -175,11 +175,7 @@ long DPS310_get_temp(uint8_t oversampling)
 	double temp_sc=0;
 	double temp_comp=0;
 	long scalfactor=0;
-	uint8_t buff[3];
-
-			buff[0] = DPS310_read(TMP_B2);
-			buff[1] = DPS310_read(TMP_B1);
-			buff[2] = DPS310_read(TMP_B0);
+	
 			
 			temp_raw=DPS310_get_sc_temp(oversampling);
 			
@@ -199,7 +195,7 @@ long DPS310_get_temp(uint8_t oversampling)
 			temp_comp=m_C0+m_C1*temp_sc;
 			
 			
-			return temp_comp*100; //2505 entspricht 25,5 Grad
+			return (long)temp_comp*10; //2505 entspricht 25,5 Grad
 }
 
 double DPS310_get_pres(uint8_t t_ovrs, uint8_t p_ovrs)

@@ -35,8 +35,9 @@
 #define TEMPERATURE 0
 #define HUMIDITY 1
 
+uint16_t eeposition=0;
 
-
+uint16_t pres=0;
 uint16_t vor_komma(uint32_t value);
 uint8_t nach_komma(uint32_t value);
 int16_t temp=0;
@@ -128,7 +129,7 @@ int main(void)
     TWIInit();
     _delay_ms(50);
 	sht21_init();
-	DPS310_init(LOW);
+	DPS310_init(ULTRA);
    state = MEASURE;
 	//sprintf(buffer,"sec=%d",sec);
 	//Write_String(14,0,0,"test");
@@ -140,8 +141,8 @@ int main(void)
 	 * 
 	 * */
 	 
-	uart_send_string("Feuchtigkeit\tSHT21\tDPS310\n"); 
-	uart_send_string("%\tC\tC\n");
+	//uart_send_string("Feuchtigkeit\tSHT21\tDPS310\n"); 
+	//uart_send_string("%\tC\tC\n");
 	/*
 	uint16_t address=0xABCD;
 	
@@ -158,18 +159,27 @@ int main(void)
 	* 
 	* 
 	* */
-	uint8_t gg;
-	
-	gg=99;
-	gg=ext_ee_random_write(0,111);
-	_delay_ms(199);
-	
-	gg=ext_ee_random_read(2);
-	sprintf(buffer,"%d", gg);
+
+	int16_t gg=0;
+	uint8_t xx=0;
+	//gg=ext_ee_random_write_16(0,0xAAAA);
+	gg=ext_ee_check_data_16(0,0xAAAA);
+	sprintf(buffer,"1: %d", gg);
 	Write_String(14,0,0,buffer);
+	gg=99;
+	//gg=ext_ee_random_write_8(99,0xAF);
+	gg=ext_ee_check_data_16(0,0xAABA);
+	sprintf(buffer,"2: %d", gg);
+	Write_String(14,1,0,buffer);
 	
+	//testcounter=ext_ee_random_read_8(99);
+	gg=ext_ee_random_read_16(0);
+	sprintf(buffer,"c: 0x%2X", gg);
+	Write_String(14,2,0,buffer);
 	while(1);
 	
+	
+
 	while(1)
 	{ 	
 		switch(state)
@@ -203,25 +213,51 @@ int main(void)
 								Write_String(14,2,0, "  ZERO  ");
 							}
 							break;
-			case MEASURE:	temp=sht21_measure(HUMIDITY);
+			case MEASURE:	gg=sht21_measure(HUMIDITY);
+							sprintf(buffer,"%d",gg);
+							Write_String(14,2,0,buffer);
+							sprintf(buffer,"Humidity: %d",gg/10);
+							uart_send_string(buffer);
+							
+							gg=sht21_measure(TEMPERATURE);
+							sprintf(buffer,"%d",gg);
+							Write_String(14,1,0,buffer);
+							sprintf(buffer,"\t Temperature: %d\n",gg);
+							uart_send_string(buffer);
+							gg=ext_ee_random_read_16(xx);
+							sprintf(buffer,"\t eeprom: %d\n",gg);
+							uart_send_string(buffer);
+							xx+=2;
+							sprintf(buffer,"%d",xx);
+							Write_String(14,0,0,buffer);
+			
+			
+			
+			
+			/*temp=sht21_measure(HUMIDITY);
 							sprintf(buffer,"' %d.%d%%",vor_komma(temp),nach_komma(temp));
 							Write_String(14,1,0,buffer);
 							sprintf(buffer,"%d.%d\t",vor_komma(temp),nach_komma(temp));
 							uart_send_string(buffer);
 							
 							temp=sht21_measure(TEMPERATURE);
-							sprintf(buffer,") %d.%d*",vor_komma(temp),nach_komma(temp));
+							sprintf(buffer,") %d",temp);
 							Write_String(14,0,0,buffer);
 							sprintf(buffer,"%d.%d\t",vor_komma(temp),nach_komma(temp));
 							uart_send_string(buffer);
 			
-							temp=DPS310_get_temp(1);
-							sprintf(buffer,"( %d.%d*",vor_komma(temp),nach_komma(temp));
+							pres=DPS310_get_temp(1);
+							sprintf(buffer,"%d",pres);
 							Write_String(14,2,0,buffer);
-							sprintf(buffer,"%d.%d\n",vor_komma(temp),nach_komma(temp));
+							sprintf(buffer,"%d.%d\n",vor_komma(pres),nach_komma(pres));
 							uart_send_string(buffer);
 							
-			/*for(uint8_t x=0;x<255;x++)
+							
+							//ext_ee_random_write_16(eeposition,temp);
+							eeposition += 2;
+							_delay_ms(1000);
+							
+			for(uint8_t x=0;x<255;x++)
 							{
 								TWIStart();
 								TWIWrite(x);
@@ -264,7 +300,7 @@ int main(void)
 		"\r" = carriage return
 		"\xhh" =  character with hexadecimal value hh.
 		*/
-		_delay_ms(500);
+		_delay_ms(1000);
 		//sprintf(buffer,"sec=%d",test);
 		//Write_String(14,1,0,buffer);
 	} //end while
