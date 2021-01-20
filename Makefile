@@ -52,7 +52,7 @@ TARGET = main
 
 
 # List C source files here. (C dependencies are automatically generated.)
-SRC = $(TARGET).c grn_TWI.c grn_sht21.c ssd1306.c spi.c
+SRC = $(TARGET).c grn_TWI.c grn_sht21.c ssd1306.c spi.c DPS310.c EEPROM_64.c
 
 # List Assembler source files here.
 # Make them always end in a capital .S.  Files ending in a lowercase .s
@@ -89,7 +89,7 @@ EXTRAINCDIRS =
 CSTANDARD = -std=gnu99
 
 # Place -D or -U options here
-CDEFS = -DGLCD_DEVICE_AVR8 -DGLCD_CONTROLLER_PCD8544 -DGLCD_USE_SPI -DGLCD_USE_AVR_DELAY -D__DELAY_BACKWARD_COMPATIBLE__ 
+CDEFS = 
 
 # Place -I options here
 CINCS =
