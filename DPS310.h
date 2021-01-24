@@ -72,7 +72,7 @@ uint8_t DPS310_write(uint8_t reg, uint8_t data);
 int16_t DPS310_readCoeffs(void);
 void DPS310_sreset(void);
 void DPS310_init(uint8_t acc);
-uint32_t DPS310_get_sc_temp(uint8_t oversampling);
+uint32_t DPS310_get_sc_temp(void);
 int16_t DPS310_get_temp(void);
 uint32_t DPS310_get_pres(void);
 long calcalt(double press, uint32_t pressealevel);

@@ -157,7 +157,7 @@ void DPS310_sreset(void)
 }
 
 
-uint32_t DPS310_get_sc_temp(uint8_t oversampling)
+uint32_t DPS310_get_sc_temp(void)
 {
 	long temp_raw=0;
 	uint8_t buff[3] = {0};
@@ -178,7 +178,7 @@ int16_t DPS310_get_temp(void)
 	double temp_comp=0;
 	long scalfactor=0;
 			
-			temp_raw=DPS310_get_sc_temp(temp_ovs);
+			temp_raw=DPS310_get_sc_temp();
 			
 			switch(temp_ovs)
 			{
@@ -195,7 +195,7 @@ int16_t DPS310_get_temp(void)
 			temp_sc = (float)temp_raw/scalfactor;
 			temp_comp=m_C0+m_C1*temp_sc;
 			
-			return (long)temp_comp*100; //2505 entspricht 25,5 Grad
+			return (int16_t)temp_comp*100; //2505 entspricht 25,5 Grad
 }
 
 uint32_t DPS310_get_pres(void)
@@ -250,12 +250,12 @@ uint32_t DPS310_get_pres(void)
 			}
 		prs_sc = (float)prs_raw/scalfactor;
 		prs_comp=m_C00+prs_sc*(m_C10+prs_sc*(m_C20+(prs_sc*m_C30)))+temp_sc*m_C01+temp_sc*prs_sc*(m_C11+(prs_sc*m_C21));
-		return prs_comp; //2505 entspricht 25,5 Grad
+		return (uint32_t)prs_comp; 
 }
 
 long calcalt(double press, uint32_t pressealevel)
 {
-   return 1000*(44330 * (1 - pow((double) press / pressealevel, 0.1902226)));
+   return 100*(44330 * (1 - pow((double) press / pressealevel, 0.1902226)));
 	//*100 um stellen nach dem  Komma nicht zu verlieren
 }
 
