@@ -46,11 +46,8 @@ uint16_t hum=0;
 
 //TIMER
 ISR (TIMER1_COMPA_vect);
-uint16_t vor_komma(uint32_t value);
-uint8_t nach_komma(uint32_t value);
 
 //UART
-
 void uart_send_char(char c);
 void uart_send_string(volatile char *s);
 
@@ -129,7 +126,7 @@ int main(void)
     TWIInit();
     _delay_ms(50);
 	sht21_init();
-	DPS310_init(MID);
+	DPS310_init(ULTRA);
 	
 	
    state = MEASURE;
@@ -200,10 +197,12 @@ int main(void)
 							
 							
 							pres=DPS310_get_pres();
-							sprintf(buffer,"%ld",pres);
+							sprintf(buffer,"%d.%d",vor_komma(pres),nach_komma(pres));
 							Write_String(14,1,0,buffer);
 							
-							
+							temp=sht21_measure(TEMPERATURE);
+							sprintf(buffer,"T=%d",temp);
+							Write_String(14,2,0,buffer);
 			
 			
 			
@@ -273,7 +272,7 @@ int main(void)
 		"\r" = carriage return
 		"\xhh" =  character with hexadecimal value hh.
 		*/
-		_delay_ms(1000);
+		//_delay_ms(1000);
 		//sprintf(buffer,"sec=%d",test);
 		//Write_String(14,1,0,buffer);
 	} //end while
