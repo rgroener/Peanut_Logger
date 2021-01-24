@@ -11,6 +11,8 @@ int16_t m_C21;
 int16_t m_C30;
 uint8_t meas=0;
 uint8_t id=0;
+
+
 uint8_t pres_ovs, temp_ovs;
 
 void DPS310_init(uint8_t acc)
@@ -169,17 +171,16 @@ uint32_t DPS310_get_sc_temp(uint8_t oversampling)
 	return temp_raw; 
 }
 
-long DPS310_get_temp(uint8_t oversampling)
+int16_t DPS310_get_temp(void)
 {
 	long temp_raw=0;
 	double temp_sc=0;
 	double temp_comp=0;
 	long scalfactor=0;
-	
 			
-			temp_raw=DPS310_get_sc_temp(oversampling);
+			temp_raw=DPS310_get_sc_temp(temp_ovs);
 			
-			switch(oversampling)
+			switch(temp_ovs)
 			{
 				case 1:	scalfactor = 524288;break;
 				case 2:	scalfactor = 1572864;break;
@@ -194,11 +195,10 @@ long DPS310_get_temp(uint8_t oversampling)
 			temp_sc = (float)temp_raw/scalfactor;
 			temp_comp=m_C0+m_C1*temp_sc;
 			
-			
-			return (long)temp_comp*10; //2505 entspricht 25,5 Grad
+			return (long)temp_comp*100; //2505 entspricht 25,5 Grad
 }
 
-double DPS310_get_pres(uint8_t t_ovrs, uint8_t p_ovrs)
+uint32_t DPS310_get_pres(void)
 {
 	long temp_raw;
 	double temp_sc;
@@ -215,7 +215,7 @@ double DPS310_get_pres(uint8_t t_ovrs, uint8_t p_ovrs)
 		temp_raw=((((long)buff[0]<<8)|buff[1])<<8)|buff[2];
 		temp_raw=(temp_raw<<8)>>8;
 		
-		switch(t_ovrs)
+		switch(temp_ovs)
 			{
 				case 1:	scalfactor = 524288;break;
 				case 2:	scalfactor = 1572864;break;
@@ -236,7 +236,7 @@ double DPS310_get_pres(uint8_t t_ovrs, uint8_t p_ovrs)
 		prs_raw=((((long)buff[0]<<8)|buff[1])<<8)|buff[2];
 		prs_raw=(prs_raw<<8)>>8;
 		
-		switch(p_ovrs)
+		switch(pres_ovs)
 			{
 				case 1:	scalfactor = 524288;break;
 				case 2:	scalfactor = 1572864;break;
@@ -255,8 +255,8 @@ double DPS310_get_pres(uint8_t t_ovrs, uint8_t p_ovrs)
 
 long calcalt(double press, uint32_t pressealevel)
 {
-   return 100*(44330 * (1 - pow((double) press / pressealevel, 0.1902226)));
-	//*100 um stellen von Komma nicht zu verlieren
+   return 1000*(44330 * (1 - pow((double) press / pressealevel, 0.1902226)));
+	//*100 um stellen nach dem  Komma nicht zu verlieren
 }
 
 

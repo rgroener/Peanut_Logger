@@ -36,8 +36,8 @@
 #define HUMIDITY 1
 
 uint16_t eeposition=0;
-
-uint16_t pres=0;
+int16_t temperature=0;
+uint32_t pres=0;
 uint16_t vor_komma(uint32_t value);
 uint8_t nach_komma(uint32_t value);
 int16_t temp=0;
@@ -129,7 +129,9 @@ int main(void)
     TWIInit();
     _delay_ms(50);
 	sht21_init();
-	DPS310_init(ULTRA);
+	DPS310_init(MID);
+	
+	
    state = MEASURE;
 	//sprintf(buffer,"sec=%d",sec);
 	//Write_String(14,0,0,"test");
@@ -159,9 +161,6 @@ int main(void)
 	* 
 	* 
 	* */
-
-	
-
 	while(1)
 	{ 	
 		switch(state)
@@ -195,17 +194,15 @@ int main(void)
 								Write_String(14,2,0, "  ZERO  ");
 							}
 							break;
-			case MEASURE:	hum=sht21_measure(HUMIDITY);
-							sprintf(buffer,"%d",hum);
-							Write_String(14,2,0,buffer);
-							sprintf(buffer,"Humidity: %d",hum);
-							uart_send_string(buffer);
+			case MEASURE:	temperature=DPS310_get_temp();
+							sprintf(buffer,"T=%d",temperature);
+							Write_String(14,0,0,buffer);
 							
-							temp=sht21_measure(TEMPERATURE);
-							sprintf(buffer,"%d",temp);
+							
+							pres=DPS310_get_pres();
+							sprintf(buffer,"%ld",pres);
 							Write_String(14,1,0,buffer);
-							sprintf(buffer,"\t Temperature: %d\n",temp);
-							uart_send_string(buffer);
+							
 							
 			
 			
