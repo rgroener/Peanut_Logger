@@ -70,7 +70,7 @@ void Set_Contrast_Control_Register(unsigned char mod)
 	send_command(mod);
 	return;
 }
-void Display_Picture(const unsigned char data[])
+void Display_Picture(uint8_t width, uint8_t height, const unsigned char data[])
 {
 	/* Oled Display 64*48  bit organisation
 	 * array size full display [384]
@@ -93,45 +93,16 @@ void Display_Picture(const unsigned char data[])
 	 * Inverse:	yes 
 	 * 
 	*/
-	for(unsigned char i=0;i<8;i++)		//write Pages
+	for(unsigned char i=0;i<(width/8);i++)		//write Pages
 	{
 		Set_Page_Address(7-i);
 		Set_Column_Address(0);			//start at column 0
-        for(unsigned char j=0;j<47;j++)	//write Column for current page
+        for(unsigned char j=0;j<(height-1);j++)	//write Column for current page
 		{
 		    send_data(pgm_read_byte(&data[i*0x30+j]));
 		}
 	}
-	/*
-	 *
-	 * 
-	 * for(unsigned char i=0;i<8;i++)		//write Pages
-	{
-		Set_Page_Address(i);
-		Set_Column_Address(0);			//start at column 0
-        for(unsigned char j=0;j<47;j++)	//write Column for current page
-		{
-		    send_data(pgm_read_byte(&data[i*0x30+j]));
-		}
-	}
-	* */
 	
-	
-	
-	
-	
-	
-	//Display picture 48x64 => [384]
-   /* 
-	for(i=0;i<0x08;i++)
-	{
-		Set_Page_Address(i);
-		Set_Column_Address(0x00);
-        for(j=0;j<0x30;j++)
-		{
-		    send_data(pgm_read_byte(&data[i*0x30+j]));
-		}
-	}*/
     return;
 }
 void Display_Clear(void)
@@ -155,7 +126,6 @@ void Char_Position(uint8_t fontsize, uint8_t row, uint8_t pos)
 	Set_Page_Address(7-pos);	//0-7 	(* 8 bit)
 	Set_Column_Address(row*fontsize);	//0-3	(* 14 collums / char)
 }
-
 void Write_Char(uint8_t fontsize, char n)
 {
 	const char *fontpointer=0;
