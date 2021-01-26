@@ -70,19 +70,68 @@ void Set_Contrast_Control_Register(unsigned char mod)
 	send_command(mod);
 	return;
 }
-void Display_Picture(const unsigned char pic[])
+void Display_Picture(const unsigned char data[])
 {
-	//Display picture 48x64
-    unsigned char i,j;
-	for(i=0;i<0x08;i++)
+	/* Oled Display 64*48  bit organisation
+	 * array size full display [384]
+	 * 
+	 ======== ============>
+	 |	P P		P		Column 0
+	 | 	A A		A		Column 1
+	 | 	G G ... G			|
+	 | 	E E		E		Column ...
+	 | 	  					|
+	 | 	7 6		0		Column 47
+	 v
+	 * 
+	 * LCD Image Converter Settings:
+	 * https://lcd-image-converter.riuson.com
+	 * 
+	 * Main scan direction: Top to Bottom
+	 * Line scan direction: Forward
+	 * Bands:	yes (8px)
+	 * Inverse:	yes 
+	 * 
+	*/
+	for(unsigned char i=0;i<8;i++)		//write Pages
 	{
-	Set_Page_Address(i);
-    Set_Column_Address(0x00);
-        for(j=0;j<0x30;j++)
+		Set_Page_Address(7-i);
+		Set_Column_Address(0);			//start at column 0
+        for(unsigned char j=0;j<47;j++)	//write Column for current page
 		{
-		    send_data(pgm_read_byte(&pic[i*0x30+j]));
+		    send_data(pgm_read_byte(&data[i*0x30+j]));
 		}
 	}
+	/*
+	 *
+	 * 
+	 * for(unsigned char i=0;i<8;i++)		//write Pages
+	{
+		Set_Page_Address(i);
+		Set_Column_Address(0);			//start at column 0
+        for(unsigned char j=0;j<47;j++)	//write Column for current page
+		{
+		    send_data(pgm_read_byte(&data[i*0x30+j]));
+		}
+	}
+	* */
+	
+	
+	
+	
+	
+	
+	//Display picture 48x64 => [384]
+   /* 
+	for(i=0;i<0x08;i++)
+	{
+		Set_Page_Address(i);
+		Set_Column_Address(0x00);
+        for(j=0;j<0x30;j++)
+		{
+		    send_data(pgm_read_byte(&data[i*0x30+j]));
+		}
+	}*/
     return;
 }
 void Display_Clear(void)
