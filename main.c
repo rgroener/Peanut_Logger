@@ -36,6 +36,7 @@
 uint16_t eeposition=0;
 int16_t temperature=0;
 uint32_t pres=0;
+int32_t pressure=0;
 uint16_t vor_komma(uint32_t value);
 uint8_t nach_komma(uint32_t value);
 int16_t temp=0;
@@ -51,8 +52,7 @@ uint8_t state;
 int32_t zero_alt=0;
 int32_t act_alt=0;
 
-
-
+int32_t diff_alt=0;
 
 //TIMER
 ISR (TIMER1_COMPA_vect);
@@ -68,6 +68,21 @@ ISR(USART0_RX_vect)
 	UDR0 = received_byte;//Echo Byte
 
 }//end of USART_rx 
+
+int32_t calc_altitude(int32_t zpres, int32_t apres)
+{
+	// Add these to the top of your program
+	const float p0 = 101725;     // Pressure at sea level (Pa)
+	float altitude;
+
+  // Add this into loop(), after you've calculated the pressure
+  altitude = (float)44330 * (1 - pow(((float) apres/p0), 0.190295));
+  
+  return 100*altitude;
+	
+}
+
+
 
 int main(void)
 {
@@ -127,8 +142,7 @@ int main(void)
 	sht21_init();
 	DPS310_init(ULTRA);
 	
-	
-   state = MEASURE;
+	state = MEASURE;
 	//sprintf(buffer,"sec=%d",sec);
 	//Write_String(14,0,0,"test");
 	/*
@@ -192,19 +206,24 @@ int main(void)
 								Write_String(14,2,0, "  ZERO  ");
 							}
 							break;
-			case MEASURE:	
-							pres=DPS310_get_pres();
-							sprintf(buffer,"P=%d.%d",vor_komma(pres),nach_komma(pres));
+							
+			case MEASURE:	pres=DPS310_get_pres();
+							sprintf(buffer,"%ld",pres);
 							Write_String(14,0,0,buffer);
 							if(BUTTON)
 							{
 								entprell=RELOAD_ENTPRELL;
 								zero_alt=pres;
 							}
-							
-							
+														
 							sprintf(buffer,"P=%ld",zero_alt);
 							Write_String(14,1,0,buffer);
+							
+							pressure=calc_altitude(zero_alt, pres);
+							sprintf(buffer,"%d.%d",vor_komma(pressure), nach_komma(pressure));
+							Write_String(14,2,0,buffer);
+							
+							
 							
 							/*temp=sht21_measure(TEMPERATURE);
 							sprintf(buffer,"T=%d.%d",vor_komma(temp),nach_komma(temp));

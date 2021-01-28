@@ -103,7 +103,6 @@ uint8_t DPS310_write(uint8_t reg, uint8_t data)
 	
 	//Daten zurueckgeben
 }
-
 int16_t DPS310_readCoeffs(void)
 {
 	uint16_t buffer[19];//coeffizienten
@@ -147,16 +146,12 @@ int16_t DPS310_readCoeffs(void)
        
     return 0;
 }
-
-
 void DPS310_sreset(void)
 {
 	// softreset of DPS310 sensor
 	DPS310_write(0x0c, 0x99);
 	_delay_ms(50);
 }
-
-
 uint32_t DPS310_get_sc_temp(void)
 {
 	long temp_raw=0;
@@ -170,7 +165,6 @@ uint32_t DPS310_get_sc_temp(void)
 				
 	return temp_raw; 
 }
-
 int16_t DPS310_get_temp(void)
 {
 	long temp_raw=0;
