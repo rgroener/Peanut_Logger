@@ -83,7 +83,7 @@ int32_t calc_altitude(int32_t zpres, int32_t apres)
   return altitude;
 }
 
- 
+ uint8_t xxx=0;
 
 int main(void)
 {
@@ -144,12 +144,10 @@ int main(void)
 	sht21_init();
 	DPS310_init(ULTRA);
 	
-	state = MEASURE;
+	state = LOGGING;
 	uint8_t test=0;
-	test=Display_Eeprom(11,88);
-	sprintf(buffer,"%d",test);
-	Write_String(14,2,0,buffer);
-	while(1);
+	
+
 	while(1)
 	{ 	
 		switch(state)
@@ -203,7 +201,15 @@ int main(void)
 								state=LOGGING;
 							}
 							break;
-			case LOGGING:	
+			case LOGGING:	test=Display_Eeprom(xxx,100);
+							sprintf(buffer,"%d  %d",test, xxx);
+							Write_String(14,2,0,buffer);
+							
+							if(BUTTON)
+							{
+								entprell=RELOAD_ENTPRELL;
+								xxx=0;
+							}
 							break;
 		}//End of switch(state)	
 		
@@ -214,13 +220,13 @@ int main(void)
 ISR (TIMER1_COMPA_vect)
 {
 	
-		ms10++;
-		if(entprell)entprell--;
-			
+	ms10++;
+	if(entprell)entprell--;
 	if(ms10==10)	//100ms
 	{
 		ms10=0;
 		ms100++;
+		
 		screentoggle++;
 		if(screentoggle==togtime)
 		{
@@ -230,11 +236,11 @@ ISR (TIMER1_COMPA_vect)
 				toggle = 1;
 			}else toggle =0;
 		}
-		
 	}
     if(ms100==10)	//sec
 	{
 		ms100=0;
+		if(xxx!=100)xxx++;
 		sec++;
 		//change display screen in fixed time
 	}
@@ -247,17 +253,13 @@ ISR (TIMER1_COMPA_vect)
 uint16_t vor_komma(uint32_t value)
 {
 	return value/100;
-	
 }
 uint8_t nach_komma(uint32_t value)
 {
 	uint8_t temp;
 	temp = value/100;
 	return value-(temp*100);
-	
-	
 }
-
 void uart_send_char(char c)
 {
 	while((UCSR0A & (1<<UDRE0)) == 0){};

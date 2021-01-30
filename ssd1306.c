@@ -13,58 +13,123 @@
 	 v*/
 uint8_t Display_Eeprom(uint16_t data, uint16_t max)
 {
-	uint8_t column=0;
-	uint8_t page=7;
-	uint8_t xx=0;
-	uint8_t proz=0;
-	uint8_t bar=0;
-
+	uint8_t column=0;	//vertical display position
+	uint8_t page=7;		//horizontal display position
+	uint8_t xx=0;		//helper variable
+	uint16_t proz=0;		//data size in % of total eeprom memory
+	uint16_t bar=0;		//lenght of memory bar
+	uint8_t max_page=0;	//full used pages to show bar
+	uint8_t pattern=0;	//leading edge of bar
+	uint8_t rest=0;		//bits for pattern
+	static uint8_t old_data=0;
+	static uint8_t old_max=0;
+	static uint8_t old_max_page=8;
 	proz=(100*data)/max; //calculate used memory in %
-	bar= (proz*64)/100;
+	bar= (proz*64)/100;	 //is equal to how many pixels
+	max_page=bar/8;		//page is 8 Bites
+	rest=data-max_page;	//
 	
-	//draw left line of memory-box
-	Set_Column_Address(column);
-	Set_Page_Address(page);
-	for(xx=0;xx<16;xx++)
+	//no need to draw same data twice
+	if(!((data==old_data) && (max==old_max)))
 	{
-		send_data(0x80);
-	}
-	//draw right line of memory-box
-	Set_Column_Address(column);
-	Set_Page_Address(0);
-	for(xx=0;xx<16;xx++)
-	{
-		send_data(0x01);
-	}
-	//draw upper line of memory-box
-	column=0;
-	page=0;
-	for(page=0;page<8;page++)
+		
+		
+		//draw left line of memory-box
+		Set_Column_Address(column);
+		Set_Page_Address(page);
+		for(xx=0;xx<16;xx++)
+		{
+			send_data(0x80);
+		}
+		//draw right line of memory-box
+		Set_Column_Address(column);
+		Set_Page_Address(0);
+		for(xx=0;xx<16;xx++)
+		{
+			send_data(0x01);
+		}
+		//draw upper line of memory-box
+		column=0;
+		page=0;
+		for(page=0;page<8;page++)
+		{
+			Set_Column_Address(column);
+			Set_Page_Address(page);
+			send_data(0xff);
+		}
+		//draw lower line of memory-box
+		page=0;
+		column=16;
+		for(page=0;page<8;page++)
+		{
+			Set_Column_Address(column);
+			Set_Page_Address(page);
+			send_data(0xff);
+		}
+		
+		/*draw full pages if not 
+		already drawn the last time*/
+		if(old_max_page!=max_page)
+		{
+			//Set_Column_Address(column);
+			//Set_Page_Address(7-max_page-old_max_page);
+			for(xx=0;xx<max_page;xx++)
+			{
+				for(column=1;column<16;column++)
+				{
+					Set_Column_Address(column);
+					Set_Page_Address(7-xx);
+					send_data(0xff);
+				}
+			}
+		}
+		switch(rest)
+		{
+			case 1:	pattern=(0x80);
+					break;
+			case 2:	pattern=(0xC0);
+					break;
+			case 3:	pattern=(0xE0);
+					break;
+			case 4:	pattern=(0xF0);
+					break;
+			case 5:	pattern=(0xF8);
+					break;
+			case 6:	pattern=(0xFC);
+					break;
+			case 7:	pattern=(0xFE);
+					break;
+		}//end of switch
+		for(column=1;column<16;column++)
+		{
+			Set_Column_Address(column);
+			Set_Page_Address(7-max_page);
+			send_data(pattern);
+		}
+
+		
+	}//end of data==old_data
+	old_data=data;
+	old_max=max;
+	old_max_page=max_page;
+	
+	
+	/*for(column=1;column<16;column++)
 	{
 		Set_Column_Address(column);
 		Set_Page_Address(page);
 		send_data(0xff);
 	}
-	//draw lower line of memory-box
-	page=0;
-	column=16;
-	for(page=0;page<8;page++)
-	{
-		Set_Column_Address(column);
-		Set_Page_Address(page);
-		send_data(0xff);
-	}
-	
 	//draw filled bar representing used memory
 	//start at column 1 to avoid gap in upper line
-	page=7;
+	
 	for(column=1;column<16;column++)
 	{
 		Set_Column_Address(column);
 		Set_Page_Address(page);
 		send_data(0b11111000);
-	}
-	return bar;
+	}*/
+	return 7-max_page;
 }//end of Display Eeprom
 
 
