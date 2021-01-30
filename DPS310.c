@@ -191,7 +191,6 @@ int16_t DPS310_get_temp(void)
 			
 			return (int16_t)temp_comp*100; //2505 entspricht 25,5 Grad
 }
-
 uint32_t DPS310_get_pres(void)
 {
 	long temp_raw;

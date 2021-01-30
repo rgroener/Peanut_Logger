@@ -1,5 +1,84 @@
 #include "ssd1306.h"
 
+/* Oled Display 64*48  bit organisation
+	 * array size full display [384]
+	 * 
+	 ======== ============>
+	 |	P P		P		Column 0
+	 | 	A A		A		Column 1
+	 | 	G G ... G			|
+	 | 	E E		E		Column ...
+	 | 	  					|
+	 | 	7 6		0		Column 47
+	 v*/
+void Display_Eeprom(uint8_t data)
+{
+	uint8_t column=0;
+	uint8_t page=7;
+	//draw left line of memory-box
+	Set_Column_Address(column);
+	Set_Page_Address(page);
+	for(uint8_t xx=0;xx<16;xx++)
+	{
+		send_data(0x80);
+	}
+	//draw right line of memory-box
+	Set_Column_Address(column);
+	Set_Page_Address(0);
+	for(uint8_t xx=0;xx<16;xx++)
+	{
+		send_data(0x01);
+	}
+	
+		//draw upper line of memory-box
+		column=0;
+		page=0;
+		for(page=0;page<8;page++)
+		{
+			Set_Column_Address(column);
+			Set_Page_Address(page);
+			send_data(0xff);
+		}
+		page=0;
+		column=16;
+		//draw lower line of memory-box
+		for(page=0;page<8;page++)
+		{
+			Set_Column_Address(column);
+			Set_Page_Address(page);
+			send_data(0xff);
+		}
+		
+	
+	
+	
+	
+	/*switch(data)
+	{
+		case 0:	for(uint8_t xx=1;xx<8;xx++)
+				{
+					send_data(0b10000000);
+				}
+				break;
+		case 1:	for(uint8_t xx=1;xx<8;xx++)
+				{
+					send_data(0b11100000);
+				}
+				break;
+		case 2:	for(uint8_t xx=1;xx<8;xx++)
+				{
+					send_data(0b11110000);
+				}
+				break;
+		case 3:	for(uint8_t xx=1;xx<8;xx++)
+				{
+					send_data(0b11111000);
+				}
+				break;
+	}//end of switch*/
+}//end of Display Eeprom
+
+
 void Display_Init(void)
 {
 	/*Init session according datasheet and sample code:
@@ -59,7 +138,8 @@ void Set_Page_Address(unsigned char add)
 	return;
 }
 void Set_Column_Address(unsigned char add)
-{	 add+=40;
+{	 
+	add+=40;
     send_command((0x10|(add>>4)));
 	send_command((0x0f&add));
 	return;

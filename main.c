@@ -28,7 +28,7 @@
 #define USART_BAUDRATE 9600
 #define BAUD_PRESCALE (((F_CPU / (USART_BAUDRATE * 8UL)))-1)
 #define RELOAD_ENTPRELL 40
-#define TOGGLEMAX 4
+//#define TOGGLEMAX 4
 #define TEMPERATURE 0
 #define HUMIDITY 1
 #define UART_BAUD_RATE      9600 
@@ -47,16 +47,17 @@ volatile uint8_t ms10,ms100,sec,min, entprell;
 volatile uint8_t screentoggle, toggle, toggle_alt;
 char buffer[20]; // buffer to store string
 char buff[20]; // buffer to store string
-enum state {LOGO, GREETER, ZERO, MEASURE};
+enum state {LOGO, GREETER, ZERO, MEASURE, LOGGING};
 uint8_t state;
 
 int32_t zero_alt=0;
 int32_t altitude=0;
-
+uint8_t log_flag=0;
 int32_t diff_alt=0;
 
 //TIMER
 ISR (TIMER1_COMPA_vect);
+uint8_t togtime;
 //UART
 void uart_send_char(char c);
 void uart_send_string(volatile char *s);
@@ -132,6 +133,7 @@ int main(void)
     screentoggle=3;
     toggle=0;
     toggle_alt=toggle;
+    togtime=0;
 		
 	Display_Init();
 	Display_Clear();
@@ -143,40 +145,7 @@ int main(void)
 	DPS310_init(ULTRA);
 	
 	state = MEASURE;
-	//sprintf(buffer,"sec=%d",sec);
-	//Write_String(14,0,0,"test");
-	/*
-	 * 
-	 * SHT21 	0x80 / 0x81
-	 * DPS310 	0xee / 0xef
-	 * 24LC64	0xA0 / 0xA1
-	 * 
-	 * */
-	 uint8_t xx=0xAA;
-	 uint8_t yy=0x11;
-	 uint8_t aa=0xCC;
-	 uint8_t zz=0xDD;
-	 
-	uint32_t total=0x00000000;
-	ext_ee_random_write_24(0,0x123456);
-	//total |= (aa << 16);
-	total = ext_ee_random_read_24(0);
-	
-	//total = xx;
-	
-	
-	//total |= (zz << 24);
-	
-	
-	
-	sprintf(buffer,"%6lX",total);
-	Write_String(14,0,0,buffer);
-	
-	sprintf(buffer,"%2X",ext_ee_random_read_8(19));
-	Write_String(14,1,0,buffer);
-	
-	sprintf(buffer,"%2X",ext_ee_random_read_8(20));
-	Write_String(14,2,0,buffer);
+	Display_Eeprom(2);
 	while(1);
 	while(1)
 	{ 	
@@ -217,104 +186,24 @@ int main(void)
 			case MEASURE:	pres=DPS310_get_pres();
 							sprintf(buffer,"%ld",pres);
 							Write_String(14,0,0,buffer);
-							if(BUTTON)
-							{
-								entprell=RELOAD_ENTPRELL;
-								zero_alt=pres;
-								eeposition=1;
-							}
-														
-							//sprintf(buffer,"%x",ext_ee_random_read_24(0));
+							sprintf(buffer,"%ld",zero_alt);
 							Write_String(14,1,0,buffer);
 							
 							altitude=calc_altitude(zero_alt, pres);
 							sprintf(buffer,"%ld",altitude);
 							Write_String(14,2,0,buffer);
 							
-							_delay_ms(1000);
-							
-							/*temp=sht21_measure(TEMPERATURE);
-							sprintf(buffer,"T=%d.%d",vor_komma(temp),nach_komma(temp));
-							Write_String(14,2,0,buffer);
-							
-							temp=sht21_measure(TEMPERATURE);
-							sprintf(buffer,"T=%d.%d",vor_komma(temp),nach_komma(temp));
-							Write_String(14,4,0,buffer);
-			*/
-							
-							
-						
-			
-			
-			/*temp=sht21_measure(HUMIDITY);
-							sprintf(buffer,"' %d.%d%%",vor_komma(temp),nach_komma(temp));
-							Write_String(14,1,0,buffer);
-							sprintf(buffer,"%d.%d\t",vor_komma(temp),nach_komma(temp));
-							uart_send_string(buffer);
-							
-							temp=sht21_measure(TEMPERATURE);
-							sprintf(buffer,") %d",temp);
-							Write_String(14,0,0,buffer);
-							sprintf(buffer,"%d.%d\t",vor_komma(temp),nach_komma(temp));
-							uart_send_string(buffer);
-			
-							pres=DPS310_get_temp(1);
-							sprintf(buffer,"%d",pres);
-							Write_String(14,2,0,buffer);
-							sprintf(buffer,"%d.%d\n",vor_komma(pres),nach_komma(pres));
-							uart_send_string(buffer);
-							
-							
-							//ext_ee_random_write_16(eeposition,temp);
-							eeposition += 2;
-							_delay_ms(1000);
-							
-			for(uint8_t x=0;x<255;x++)
+							if(BUTTON)
 							{
-								TWIStart();
-								TWIWrite(x);
-								temp=TWIGetStatus();
-								sprintf(buffer,"%2X",x);
-								Write_String(14,0,0,buffer);
-								TWIStop();
-								
-								if(temp==0x18)
-								{
-									sprintf(buffer,"%2X",x);
-									Write_String(14,2,0,buffer);
-									if(x==0xee)TXLED_EIN;
-									if(x==0x80)RXLED_EIN;
-								}
-								
-								_delay_ms(20);
-				
-							}*/
-			
-							/*temp = sht21_measure(0);
-							
-							hum = sht21_measure(1);
-							sprintf(buff,"%d.%d%%",vor_komma(hum), nach_komma(hum));
-							Write_String(14,1,0,buff);
-							
-							TWIStart();
-							test=TWIGetStatus();
-							sprintf(buffer,"%02X",test);
-							Write_String(14,1,0,buffer);
-							while(1);*/
-							
+								entprell=RELOAD_ENTPRELL;
+								Display_Clear();
+								state=LOGGING;
+							}
+							break;
+			case LOGGING:	
 							break;
 		}//End of switch(state)	
-			
-		//uart_send_char('A');
-		/*
-		Yes, a single backslash in a C-string is an escape character for control codes.
-		"\n" = newline
-		"\r" = carriage return
-		"\xhh" =  character with hexadecimal value hh.
-		*/
-		//_delay_ms(1000);
-		//sprintf(buffer,"sec=%d",test);
-		//Write_String(14,1,0,buffer);
+		
 	} //end while
 }//end of main
 
@@ -329,16 +218,8 @@ ISR (TIMER1_COMPA_vect)
 	{
 		ms10=0;
 		ms100++;
-	
-		
-	}
-    if(ms100==10)	//sec
-	{
-		ms100=0;
-		sec++;
-		//change display screen in fixed time
 		screentoggle++;
-		if(screentoggle==TOGGLEMAX)
+		if(screentoggle==togtime)
 		{
 			screentoggle=0;
 			if(toggle==0)
@@ -346,6 +227,13 @@ ISR (TIMER1_COMPA_vect)
 				toggle = 1;
 			}else toggle =0;
 		}
+		
+	}
+    if(ms100==10)	//sec
+	{
+		ms100=0;
+		sec++;
+		//change display screen in fixed time
 	}
 	if(sec==60)	//Minute
 	{
