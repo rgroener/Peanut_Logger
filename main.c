@@ -145,7 +145,7 @@ int main(void)
 	DPS310_init(ULTRA);
 	
 	state = LOGGING;
-	uint8_t test=0;
+	uint16_t test=0;
 	
 
 	while(1)
@@ -201,7 +201,7 @@ int main(void)
 								state=LOGGING;
 							}
 							break;
-			case LOGGING:	test=Display_Eeprom(xxx,100);
+			case LOGGING:	test=Display_Eeprom(xxx,480);
 							sprintf(buffer,"%d  %d",test, xxx);
 							Write_String(14,2,0,buffer);
 							
@@ -226,7 +226,7 @@ ISR (TIMER1_COMPA_vect)
 	{
 		ms10=0;
 		ms100++;
-		
+		if(xxx!=512)xxx++;
 		screentoggle++;
 		if(screentoggle==togtime)
 		{
@@ -240,7 +240,7 @@ ISR (TIMER1_COMPA_vect)
     if(ms100==10)	//sec
 	{
 		ms100=0;
-		if(xxx!=100)xxx++;
+		
 		sec++;
 		//change display screen in fixed time
 	}

@@ -18,55 +18,55 @@ uint8_t Display_Eeprom(uint16_t data, uint16_t max)
 	uint8_t xx=0;		//helper variable
 	uint16_t proz=0;		//data size in % of total eeprom memory
 	uint16_t bar=0;		//lenght of memory bar
-	uint8_t max_page=0;	//full used pages to show bar
-	uint8_t pattern=0;	//leading edge of bar
+	uint8_t max_page=8;	//full used pages to show bar
 	uint8_t rest=0;		//bits for pattern
-	static uint8_t old_data=0;
-	static uint8_t old_max=0;
+	uint8_t pattern=0;	//most forward pixel of bar
+	static uint8_t boxflag=0;	//draw box only the first time
+	static uint8_t old_rest=0;
 	static uint8_t old_max_page=8;
+	if(data>max)data=max;
 	proz=(100*data)/max; //calculate used memory in %
 	bar= (proz*64)/100;	 //is equal to how many pixels
 	max_page=bar/8;		//page is 8 Bites
-	rest=data-max_page;	//
+	rest=bar-(max_page*8);	//*8 due to 8 bit size of page
 	
-	//no need to draw same data twice
-	if(!((data==old_data) && (max==old_max)))
+	if(proz!=100)//only draw if bar is not yet full
 	{
-		
-		
-		//draw left line of memory-box
-		Set_Column_Address(column);
-		Set_Page_Address(page);
-		for(xx=0;xx<16;xx++)
+		//Boxoutline needs to be drawn only once
+		if(boxflag==0)
 		{
-			send_data(0x80);
-		}
-		//draw right line of memory-box
-		Set_Column_Address(column);
-		Set_Page_Address(0);
-		for(xx=0;xx<16;xx++)
-		{
-			send_data(0x01);
-		}
-		//draw upper line of memory-box
-		column=0;
-		page=0;
-		for(page=0;page<8;page++)
-		{
-			Set_Column_Address(column);
-			Set_Page_Address(page);
-			send_data(0xff);
-		}
-		//draw lower line of memory-box
-		page=0;
-		column=16;
-		for(page=0;page<8;page++)
-		{
-			Set_Column_Address(column);
-			Set_Page_Address(page);
-			send_data(0xff);
-		}
-		
+			boxflag=1;	
+			//draw left line of memory-box
+			Set_Column_Address(1);
+			Set_Page_Address(7);
+			for(xx=0;xx<14;xx++)
+			{
+				send_data(0x80);
+			}
+			//draw right line of memory-box
+			Set_Column_Address(1);
+			Set_Page_Address(0);
+			for(xx=0;xx<14;xx++)
+			{
+				send_data(0x01);
+			}
+			//draw upper line of memory-box
+			for(page=0;page<8;page++)
+			{
+				Set_Column_Address(0);
+				Set_Page_Address(page);
+				send_data(0xff);
+			}
+			//draw lower line of memory-box
+			page=0;
+			column=15;
+			for(page=0;page<8;page++)
+			{
+				Set_Column_Address(column);
+				Set_Page_Address(page);
+				send_data(0xff);
+			}
+		}//eof boxflag
 		/*draw full pages if not 
 		already drawn the last time*/
 		if(old_max_page!=max_page)
@@ -75,61 +75,47 @@ uint8_t Display_Eeprom(uint16_t data, uint16_t max)
 			//Set_Page_Address(7-max_page-old_max_page);
 			for(xx=0;xx<max_page;xx++)
 			{
-				for(column=1;column<16;column++)
+				for(column=1;column<15;column++)
 				{
 					Set_Column_Address(column);
 					Set_Page_Address(7-xx);
 					send_data(0xff);
 				}
 			}
-		}
-		switch(rest)
-		{
-			case 1:	pattern=(0x80);
-					break;
-			case 2:	pattern=(0xC0);
-					break;
-			case 3:	pattern=(0xE0);
-					break;
-			case 4:	pattern=(0xF0);
-					break;
-			case 5:	pattern=(0xF8);
-					break;
-			case 6:	pattern=(0xFC);
-					break;
-			case 7:	pattern=(0xFE);
-					break;
-		}//end of switch
-		for(column=1;column<16;column++)
-		{
-			Set_Column_Address(column);
-			Set_Page_Address(7-max_page);
-			send_data(pattern);
-		}
-
-		
-	}//end of data==old_data
-	old_data=data;
-	old_max=max;
-	old_max_page=max_page;
-	
-	
-	/*for(column=1;column<16;column++)
-	{
-		Set_Column_Address(column);
-		Set_Page_Address(page);
-		send_data(0xff);
-	}
-	//draw filled bar representing used memory
-	//start at column 1 to avoid gap in upper line
-	
-	for(column=1;column<16;column++)
-	{
-		Set_Column_Address(column);
-		Set_Page_Address(page);
-		send_data(0b11111000);
-	}*/
-	return 7-max_page;
+		}//end of max_page
+		if(rest!=old_rest)
+			{
+				switch(rest)
+				{
+					case 1:	pattern=(0x80);
+							break;
+					case 2:	pattern=(0xC0);
+							break;
+					case 3:	pattern=(0xE0);
+							break;
+					case 4:	pattern=(0xF0);
+							break;
+					case 5:	pattern=(0xF8);
+							break;
+					case 6:	pattern=(0xFC);
+							break;
+					case 7:	pattern=(0xFE);
+							break;
+				}//end of switch
+				//adds right line of box
+				if(max_page==7)pattern |= 0x01;
+				for(column=1;column<15;column++)
+				{
+					Set_Column_Address(column);
+					Set_Page_Address(7-max_page);
+					send_data(pattern);
+				}
+			}//end of rest
+		//save old values for next run
+		old_rest=rest;
+		old_max_page=max_page;
+	}//eof if(proz!=100)
+	return proz;
 }//end of Display Eeprom
 
 
