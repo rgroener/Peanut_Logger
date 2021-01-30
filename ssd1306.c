@@ -11,11 +11,16 @@
 	 | 	  					|
 	 | 	7 6		0		Column 47
 	 v*/
-void Display_Eeprom(uint8_t data)
+uint8_t Display_Eeprom(uint16_t data, uint16_t max)
 {
 	uint8_t column=0;
 	uint8_t page=7;
 	uint8_t xx=0;
+	uint8_t proz=0;
+	uint8_t bar=0;
+
+	proz=(100*data)/max; //calculate used memory in %
+	bar= (proz*64)/100;
 	
 	//draw left line of memory-box
 	Set_Column_Address(column);
@@ -40,23 +45,26 @@ void Display_Eeprom(uint8_t data)
 		Set_Page_Address(page);
 		send_data(0xff);
 	}
+	//draw lower line of memory-box
 	page=0;
 	column=16;
-	//draw lower line of memory-box
 	for(page=0;page<8;page++)
 	{
 		Set_Column_Address(column);
 		Set_Page_Address(page);
 		send_data(0xff);
 	}
-	page=7;
+	
+	//draw filled bar representing used memory
 	//start at column 1 to avoid gap in upper line
+	page=7;
 	for(column=1;column<16;column++)
 	{
 		Set_Column_Address(column);
 		Set_Page_Address(page);
 		send_data(0b11111000);
 	}
+	return bar;
 }//end of Display Eeprom
 
 

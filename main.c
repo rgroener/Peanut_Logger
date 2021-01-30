@@ -145,7 +145,10 @@ int main(void)
 	DPS310_init(ULTRA);
 	
 	state = MEASURE;
-	Display_Eeprom(2);
+	uint8_t test=0;
+	test=Display_Eeprom(11,88);
+	sprintf(buffer,"%d",test);
+	Write_String(14,2,0,buffer);
 	while(1);
 	while(1)
 	{ 	
@@ -189,8 +192,8 @@ int main(void)
 							sprintf(buffer,"%ld",zero_alt);
 							Write_String(14,1,0,buffer);
 							
-							altitude=calc_altitude(zero_alt, pres);
-							sprintf(buffer,"%ld",altitude);
+							//altitude=calc_altitude(zero_alt, pres);
+							//sprintf(buffer,"%d",Display_Eeprom(5,62));
 							Write_String(14,2,0,buffer);
 							
 							if(BUTTON)
