@@ -34,6 +34,7 @@
 #define UART_BAUD_RATE      9600 
 
 uint16_t eeposition=0;
+uint16_t eepos_max=0;
 int16_t temperature=0;
 uint32_t pres=0;
 int32_t pressure=0;
@@ -50,7 +51,7 @@ enum state {LOGO, GREETER, ZERO, MEASURE};
 uint8_t state;
 
 int32_t zero_alt=0;
-int32_t act_alt=0;
+int32_t altitude=0;
 
 int32_t diff_alt=0;
 
@@ -78,11 +79,10 @@ int32_t calc_altitude(int32_t zpres, int32_t apres)
   // Add this into loop(), after you've calculated the pressure
   altitude = (float)44330 * (1 - pow(((float) apres/p0), 0.190295));
   
-  return 100*altitude;
-	
+  return altitude;
 }
 
-
+ 
 
 int main(void)
 {
@@ -152,25 +152,32 @@ int main(void)
 	 * 24LC64	0xA0 / 0xA1
 	 * 
 	 * */
+	 uint8_t xx=0xAA;
+	 uint8_t yy=0x11;
+	 uint8_t aa=0xCC;
+	 uint8_t zz=0xDD;
 	 
-	//uart_send_string("Feuchtigkeit\tSHT21\tDPS310\n"); 
-	//uart_send_string("%\tC\tC\n");
-	/*
-	uint16_t address=0xABCD;
+	uint32_t total=0x00000000;
+	ext_ee_random_write_24(0,0x123456);
+	//total |= (aa << 16);
+	total = ext_ee_random_read_24(0);
 	
-	uint8_t add_high,add_low;
-	add_high=address >> 8;
-	add_low=(uint8_t) address;
+	//total = xx;
 	
 	
-	sprintf(buffer,"0x%2X",add_high);
+	//total |= (zz << 24);
+	
+	
+	
+	sprintf(buffer,"%6lX",total);
+	Write_String(14,0,0,buffer);
+	
+	sprintf(buffer,"%2X",ext_ee_random_read_8(19));
 	Write_String(14,1,0,buffer);
 	
-	sprintf(buffer,"0x%2X", add_low);
-	Write_String(14,0,0,buffer);
-	* 
-	* 
-	* */
+	sprintf(buffer,"%2X",ext_ee_random_read_8(20));
+	Write_String(14,2,0,buffer);
+	while(1);
 	while(1)
 	{ 	
 		switch(state)
@@ -214,16 +221,17 @@ int main(void)
 							{
 								entprell=RELOAD_ENTPRELL;
 								zero_alt=pres;
+								eeposition=1;
 							}
 														
-							sprintf(buffer,"P=%ld",zero_alt);
+							//sprintf(buffer,"%x",ext_ee_random_read_24(0));
 							Write_String(14,1,0,buffer);
 							
-							pressure=calc_altitude(zero_alt, pres);
-							sprintf(buffer,"%d.%d",vor_komma(pressure), nach_komma(pressure));
+							altitude=calc_altitude(zero_alt, pres);
+							sprintf(buffer,"%ld",altitude);
 							Write_String(14,2,0,buffer);
 							
-							
+							_delay_ms(1000);
 							
 							/*temp=sht21_measure(TEMPERATURE);
 							sprintf(buffer,"T=%d.%d",vor_komma(temp),nach_komma(temp));

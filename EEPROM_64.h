@@ -15,7 +15,9 @@
 uint8_t ext_ee_random_read_8(uint16_t address);
 uint8_t ext_ee_check_data_8(uint16_t address, uint8_t data);
 uint16_t ext_ee_random_read_16(uint16_t address);
+uint32_t ext_ee_random_read_24(uint16_t address);
 uint8_t ext_ee_check_data_16(uint16_t address, uint16_t data);
 uint8_t ext_ee_random_write_8(uint16_t address, uint8_t data);
 uint8_t ext_ee_random_write_16(uint16_t address, uint16_t data);
+uint8_t ext_ee_random_write_24(uint16_t address, uint32_t data);
 
