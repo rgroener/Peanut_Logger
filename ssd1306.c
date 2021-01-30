@@ -15,67 +15,48 @@ void Display_Eeprom(uint8_t data)
 {
 	uint8_t column=0;
 	uint8_t page=7;
+	uint8_t xx=0;
+	
 	//draw left line of memory-box
 	Set_Column_Address(column);
 	Set_Page_Address(page);
-	for(uint8_t xx=0;xx<16;xx++)
+	for(xx=0;xx<16;xx++)
 	{
 		send_data(0x80);
 	}
 	//draw right line of memory-box
 	Set_Column_Address(column);
 	Set_Page_Address(0);
-	for(uint8_t xx=0;xx<16;xx++)
+	for(xx=0;xx<16;xx++)
 	{
 		send_data(0x01);
 	}
-	
-		//draw upper line of memory-box
-		column=0;
-		page=0;
-		for(page=0;page<8;page++)
-		{
-			Set_Column_Address(column);
-			Set_Page_Address(page);
-			send_data(0xff);
-		}
-		page=0;
-		column=16;
-		//draw lower line of memory-box
-		for(page=0;page<8;page++)
-		{
-			Set_Column_Address(column);
-			Set_Page_Address(page);
-			send_data(0xff);
-		}
-		
-	
-	
-	
-	
-	/*switch(data)
+	//draw upper line of memory-box
+	column=0;
+	page=0;
+	for(page=0;page<8;page++)
 	{
-		case 0:	for(uint8_t xx=1;xx<8;xx++)
-				{
-					send_data(0b10000000);
-				}
-				break;
-		case 1:	for(uint8_t xx=1;xx<8;xx++)
-				{
-					send_data(0b11100000);
-				}
-				break;
-		case 2:	for(uint8_t xx=1;xx<8;xx++)
-				{
-					send_data(0b11110000);
-				}
-				break;
-		case 3:	for(uint8_t xx=1;xx<8;xx++)
-				{
-					send_data(0b11111000);
-				}
-				break;
-	}//end of switch*/
+		Set_Column_Address(column);
+		Set_Page_Address(page);
+		send_data(0xff);
+	}
+	page=0;
+	column=16;
+	//draw lower line of memory-box
+	for(page=0;page<8;page++)
+	{
+		Set_Column_Address(column);
+		Set_Page_Address(page);
+		send_data(0xff);
+	}
+	page=7;
+	//start at column 1 to avoid gap in upper line
+	for(column=1;column<16;column++)
+	{
+		Set_Column_Address(column);
+		Set_Page_Address(page);
+		send_data(0b11111000);
+	}
 }//end of Display Eeprom
 
 
