@@ -53,4 +53,4 @@ void Write_Char(uint8_t fontsize, char n);
 void Char_Position(uint8_t fontsize, uint8_t row, uint8_t pos);
 void Write_Char(uint8_t fontsize, char n);
 void Write_String(uint8_t fontsize, uint8_t row, uint8_t pos, const char str[]); 
-uint8_t Display_Eeprom(uint16_t data, uint16_t max);
+uint8_t Display_Eeprom(uint32_t data, uint32_t max);

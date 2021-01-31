@@ -71,19 +71,7 @@ ISR(USART0_RX_vect)
 
 }//end of USART_rx 
 
-int32_t calc_altitude(int32_t zpres, int32_t apres)
-{
-	// Add these to the top of your program
-	const float p0 = 101725;     // Pressure at sea level (Pa)
-	float altitude;
-
-  // Add this into loop(), after you've calculated the pressure
-  altitude = (float)44330 * (1 - pow(((float) apres/p0), 0.190295));
-  
-  return altitude;
-}
-
- uint8_t xxx=0;
+ uint32_t xxx=0;
 
 int main(void)
 {
@@ -145,7 +133,7 @@ int main(void)
 	DPS310_init(ULTRA);
 	
 	state = LOGGING;
-	uint16_t test=0;
+	uint32_t test=0;
 	
 
 	while(1)
@@ -201,8 +189,10 @@ int main(void)
 								state=LOGGING;
 							}
 							break;
-			case LOGGING:	test=Display_Eeprom(xxx,480);
-							sprintf(buffer,"%d  %d",test, xxx);
+			case LOGGING:	test=Display_Eeprom(xxx,50000);
+							sprintf(buffer,"Mem:%ld%%",test);
+							Write_String(14,1,0,buffer);
+							sprintf(buffer,"%ld",xxx);
 							Write_String(14,2,0,buffer);
 							
 							if(BUTTON)
@@ -219,6 +209,7 @@ int main(void)
 
 ISR (TIMER1_COMPA_vect)
 {
+	xxx++;
 	
 	ms10++;
 	if(entprell)entprell--;
@@ -226,7 +217,7 @@ ISR (TIMER1_COMPA_vect)
 	{
 		ms10=0;
 		ms100++;
-		if(xxx!=512)xxx++;
+		
 		screentoggle++;
 		if(screentoggle==togtime)
 		{
