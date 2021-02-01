@@ -32,16 +32,19 @@
 #define TEMPERATURE 0
 #define HUMIDITY 1
 #define UART_BAUD_RATE      9600 
+#define BUTTONWAIT 20	//delay before analysing counts of button
+#define QNH 99300
 
 uint16_t eeposition=0;
 uint16_t eepos_max=500;
 int16_t temperature=0;
 uint32_t pres=0;
+uint32_t pres_old=0;
 int32_t pressure=0;
-uint16_t vor_komma(uint32_t value);
+int32_t vor_komma(int32_t value);
 uint8_t nach_komma(uint32_t value);
 int16_t temp=0;
-uint16_t test=0;
+uint32_t test=0;
 uint16_t hum=0;
 volatile uint8_t ms10,ms100,sec,min, entprell;
 volatile uint8_t screentoggle, toggle, toggle_alt;
@@ -52,8 +55,19 @@ uint8_t state;
 
 int32_t zero_alt=0;
 int32_t altitude=0;
+int32_t altitude_old=0;
 uint8_t log_flag=0;
 int32_t diff_alt=0;
+int32_t diff_alt_old=0;
+
+//button count
+
+uint16_t buttonwait=0;
+uint8_t buttoncount=0;
+
+//QNH
+
+
 
 //TIMER
 ISR (TIMER1_COMPA_vect);
@@ -130,62 +144,99 @@ int main(void)
     TWIInit();
     _delay_ms(50);
 	sht21_init();
-	DPS310_init(ULTRA);
+	DPS310_init(HIGH);
 	
-	state = MEASURE;
+	state = LOGO;
+	Display_Clear();
+	Display_Logo();
 	while(1)
 	{ 	
 		switch(state)
 		{
-			case LOGO:		Display_Logo();
-							break;
-			case GREETER:	if(BUTTON)
+			case LOGO:		if(BUTTON)
 							{
 								state=ZERO;
 								entprell=RELOAD_ENTPRELL;
+								Display_Clear();
 								Write_String(14,0,0," Button ");
 								Write_String(14,1,0,"   to   ");
 								Write_String(14,2,0, "  ZERO  ");
 							}
-							if(toggle)
-							{
-									Write_String(14,0,0,"If found");
-									Write_String(14,1,0,"please  ");
-									Write_String(14,2,0, "contact ");
-							}else
-							{
-									Write_String(14,0,0,"rgroener");
-									Write_String(14,1,0,"@mailbox");
-									Write_String(14,2,0, ".org    ");	
-							}
 							break;
-			case ZERO:		if(BUTTON)
+			case ZERO:	//set current altitude as reference
+							if(BUTTON)
 							{
 								state=MEASURE;
 								entprell=RELOAD_ENTPRELL;
-								Write_String(14,0,0," Button ");
-								Write_String(14,1,0,"   to   ");
-								Write_String(14,2,0, "  ZERO  ");
+								pres=DPS310_get_pres();
+								altitude=calcalt(pres,QNH);
+								zero_alt=altitude;
+								Display_Clear();
 							}
 							break;
-							
-			case MEASURE:	pres=DPS310_get_pres();
-							sprintf(buffer,"%ld",pres);
-							Write_String(14,0,0,buffer);
-							
-							altitude=calcalt(pres,99300);
-							sprintf(buffer,"%ld %d",altitude,log_flag);
-							Write_String(14,2,0,buffer);
-							
+			case MEASURE:	//measure presure
+							pres=DPS310_get_pres();
+							//calculate altitude
+							altitude=calcalt(pres,QNH);
+							//calculate altitude difference 							
 							diff_alt=altitude-zero_alt;
-							sprintf(buffer,"%ld",diff_alt);
-							Write_String(14,1,0,buffer);
-														
+							
+							//only print if one of the values
+							//has changed
+							if((pres_old!=pres)||(altitude!=altitude_old))
+							{
+								//save old values
+								pres_old=pres;
+								altitude_old=altitude;
+								//clear display
+								Display_Clear();
+								//print pressure
+								sprintf(buffer,"%ld.%d",vor_komma(pres),nach_komma(pres));
+								Write_String(14,0,0,buffer);
+								//print current altitude
+								sprintf(buffer,"%ld.%dm",vor_komma(altitude),nach_komma(altitude));
+								Write_String(14,1,0,buffer);
+								//print altitude difference
+								sprintf(buffer,"%ld.%dm",vor_komma(diff_alt),nach_komma(diff_alt));
+								Write_String(14,2,0,buffer);
+							}//eof if(pres_old...)
+							//check if button is pressed																				
 							if(BUTTON)
 							{
 								entprell=RELOAD_ENTPRELL;
+								buttoncount++;
+								//start wait time for buttoncount
+								//at first activation of button
+								if(buttonwait==0)buttonwait=BUTTONWAIT;
 					
 							}
+							//analyse button counter
+							if((buttoncount!=0) && (buttonwait==0))
+							{
+								//button pressed once
+								if(buttoncount==1) 
+								{
+									test=ext_ee_random_read_24(0);
+									sprintf(buffer,"\t%d,%ld",eeposition, altitude);
+									Write_String(14,2,0,buffer);
+									
+									
+									
+								}else 
+								//button pressed twice
+								if(buttoncount==2)
+								{
+									sprintf(buffer,"Zwei");
+									Write_String(14,2,0,buffer);
+									
+									
+									
+								}
+								//reset for next process
+								buttoncount=0;
+								buttonwait=0;
+							}
+							
 							break;
 			case LOGGING:	
 							break;
@@ -199,14 +250,16 @@ int main(void)
 
 ISR (TIMER1_COMPA_vect)
 {
-	
-	
 	ms10++;
 	if(entprell)entprell--;
 	if(ms10==10)	//100ms
 	{
 		ms10=0;
 		ms100++;
+		/*if button count process runs
+		 * decrease wait variable till zero*/
+		if((buttoncount!=0) && (buttonwait!=0))buttonwait--;
+		
 		if(xxx<951)xxx++;
 		screentoggle++;
 		if(screentoggle==togtime)
@@ -231,7 +284,7 @@ ISR (TIMER1_COMPA_vect)
 		min++;
 	}
 }
-uint16_t vor_komma(uint32_t value)
+int32_t vor_komma(int32_t value)
 {
 	return value/100;
 }
@@ -265,3 +318,48 @@ void Display_Logo(void)
 	Write_String(8,4,6,"UE");
 	Write_String(8,5,6,"TR");
 }
+
+/*
+ * Analyse number of button clicks
+ * 
+if(BUTTON)
+{
+	entprell=RELOAD_ENTPRELL;
+	buttoncount++;
+	//start wait time for buttoncount
+	//at first activation of button
+	if(buttonwait==0)buttonwait=BUTTONWAIT;
+}
+//analyse button counter
+if((buttoncount!=0) && (buttonwait==0))
+{
+	//button pressed once
+	if(buttoncount==1) 
+	{
+		sprintf(buffer,"Eins");
+		Write_String(14,2,0,buffer);
+	}else 
+	//button pressed twice
+	if(buttoncount==2)
+	{
+		sprintf(buffer,"Zwei");
+		Write_String(14,2,0,buffer);
+	}
+	//reset for next process
+	buttoncount=0;
+	buttonwait=0;
+}
+* 
+***********************
+if(toggle)
+{
+	Write_String(14,0,0,"If found");
+	Write_String(14,1,0,"please  ");
+	Write_String(14,2,0, "contact ");
+}else
+{
+	Write_String(14,0,0,"rgroener");
+	Write_String(14,1,0,"@mailbox");
+	Write_String(14,2,0, ".org    ");	
+}
+*/

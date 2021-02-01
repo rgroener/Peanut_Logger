@@ -248,7 +248,7 @@ uint32_t DPS310_get_pres(void)
 
 long calcalt(double press, uint32_t pressealevel)
 {
-   return (44330 * (1 - pow((double) press / pressealevel, 0.1902226)));
+   return 100*(44330 * (1 - pow((double) press / pressealevel, 0.1902226)));
 	//*100 um stellen nach dem  Komma nicht zu verlieren
 }
 
