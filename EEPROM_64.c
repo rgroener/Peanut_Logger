@@ -189,7 +189,7 @@ uint8_t ext_ee_random_write_24(uint16_t address, uint32_t data)
 	TWIWrite(data_low);
 	if(TWIGetStatus() != 0x28)return 99;//data received acknowledged
 	TWIStop();
-	_delay_ms(50);//give eeprom time to write
+	_delay_ms(100);//give eeprom time to write
 	return 0;
 	
 }

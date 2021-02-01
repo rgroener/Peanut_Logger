@@ -1,6 +1,5 @@
 #include "ssd1306.h"
 
-
 void Display_Init(void)
 {
 	/*Init session according datasheet and sample code:
@@ -178,7 +177,7 @@ void Write_String(uint8_t fontsize, uint8_t row, uint8_t pos, const char str[])
  * 
  * 	grn Jan 21
  * */
-uint8_t Display_Eeprom(uint32_t data, uint32_t max)
+uint8_t Display_Eeprom(uint32_t data, uint32_t max, uint8_t reset)
 {
 	/* Oled Display 64*48  bit organisation
 	 * array size full display [384]
@@ -203,6 +202,19 @@ uint8_t Display_Eeprom(uint32_t data, uint32_t max)
 	static uint8_t boxflag=0;		//draw box only the first time
 	static uint8_t old_rest=0;		//save last rest
 	static uint8_t old_max_page=8;	//save last max position
+	/*delete saved values and reset
+	 * variables to original / start settings*/
+	if(reset==1)
+	{
+		column=0;		//vertical display position
+		page=7;			//horizontal display position
+		rest=0;			//bits for pattern
+		pattern=0;		//most forward pixel of bar
+		bar_hight=10;	//height o the memo box 2...
+		boxflag=0;		//draw box only the first time
+		old_rest=0;		//save last rest
+		old_max_page=8;	//save last max position
+	}
 	if(data>max)data=max;			//avoid bigger data than max
 	proz=0.5+((100*data)/max); 		//calculate used memory in %
 	bar= (proz*64)/100;	 	//is equal to how many pixels

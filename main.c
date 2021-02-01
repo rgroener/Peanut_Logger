@@ -34,7 +34,7 @@
 #define UART_BAUD_RATE      9600 
 
 uint16_t eeposition=0;
-uint16_t eepos_max=0;
+uint16_t eepos_max=500;
 int16_t temperature=0;
 uint32_t pres=0;
 int32_t pressure=0;
@@ -47,7 +47,7 @@ volatile uint8_t ms10,ms100,sec,min, entprell;
 volatile uint8_t screentoggle, toggle, toggle_alt;
 char buffer[20]; // buffer to store string
 char buff[20]; // buffer to store string
-enum state {LOGO, GREETER, ZERO, MEASURE, LOGGING};
+enum state {LOGO, GREETER, ZERO, MEASURE, LOGGING, DOWNLOAD};
 uint8_t state;
 
 int32_t zero_alt=0;
@@ -71,7 +71,7 @@ ISR(USART0_RX_vect)
 
 }//end of USART_rx 
 
- uint32_t xxx=0;
+uint32_t xxx=0;
 
 int main(void)
 {
@@ -132,10 +132,7 @@ int main(void)
 	sht21_init();
 	DPS310_init(ULTRA);
 	
-	state = LOGGING;
-	uint32_t test=0;
-	
-
+	state = MEASURE;
 	while(1)
 	{ 	
 		switch(state)
@@ -175,31 +172,24 @@ int main(void)
 			case MEASURE:	pres=DPS310_get_pres();
 							sprintf(buffer,"%ld",pres);
 							Write_String(14,0,0,buffer);
-							sprintf(buffer,"%ld",zero_alt);
-							Write_String(14,1,0,buffer);
 							
-							//altitude=calc_altitude(zero_alt, pres);
-							//sprintf(buffer,"%d",Display_Eeprom(5,62));
+							altitude=calcalt(pres,99300);
+							sprintf(buffer,"%ld %d",altitude,log_flag);
 							Write_String(14,2,0,buffer);
 							
+							diff_alt=altitude-zero_alt;
+							sprintf(buffer,"%ld",diff_alt);
+							Write_String(14,1,0,buffer);
+														
 							if(BUTTON)
 							{
 								entprell=RELOAD_ENTPRELL;
-								Display_Clear();
-								state=LOGGING;
+					
 							}
 							break;
-			case LOGGING:	test=Display_Eeprom(xxx,50000);
-							sprintf(buffer,"Mem:%ld%%",test);
-							Write_String(14,1,0,buffer);
-							sprintf(buffer,"%ld",xxx);
-							Write_String(14,2,0,buffer);
-							
-							if(BUTTON)
-							{
-								entprell=RELOAD_ENTPRELL;
-								xxx=0;
-							}
+			case LOGGING:	
+							break;
+			case DOWNLOAD:	
 							break;
 		}//End of switch(state)	
 		
@@ -209,7 +199,7 @@ int main(void)
 
 ISR (TIMER1_COMPA_vect)
 {
-	xxx++;
+	
 	
 	ms10++;
 	if(entprell)entprell--;
@@ -217,7 +207,7 @@ ISR (TIMER1_COMPA_vect)
 	{
 		ms10=0;
 		ms100++;
-		
+		if(xxx<951)xxx++;
 		screentoggle++;
 		if(screentoggle==togtime)
 		{
@@ -231,7 +221,7 @@ ISR (TIMER1_COMPA_vect)
     if(ms100==10)	//sec
 	{
 		ms100=0;
-		
+		if(state==LOGGING)log_flag=1;//save value to log
 		sec++;
 		//change display screen in fixed time
 	}
