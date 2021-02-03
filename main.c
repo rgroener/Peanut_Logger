@@ -35,8 +35,8 @@
 #define BUTTONWAIT 20	//delay before analysing counts of button
 #define QNH 99300
 
-uint16_t eeposition=0;
-uint16_t eepos_max=500;
+uint16_t eepos=1;	//start at 1 to work with multiplication x4
+uint16_t eepos_max=1;
 int16_t temperature=0;
 uint32_t pres=0;
 uint32_t pres_old=0;
@@ -145,10 +145,32 @@ int main(void)
     _delay_ms(50);
 	sht21_init();
 	DPS310_init(HIGH);
+	int32_t reso=0;
+	/*
+	ext_ee_random_write_32(4,0x11223344);
+	uint32_t ff=ext_ee_random_read_32(0);
 	
-	state = LOGO;
 	Display_Clear();
+	//ext_ee_random_write_8(0,0xAA);
+	//ext_ee_random_write_8(1,0xBB);
+	//ext_ee_random_write_8(2,0xCC);
+	//ext_ee_random_write_8(3,0xDD);
+	//ff=(uint8_t)ext_ee_random_read_8(0);
+	
+	sprintf(buffer,"%6lX",ext_ee_random_read_32(4));
+	Write_String(14,0,0,buffer);
+	sprintf(buffer,"%6lX",ff);
+	Write_String(14,1,0,buffer);
+	
+	
+	
+	
+	
+	while(1);
+	*/
+	state = LOGO;
 	Display_Logo();
+
 	while(1)
 	{ 	
 		switch(state)
@@ -180,9 +202,23 @@ int main(void)
 							altitude=calcalt(pres,QNH);
 							//calculate altitude difference 							
 							diff_alt=altitude-zero_alt;
-							
+							/*
+							if(log_flag==1)
+							{
+								Display_Clear();
+								log_flag=0;
+								ext_ee_random_write_32(eepos,diff_alt);
+								sprintf(buffer,"%d",eepos);
+								Write_String(14,0,0,buffer);
+								sprintf(buffer,"%ld",ext_ee_random_read_32(eepos));
+								Write_String(14,1,0,buffer);
+								eepos++;
+								eepos_max++;
+							}
+							*/
 							//only print if one of the values
 							//has changed
+							
 							if((pres_old!=pres)||(altitude!=altitude_old))
 							{
 								//save old values
@@ -201,6 +237,8 @@ int main(void)
 								Write_String(14,2,0,buffer);
 							}//eof if(pres_old...)
 							//check if button is pressed																				
+							
+							
 							if(BUTTON)
 							{
 								entprell=RELOAD_ENTPRELL;
@@ -208,7 +246,6 @@ int main(void)
 								//start wait time for buttoncount
 								//at first activation of button
 								if(buttonwait==0)buttonwait=BUTTONWAIT;
-					
 							}
 							//analyse button counter
 							if((buttoncount!=0) && (buttonwait==0))
@@ -216,12 +253,14 @@ int main(void)
 								//button pressed once
 								if(buttoncount==1) 
 								{
-									test=ext_ee_random_read_24(0);
-									sprintf(buffer,"\t%d,%ld",eeposition, altitude);
-									Write_String(14,2,0,buffer);
-									
-									
-									
+									Display_Clear();
+									sprintf(buffer,"Button");
+									Write_String(14,0,0,buffer);
+									sprintf(buffer,"  for  ");
+									Write_String(14,0,0,buffer);
+									sprintf(buffer," Data ");
+									Write_String(14,0,0,buffer);
+									state=LOGGING;
 								}else 
 								//button pressed twice
 								if(buttoncount==2)
@@ -238,7 +277,23 @@ int main(void)
 							}
 							
 							break;
-			case LOGGING:	
+			case LOGGING:	if(BUTTON)
+							{
+								entprell=RELOAD_ENTPRELL;
+								state=DOWNLOAD;
+								Display_Clear();
+								sprintf(buffer," END");
+								Write_String(14,0,0,buffer);
+								
+								
+								for(uint16_t rr=1;rr<200;rr++)
+								{
+									reso=ext_ee_random_read_32(rr);
+									sprintf(buffer,"\t%d\t%ld.%d\n",rr, vor_komma(reso), nach_komma(reso));
+									uart_send_string(buffer);
+								}
+									
+							}
 							break;
 			case DOWNLOAD:	
 							break;
@@ -274,7 +329,7 @@ ISR (TIMER1_COMPA_vect)
     if(ms100==10)	//sec
 	{
 		ms100=0;
-		if(state==LOGGING)log_flag=1;//save value to log
+		if(state==MEASURE)log_flag=1;//save value to log
 		sec++;
 		//change display screen in fixed time
 	}

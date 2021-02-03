@@ -54,13 +54,18 @@ uint16_t ext_ee_random_read_16(uint16_t address)
 	
 	return result;	
 }//end of ext_ee_read()
-uint32_t ext_ee_random_read_24(uint16_t address)
+int32_t ext_ee_random_read_32(uint16_t eeposition)
 {
+	//!!! Position of 32Bit values are given
+	//corresponding address is calculated
+	//each 32Bit value needs 4addresses
+	uint16_t address=4*eeposition; 
 	uint8_t add_high,add_low;
 	add_high=address >> 8;		//shift high-byte to variable
 	add_low=(uint8_t) address;	//cast low-byte to variable
-	uint32_t result=0;
-	uint8_t res_low, res_high,res_msb;
+	int32_t result=0;
+	uint8_t res_lsb,res_low, res_high,res_msb;
+	res_lsb=0;
 	res_low=0;
 	res_high=0;	
 	res_msb=0;
@@ -80,19 +85,18 @@ uint32_t ext_ee_random_read_24(uint16_t address)
 	res_msb=TWIReadACK();
 	if(TWIGetStatus() != 0x50)return 15;
 	res_high=TWIReadACK();				//read byte
-	if(TWIGetStatus() != 0x50)return 15;
-	res_low=TWIReadNACK();				//read byte
+	if(TWIGetStatus() != 0x50)return 16;
+	res_low=TWIReadACK();				//read byte
+	if(TWIGetStatus() != 0x50)return 17;
+	res_lsb=TWIReadNACK();				//read byte
+	if(TWIGetStatus() != 0x58)return 18;
 	TWIStop();
-	/*weight  = ram_tmp_l;
-	weight |= (ram_tmp_m <<  8);
-	weight |= ((uint32_t)ram_tmp_h << 16); 
-	*/
-	
+
 	//build 24 variable from 3 bytes
-	result = res_low;
-	result |= ((uint32_t)res_high << 8);
-	result |= ((uint32_t)res_msb << 16);
-	result |= ((uint32_t)0x00 << 24);
+	result = res_lsb;
+	result |= ((int32_t)res_low << 8);
+	result |= ((int32_t)res_high << 16);
+	result |= ((int32_t)res_msb << 24);
 	
 	return result;	
 }//end of ext_ee_read()
@@ -161,18 +165,21 @@ uint8_t ext_ee_random_write_16(uint16_t address, uint16_t data)
 	return 0;
 	
 }
-uint8_t ext_ee_random_write_24(uint16_t address, uint32_t data)
+uint8_t ext_ee_random_write_32(uint16_t eeposition, int32_t data)
 {
-	//Write 16Bit data at given address
-	
+	//!!! Position of 32Bit values are given
+	//corresponding address is calculated
+	//each 32Bit value needs 4addresses
+	uint16_t address=4*eeposition; 
 	uint8_t add_high,add_low;
 	add_high=address >> 8;		//shift high-byte to variable
 	add_low=(uint8_t) address;	//cast low-byte to variable
 	
-	uint8_t data_high, data_low, data_msb;
-	data_msb =	data >> 16;
-	data_high = data >> 8;
-	data_low = (uint8_t) data;
+	uint8_t data_lsb, data_high, data_low, data_msb;
+	data_msb =	data >> 24;
+	data_high = data >> 16;
+	data_low = data >> 8;
+	data_lsb = (uint8_t) data;
 		
 	TWIStart();
 	if(TWIGetStatus() != 0x08)return 22;
@@ -188,6 +195,8 @@ uint8_t ext_ee_random_write_24(uint16_t address, uint32_t data)
 	if(TWIGetStatus() != 0x28)return 88;//data received acknowledged
 	TWIWrite(data_low);
 	if(TWIGetStatus() != 0x28)return 99;//data received acknowledged
+	TWIWrite(data_lsb);
+	if(TWIGetStatus() != 0x28)return 111;//data received acknowledged
 	TWIStop();
 	_delay_ms(100);//give eeprom time to write
 	return 0;
