@@ -20,51 +20,63 @@
 #include "DPS310.h"
 #include "EEPROM_64.h"
 
-
 #define BUTTON	(!(PIND & (1<<PD3))) && (entprell==0) //read button input
 #define TXLED_EIN PORTD &= ~(1<<PD1)
 #define TXLED_AUS PORTD |= (1<<PD1)
 #define RXLED_AUS PORTD &= ~(1<<PD0)
 #define RXLED_EIN PORTD |= (1<<PD0)
-
 #define USART_BAUDRATE 9600
 #define BAUD_PRESCALE (((F_CPU / (USART_BAUDRATE * 8UL)))-1)
-
 #define RELOAD_ENTPRELL 40
-#define TOGGLEMAX 4
+//#define TOGGLEMAX 4
 #define TEMPERATURE 0
 #define HUMIDITY 1
+#define UART_BAUD_RATE      9600 
+#define BUTTONWAIT 20	//delay before analysing counts of button
+#define QNH 99300
 
-uint16_t eeposition=0;
-
-uint16_t pres=0;
-uint16_t vor_komma(uint32_t value);
+uint16_t eepos=1;	//start at 1 to work with multiplication x4
+uint16_t eepos_max=1;
+int16_t temperature=0;
+uint32_t pres=0;
+uint32_t pres_old=0;
+int32_t pressure=0;
+int32_t vor_komma(int32_t value);
 uint8_t nach_komma(uint32_t value);
 int16_t temp=0;
-uint16_t test=0;
-int16_t hum=0;
-
-//TIMER
-ISR (TIMER1_COMPA_vect);
-uint16_t vor_komma(uint32_t value);
-uint8_t nach_komma(uint32_t value);
-
-//UART
-
-void uart_send_char(char c);
-void uart_send_string(volatile char *s);
-
-
-
-enum state {GREETER, ZERO, MEASURE};
-uint8_t state;
+uint32_t test=0;
+uint16_t hum=0;
 volatile uint8_t ms10,ms100,sec,min, entprell;
 volatile uint8_t screentoggle, toggle, toggle_alt;
 char buffer[20]; // buffer to store string
 char buff[20]; // buffer to store string
+enum state {LOGO, GREETER, ZERO, MEASURE, LOGGING, DOWNLOAD};
+uint8_t state;
 
-/* 9600 baud / Geschwindikeit Uebertragung RS232 Schnittstelle*/
-#define UART_BAUD_RATE      9600      
+int32_t zero_alt=0;
+int32_t altitude=0;
+int32_t altitude_old=0;
+uint8_t log_flag=0;
+int32_t diff_alt=0;
+int32_t diff_alt_old=0;
+
+//button count
+
+uint16_t buttonwait=0;
+uint8_t buttoncount=0;
+
+//QNH
+
+
+
+//TIMER
+ISR (TIMER1_COMPA_vect);
+uint8_t togtime;
+//UART
+void uart_send_char(char c);
+void uart_send_string(volatile char *s);
+void Display_Logo(void);
+ISR(USART0_RX_vect);
 ISR(USART0_RX_vect)
 {
 	char received_byte;
@@ -72,6 +84,8 @@ ISR(USART0_RX_vect)
 	UDR0 = received_byte;//Echo Byte
 
 }//end of USART_rx 
+
+uint32_t xxx=0;
 
 int main(void)
 {
@@ -121,6 +135,7 @@ int main(void)
     screentoggle=3;
     toggle=0;
     toggle_alt=toggle;
+    togtime=0;
 		
 	Display_Init();
 	Display_Clear();
@@ -129,204 +144,180 @@ int main(void)
     TWIInit();
     _delay_ms(50);
 	sht21_init();
-	DPS310_init(ULTRA);
-   state = MEASURE;
-	//sprintf(buffer,"sec=%d",sec);
-	//Write_String(14,0,0,"test");
+	DPS310_init(HIGH);
+	int32_t reso=0;
 	/*
-	 * 
-	 * SHT21 	0x80 / 0x81
-	 * DPS310 	0xee / 0xef
-	 * 24LC64	0xA0 / 0xA1
-	 * 
-	 * */
-	 
-	//uart_send_string("Feuchtigkeit\tSHT21\tDPS310\n"); 
-	//uart_send_string("%\tC\tC\n");
-	/*
-	uint16_t address=0xABCD;
+	ext_ee_random_write_32(4,0x11223344);
+	uint32_t ff=ext_ee_random_read_32(0);
 	
-	uint8_t add_high,add_low;
-	add_high=address >> 8;
-	add_low=(uint8_t) address;
+	Display_Clear();
+	//ext_ee_random_write_8(0,0xAA);
+	//ext_ee_random_write_8(1,0xBB);
+	//ext_ee_random_write_8(2,0xCC);
+	//ext_ee_random_write_8(3,0xDD);
+	//ff=(uint8_t)ext_ee_random_read_8(0);
 	
-	
-	sprintf(buffer,"0x%2X",add_high);
+	sprintf(buffer,"%6lX",ext_ee_random_read_32(4));
+	Write_String(14,0,0,buffer);
+	sprintf(buffer,"%6lX",ff);
 	Write_String(14,1,0,buffer);
 	
-	sprintf(buffer,"0x%2X", add_low);
-	Write_String(14,0,0,buffer);
-	* 
-	* 
-	* */
-
-	int16_t gg=0;
-	uint8_t xx=0;
-	//gg=ext_ee_random_write_16(0,0xAAAA);
-	gg=ext_ee_check_data_16(0,0xAAAA);
-	sprintf(buffer,"1: %d", gg);
-	Write_String(14,0,0,buffer);
-	gg=99;
-	//gg=ext_ee_random_write_8(99,0xAF);
-	gg=ext_ee_check_data_16(0,0xAABA);
-	sprintf(buffer,"2: %d", gg);
-	Write_String(14,1,0,buffer);
 	
-	//testcounter=ext_ee_random_read_8(99);
-	gg=ext_ee_random_read_16(0);
-	sprintf(buffer,"c: 0x%2X", gg);
-	Write_String(14,2,0,buffer);
+	
+	
+	
 	while(1);
-	
-	
+	*/
+	state = LOGO;
+	Display_Logo();
 
 	while(1)
 	{ 	
 		switch(state)
 		{
-			case GREETER:	if(BUTTON)
+			case LOGO:		if(BUTTON)
 							{
 								state=ZERO;
 								entprell=RELOAD_ENTPRELL;
+								Display_Clear();
 								Write_String(14,0,0," Button ");
 								Write_String(14,1,0,"   to   ");
 								Write_String(14,2,0, "  ZERO  ");
 							}
-							if(toggle)
-							{
-									Write_String(14,0,0,"If found");
-									Write_String(14,1,0,"please  ");
-									Write_String(14,2,0, "contact ");
-							}else
-							{
-									Write_String(14,0,0,"rgroener");
-									Write_String(14,1,0,"@mailbox");
-									Write_String(14,2,0, ".org    ");	
-							}
 							break;
-			case ZERO:		if(BUTTON)
+			case ZERO:	//set current altitude as reference
+							if(BUTTON)
 							{
 								state=MEASURE;
 								entprell=RELOAD_ENTPRELL;
-								Write_String(14,0,0," Button ");
-								Write_String(14,1,0,"   to   ");
-								Write_String(14,2,0, "  ZERO  ");
+								pres=DPS310_get_pres();
+								altitude=calcalt(pres,QNH);
+								zero_alt=altitude;
+								Display_Clear();
 							}
 							break;
-			case MEASURE:	gg=sht21_measure(HUMIDITY);
-							sprintf(buffer,"%d",gg);
-							Write_String(14,2,0,buffer);
-							sprintf(buffer,"Humidity: %d",gg/10);
-							uart_send_string(buffer);
-							
-							gg=sht21_measure(TEMPERATURE);
-							sprintf(buffer,"%d",gg);
-							Write_String(14,1,0,buffer);
-							sprintf(buffer,"\t Temperature: %d\n",gg);
-							uart_send_string(buffer);
-							gg=ext_ee_random_read_16(xx);
-							sprintf(buffer,"\t eeprom: %d\n",gg);
-							uart_send_string(buffer);
-							xx+=2;
-							sprintf(buffer,"%d",xx);
-							Write_String(14,0,0,buffer);
-			
-			
-			
-			
-			/*temp=sht21_measure(HUMIDITY);
-							sprintf(buffer,"' %d.%d%%",vor_komma(temp),nach_komma(temp));
-							Write_String(14,1,0,buffer);
-							sprintf(buffer,"%d.%d\t",vor_komma(temp),nach_komma(temp));
-							uart_send_string(buffer);
-							
-							temp=sht21_measure(TEMPERATURE);
-							sprintf(buffer,") %d",temp);
-							Write_String(14,0,0,buffer);
-							sprintf(buffer,"%d.%d\t",vor_komma(temp),nach_komma(temp));
-							uart_send_string(buffer);
-			
-							pres=DPS310_get_temp(1);
-							sprintf(buffer,"%d",pres);
-							Write_String(14,2,0,buffer);
-							sprintf(buffer,"%d.%d\n",vor_komma(pres),nach_komma(pres));
-							uart_send_string(buffer);
-							
-							
-							//ext_ee_random_write_16(eeposition,temp);
-							eeposition += 2;
-							_delay_ms(1000);
-							
-			for(uint8_t x=0;x<255;x++)
+			case MEASURE:	//measure presure
+							pres=DPS310_get_pres();
+							//calculate altitude
+							altitude=calcalt(pres,QNH);
+							//calculate altitude difference 							
+							diff_alt=altitude-zero_alt;
+							/*
+							if(log_flag==1)
 							{
-								TWIStart();
-								TWIWrite(x);
-								temp=TWIGetStatus();
-								sprintf(buffer,"%2X",x);
+								Display_Clear();
+								log_flag=0;
+								ext_ee_random_write_32(eepos,diff_alt);
+								sprintf(buffer,"%d",eepos);
 								Write_String(14,0,0,buffer);
-								TWIStop();
-								
-								if(temp==0x18)
+								sprintf(buffer,"%ld",ext_ee_random_read_32(eepos));
+								Write_String(14,1,0,buffer);
+								eepos++;
+								eepos_max++;
+							}
+							*/
+							//only print if one of the values
+							//has changed
+							
+							if((pres_old!=pres)||(altitude!=altitude_old))
+							{
+								//save old values
+								pres_old=pres;
+								altitude_old=altitude;
+								//clear display
+								Display_Clear();
+								//print pressure
+								sprintf(buffer,"%ld.%d",vor_komma(pres),nach_komma(pres));
+								Write_String(14,0,0,buffer);
+								//print current altitude
+								sprintf(buffer,"%ld.%dm",vor_komma(altitude),nach_komma(altitude));
+								Write_String(14,1,0,buffer);
+								//print altitude difference
+								sprintf(buffer,"%ld.%dm",vor_komma(diff_alt),nach_komma(diff_alt));
+								Write_String(14,2,0,buffer);
+							}//eof if(pres_old...)
+							//check if button is pressed																				
+							
+							
+							if(BUTTON)
+							{
+								entprell=RELOAD_ENTPRELL;
+								buttoncount++;
+								//start wait time for buttoncount
+								//at first activation of button
+								if(buttonwait==0)buttonwait=BUTTONWAIT;
+							}
+							//analyse button counter
+							if((buttoncount!=0) && (buttonwait==0))
+							{
+								//button pressed once
+								if(buttoncount==1) 
 								{
-									sprintf(buffer,"%2X",x);
+									Display_Clear();
+									sprintf(buffer,"Button");
+									Write_String(14,0,0,buffer);
+									sprintf(buffer,"  for  ");
+									Write_String(14,0,0,buffer);
+									sprintf(buffer," Data ");
+									Write_String(14,0,0,buffer);
+									state=LOGGING;
+								}else 
+								//button pressed twice
+								if(buttoncount==2)
+								{
+									sprintf(buffer,"Zwei");
 									Write_String(14,2,0,buffer);
-									if(x==0xee)TXLED_EIN;
-									if(x==0x80)RXLED_EIN;
+									
+									
+									
 								}
-								
-								_delay_ms(20);
-				
-							}*/
-			
-							/*temp = sht21_measure(0);
-							
-							hum = sht21_measure(1);
-							sprintf(buff,"%d.%d%%",vor_komma(hum), nach_komma(hum));
-							Write_String(14,1,0,buff);
-							
-							TWIStart();
-							test=TWIGetStatus();
-							sprintf(buffer,"%02X",test);
-							Write_String(14,1,0,buffer);
-							while(1);*/
+								//reset for next process
+								buttoncount=0;
+								buttonwait=0;
+							}
 							
 							break;
+			case LOGGING:	if(BUTTON)
+							{
+								entprell=RELOAD_ENTPRELL;
+								state=DOWNLOAD;
+								Display_Clear();
+								sprintf(buffer," END");
+								Write_String(14,0,0,buffer);
+								
+								
+								for(uint16_t rr=1;rr<200;rr++)
+								{
+									reso=ext_ee_random_read_32(rr);
+									sprintf(buffer,"\t%d\t%ld.%d\n",rr, vor_komma(reso), nach_komma(reso));
+									uart_send_string(buffer);
+								}
+									
+							}
+							break;
+			case DOWNLOAD:	
+							break;
 		}//End of switch(state)	
-			
-		//uart_send_char('A');
-		/*
-		Yes, a single backslash in a C-string is an escape character for control codes.
-		"\n" = newline
-		"\r" = carriage return
-		"\xhh" =  character with hexadecimal value hh.
-		*/
-		_delay_ms(1000);
-		//sprintf(buffer,"sec=%d",test);
-		//Write_String(14,1,0,buffer);
+		
 	} //end while
 }//end of main
 
 
 ISR (TIMER1_COMPA_vect)
 {
-	
-		ms10++;
-		if(entprell)entprell--;
-			
+	ms10++;
+	if(entprell)entprell--;
 	if(ms10==10)	//100ms
 	{
 		ms10=0;
 		ms100++;
-	
+		/*if button count process runs
+		 * decrease wait variable till zero*/
+		if((buttoncount!=0) && (buttonwait!=0))buttonwait--;
 		
-	}
-    if(ms100==10)	//sec
-	{
-		ms100=0;
-		sec++;
-		//change display screen in fixed time
+		if(xxx<951)xxx++;
 		screentoggle++;
-		if(screentoggle==TOGGLEMAX)
+		if(screentoggle==togtime)
 		{
 			screentoggle=0;
 			if(toggle==0)
@@ -335,26 +326,29 @@ ISR (TIMER1_COMPA_vect)
 			}else toggle =0;
 		}
 	}
+    if(ms100==10)	//sec
+	{
+		ms100=0;
+		if(state==MEASURE)log_flag=1;//save value to log
+		sec++;
+		//change display screen in fixed time
+	}
 	if(sec==60)	//Minute
 	{
 		sec=0;
 		min++;
 	}
 }
-uint16_t vor_komma(uint32_t value)
+int32_t vor_komma(int32_t value)
 {
 	return value/100;
-	
 }
 uint8_t nach_komma(uint32_t value)
 {
 	uint8_t temp;
 	temp = value/100;
 	return value-(temp*100);
-	
-	
 }
-
 void uart_send_char(char c)
 {
 	while((UCSR0A & (1<<UDRE0)) == 0){};
@@ -368,3 +362,59 @@ void uart_send_string(volatile char *s)
 		s++;
 	}
 }//end of send_string
+void Display_Logo(void)
+{
+	//draw Peanut Logger Logo at fix position
+	Display_Picture(40,48,woodstock);
+	Write_String(8,0,6,"PL");
+	Write_String(8,1,6,"EO");
+	Write_String(8,2,6,"AG");
+	Write_String(8,3,6,"NG");
+	Write_String(8,4,6,"UE");
+	Write_String(8,5,6,"TR");
+}
+
+/*
+ * Analyse number of button clicks
+ * 
+if(BUTTON)
+{
+	entprell=RELOAD_ENTPRELL;
+	buttoncount++;
+	//start wait time for buttoncount
+	//at first activation of button
+	if(buttonwait==0)buttonwait=BUTTONWAIT;
+}
+//analyse button counter
+if((buttoncount!=0) && (buttonwait==0))
+{
+	//button pressed once
+	if(buttoncount==1) 
+	{
+		sprintf(buffer,"Eins");
+		Write_String(14,2,0,buffer);
+	}else 
+	//button pressed twice
+	if(buttoncount==2)
+	{
+		sprintf(buffer,"Zwei");
+		Write_String(14,2,0,buffer);
+	}
+	//reset for next process
+	buttoncount=0;
+	buttonwait=0;
+}
+* 
+***********************
+if(toggle)
+{
+	Write_String(14,0,0,"If found");
+	Write_String(14,1,0,"please  ");
+	Write_String(14,2,0, "contact ");
+}else
+{
+	Write_String(14,0,0,"rgroener");
+	Write_String(14,1,0,"@mailbox");
+	Write_String(14,2,0, ".org    ");	
+}
+*/

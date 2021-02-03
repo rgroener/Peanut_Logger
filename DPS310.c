@@ -11,6 +11,8 @@ int16_t m_C21;
 int16_t m_C30;
 uint8_t meas=0;
 uint8_t id=0;
+
+
 uint8_t pres_ovs, temp_ovs;
 
 void DPS310_init(uint8_t acc)
@@ -101,7 +103,6 @@ uint8_t DPS310_write(uint8_t reg, uint8_t data)
 	
 	//Daten zurueckgeben
 }
-
 int16_t DPS310_readCoeffs(void)
 {
 	uint16_t buffer[19];//coeffizienten
@@ -145,17 +146,13 @@ int16_t DPS310_readCoeffs(void)
        
     return 0;
 }
-
-
 void DPS310_sreset(void)
 {
 	// softreset of DPS310 sensor
 	DPS310_write(0x0c, 0x99);
 	_delay_ms(50);
 }
-
-
-uint32_t DPS310_get_sc_temp(uint8_t oversampling)
+uint32_t DPS310_get_sc_temp(void)
 {
 	long temp_raw=0;
 	uint8_t buff[3] = {0};
@@ -168,18 +165,16 @@ uint32_t DPS310_get_sc_temp(uint8_t oversampling)
 				
 	return temp_raw; 
 }
-
-long DPS310_get_temp(uint8_t oversampling)
+int16_t DPS310_get_temp(void)
 {
 	long temp_raw=0;
 	double temp_sc=0;
 	double temp_comp=0;
 	long scalfactor=0;
-	
 			
-			temp_raw=DPS310_get_sc_temp(oversampling);
+			temp_raw=DPS310_get_sc_temp();
 			
-			switch(oversampling)
+			switch(temp_ovs)
 			{
 				case 1:	scalfactor = 524288;break;
 				case 2:	scalfactor = 1572864;break;
@@ -194,11 +189,9 @@ long DPS310_get_temp(uint8_t oversampling)
 			temp_sc = (float)temp_raw/scalfactor;
 			temp_comp=m_C0+m_C1*temp_sc;
 			
-			
-			return (long)temp_comp*10; //2505 entspricht 25,5 Grad
+			return (int16_t)temp_comp*100; //2505 entspricht 25,5 Grad
 }
-
-double DPS310_get_pres(uint8_t t_ovrs, uint8_t p_ovrs)
+uint32_t DPS310_get_pres(void)
 {
 	long temp_raw;
 	double temp_sc;
@@ -215,7 +208,7 @@ double DPS310_get_pres(uint8_t t_ovrs, uint8_t p_ovrs)
 		temp_raw=((((long)buff[0]<<8)|buff[1])<<8)|buff[2];
 		temp_raw=(temp_raw<<8)>>8;
 		
-		switch(t_ovrs)
+		switch(temp_ovs)
 			{
 				case 1:	scalfactor = 524288;break;
 				case 2:	scalfactor = 1572864;break;
@@ -236,7 +229,7 @@ double DPS310_get_pres(uint8_t t_ovrs, uint8_t p_ovrs)
 		prs_raw=((((long)buff[0]<<8)|buff[1])<<8)|buff[2];
 		prs_raw=(prs_raw<<8)>>8;
 		
-		switch(p_ovrs)
+		switch(pres_ovs)
 			{
 				case 1:	scalfactor = 524288;break;
 				case 2:	scalfactor = 1572864;break;
@@ -250,13 +243,13 @@ double DPS310_get_pres(uint8_t t_ovrs, uint8_t p_ovrs)
 			}
 		prs_sc = (float)prs_raw/scalfactor;
 		prs_comp=m_C00+prs_sc*(m_C10+prs_sc*(m_C20+(prs_sc*m_C30)))+temp_sc*m_C01+temp_sc*prs_sc*(m_C11+(prs_sc*m_C21));
-		return prs_comp; //2505 entspricht 25,5 Grad
+		return (uint32_t)prs_comp; 
 }
 
 long calcalt(double press, uint32_t pressealevel)
 {
    return 100*(44330 * (1 - pow((double) press / pressealevel, 0.1902226)));
-	//*100 um stellen von Komma nicht zu verlieren
+	//*100 um stellen nach dem  Komma nicht zu verlieren
 }
 
 

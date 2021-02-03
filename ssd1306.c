@@ -59,7 +59,8 @@ void Set_Page_Address(unsigned char add)
 	return;
 }
 void Set_Column_Address(unsigned char add)
-{	 add+=40;
+{	 
+	add+=40;
     send_command((0x10|(add>>4)));
 	send_command((0x0f&add));
 	return;
@@ -70,19 +71,39 @@ void Set_Contrast_Control_Register(unsigned char mod)
 	send_command(mod);
 	return;
 }
-void Display_Picture(const unsigned char pic[])
+void Display_Picture(uint8_t width, uint8_t height, const unsigned char data[])
 {
-	//Display picture 48x64
-    unsigned char i,j;
-	for(i=0;i<0x08;i++)
+	/* Oled Display 64*48  bit organisation
+	 * array size full display [384]
+	 * 
+	 ======== ============>
+	 |	P P		P		Column 0
+	 | 	A A		A		Column 1
+	 | 	G G ... G			|
+	 | 	E E		E		Column ...
+	 | 	  					|
+	 | 	7 6		0		Column 47
+	 v
+	 * 
+	 * LCD Image Converter Settings:
+	 * https://lcd-image-converter.riuson.com
+	 * 
+	 * Main scan direction: Top to Bottom
+	 * Line scan direction: Forward
+	 * Bands:	yes (8px)
+	 * Inverse:	yes 
+	 * 
+	*/
+	for(unsigned char i=0;i<(width/8);i++)		//write Pages
 	{
-	Set_Page_Address(i);
-    Set_Column_Address(0x00);
-        for(j=0;j<0x30;j++)
+		Set_Page_Address(7-i);
+		Set_Column_Address(0);			//start at column 0
+        for(unsigned char j=0;j<(height-1);j++)	//write Column for current page
 		{
-		    send_data(pgm_read_byte(&pic[i*0x30+j]));
+		    send_data(pgm_read_byte(&data[i*0x30+j]));
 		}
 	}
+	
     return;
 }
 void Display_Clear(void)
@@ -106,7 +127,6 @@ void Char_Position(uint8_t fontsize, uint8_t row, uint8_t pos)
 	Set_Page_Address(7-pos);	//0-7 	(* 8 bit)
 	Set_Column_Address(row*fontsize);	//0-3	(* 14 collums / char)
 }
-
 void Write_Char(uint8_t fontsize, char n)
 {
 	const char *fontpointer=0;
@@ -146,3 +166,145 @@ void Write_String(uint8_t fontsize, uint8_t row, uint8_t pos, const char str[])
 		 }
 	}
 }
+/*	Display bar graphic 
+ * 	Bar lenght corresponds to % of the max value.
+ * 	Hight of the bar / box is variable
+ * 
+ * 	Input: 	- Data to visualise in bar
+ * 			- Max value to calculate % from
+ * 	Return:	% value (0...100)%
+ * 	Output:	bar
+ * 
+ * 	grn Jan 21
+ * */
+uint8_t Display_Eeprom(uint32_t data, uint32_t max, uint8_t reset)
+{
+	/* Oled Display 64*48  bit organisation
+	 * array size full display [384]
+	 * 
+	 ======== ============>
+	 |	P P		P		Column 0
+	 | 	A A		A		Column 1
+	 | 	G G ... G			|
+	 | 	E E		E		Column ...
+	 | 	  					|
+	 | 	7 6		0		Column 47
+	 v*/
+	uint8_t column=0;		//vertical display position
+	uint8_t page=7;			//horizontal display position
+	uint8_t xx=0;			//helper variable
+	uint32_t proz=0;		//data size in % of total eeprom memory
+	uint32_t bar=0;			//lenght of memory bar
+	uint8_t max_page=8;		//full used pages to show bar
+	uint8_t rest=0;			//bits for pattern
+	uint8_t pattern=0;		//most forward pixel of bar
+	uint8_t bar_hight=10;	//height o the memo box 2...
+	static uint8_t boxflag=0;		//draw box only the first time
+	static uint8_t old_rest=0;		//save last rest
+	static uint8_t old_max_page=8;	//save last max position
+	/*delete saved values and reset
+	 * variables to original / start settings*/
+	if(reset==1)
+	{
+		column=0;		//vertical display position
+		page=7;			//horizontal display position
+		rest=0;			//bits for pattern
+		pattern=0;		//most forward pixel of bar
+		bar_hight=10;	//height o the memo box 2...
+		boxflag=0;		//draw box only the first time
+		old_rest=0;		//save last rest
+		old_max_page=8;	//save last max position
+	}
+	if(data>max)data=max;			//avoid bigger data than max
+	proz=0.5+((100*data)/max); 		//calculate used memory in %
+	bar= (proz*64)/100;	 	//is equal to how many pixels
+	max_page=bar/8;			//page is 8 Bites
+	rest=bar-(max_page*8);	//*8 due to 8 bit size of page
+	
+	if(proz!=100)//only draw if bar is not yet full
+	{
+		//Boxoutline needs to be drawn only once
+		if(boxflag==0)
+		{
+			boxflag=1;	
+			//draw left line of memory-box
+			Set_Column_Address(1);
+			Set_Page_Address(7);
+			for(xx=0;xx<(bar_hight-2);xx++)
+			{
+				send_data(0x80);
+			}
+			//draw right line of memory-box
+			Set_Column_Address(1);
+			Set_Page_Address(0);
+			for(xx=0;xx<(bar_hight-2);xx++)
+			{
+				send_data(0x01);
+			}
+			//draw upper line of memory-box
+			for(page=0;page<8;page++)
+			{
+				Set_Column_Address(0);
+				Set_Page_Address(page);
+				send_data(0xff);
+			}
+			//draw lower line of memory-box
+			page=0;
+			column=(bar_hight-1);
+			for(page=0;page<8;page++)
+			{
+				Set_Column_Address(column);
+				Set_Page_Address(page);
+				send_data(0xff);
+			}
+		}//eof boxflag
+		/*draw full pages if not 
+		already drawn the last time*/
+		if(old_max_page!=max_page)
+		{
+			//Set_Column_Address(column);
+			//Set_Page_Address(7-max_page-old_max_page);
+			for(xx=0;xx<max_page;xx++)
+			{
+				for(column=1;column<(bar_hight-1);column++)
+				{
+					Set_Column_Address(column);
+					Set_Page_Address(7-xx);
+					send_data(0xff);
+				}
+			}
+		}//end of max_page
+		if(rest!=old_rest)
+			{
+				switch(rest)
+				{
+					case 1:	pattern=(0x80);
+							break;
+					case 2:	pattern=(0xC0);
+							break;
+					case 3:	pattern=(0xE0);
+							break;
+					case 4:	pattern=(0xF0);
+							break;
+					case 5:	pattern=(0xF8);
+							break;
+					case 6:	pattern=(0xFC);
+							break;
+					case 7:	pattern=(0xFE);
+							break;
+				}//end of switch
+				//adds right line of box
+				if(max_page==7)pattern |= 0x01;
+				for(column=1;column<(bar_hight-1);column++)
+				{
+					Set_Column_Address(column);
+					Set_Page_Address(7-max_page);
+					send_data(pattern);
+				}
+			}//end of rest
+		//save old values for next run
+		old_rest=rest;
+		old_max_page=max_page;
+	}//eof if(proz!=100)
+	return proz;
+}//end of Display Eeprom
