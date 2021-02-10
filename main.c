@@ -35,6 +35,11 @@
 #define BUTTONWAIT 20	//delay before analysing counts of button
 #define QNH 99300
 
+#define DISPLAYOFF	0
+#define DISPLAYON	1	
+#define FLIGHTOFF	0
+#define FLIGHTON		1
+
 uint16_t eepos=1;	//start at 1 to work with multiplication x4
 uint16_t eepos_max=1;
 int16_t temperature=0;
@@ -50,15 +55,21 @@ volatile uint8_t ms10,ms100,sec,min, entprell;
 volatile uint8_t screentoggle, toggle, toggle_alt;
 char buffer[20]; // buffer to store string
 char buff[20]; // buffer to store string
-enum state {LOGO, GREETER, ZERO, MEASURE, LOGGING, DOWNLOAD};
+enum state {LOGO, ZERO, FLIGHT, LANDING, DATA};
 uint8_t state;
 
 int32_t zero_alt=0;
 int32_t altitude=0;
-int32_t altitude_old=0;
 uint8_t log_flag=0;
 int32_t diff_alt=0;
 int32_t diff_alt_old=0;
+int32_t altitude_old=0;
+int32_t max_alt=0;//maximum altitude reached in flight
+
+uint8_t display=1;//1 = display on / 0 = display off
+uint32_t flighttime=0;//total flight time
+uint32_t climbtime=0;//flight time in climb
+
 
 //button count
 
@@ -86,6 +97,14 @@ ISR(USART0_RX_vect)
 }//end of USART_rx 
 
 uint32_t xxx=0;
+void disp_altitude(int32_t altitude)
+{
+	
+		//max altitude
+		sprintf(buffer,"' %ld.%dm", vor_komma(altitude),nach_komma(altitude));
+		Write_String(14,1,0,buffer);
+	
+}//eof disp_altitude
 
 int main(void)
 {
@@ -168,42 +187,121 @@ int main(void)
 	
 	while(1);
 	*/
+	ext_ee_random_write_32(1,11111);
 	state = LOGO;
 	Display_Logo();
-
+	
+	reso=ext_ee_random_read_32(0);
+	sprintf(buffer,"%d\t%ld.%d\n",0, vor_komma(reso), nach_komma(reso));
+	uart_send_string(buffer);
+	
 	while(1)
 	{ 	
 		switch(state)
 		{
 			case LOGO:		if(BUTTON)
 							{
-								state=ZERO;
 								entprell=RELOAD_ENTPRELL;
-								Display_Clear();
-								Write_String(14,0,0," Button ");
-								Write_String(14,1,0,"   to   ");
-								Write_String(14,2,0, "  ZERO  ");
+								buttoncount++;
+								//start wait time for buttoncount
+								//at first activation of button
+								if(buttonwait==0)buttonwait=BUTTONWAIT;
+							}
+							//analyse button counter
+							if((buttoncount!=0) && (buttonwait==0))
+							{
+								//button 1x to zero altitude
+								if(buttoncount==1) 
+								{
+									state=ZERO;
+									entprell=RELOAD_ENTPRELL;
+									Display_Clear();
+									Write_String(14,0,0," Button ");
+									Write_String(14,1,0,"   to   ");
+									Write_String(14,2,0, "  ZERO  ");
+								}else 
+								//button 2x to download logged data
+								if(buttoncount==2)
+								{
+									state=LANDING;
+									entprell=RELOAD_ENTPRELL;
+									Display_Clear();
+									sprintf(buffer,"Button");
+									Write_String(14,0,0,buffer);
+									sprintf(buffer,"to send ");
+									Write_String(14,1,0,buffer);
+									sprintf(buffer,"Data ");
+									Write_String(14,2,0,buffer);
+								}
+								//reset for next process
+								buttoncount=0;
+								buttonwait=0;
 							}
 							break;
-			case ZERO:	//set current altitude as reference
+			case ZERO:		//set current altitude as reference
 							if(BUTTON)
 							{
-								state=MEASURE;
+								state=FLIGHT;
 								entprell=RELOAD_ENTPRELL;
 								pres=DPS310_get_pres();
 								altitude=calcalt(pres,QNH);
 								zero_alt=altitude;
+								flighttime=0;
+								climbtime=0;
 								Display_Clear();
 							}
 							break;
-			case MEASURE:	//measure presure
+			case FLIGHT:	//measure presure
 							pres=DPS310_get_pres();
 							//calculate altitude
 							altitude=calcalt(pres,QNH);
 							//calculate altitude difference 							
 							diff_alt=altitude-zero_alt;
-							/*
-							if(log_flag==1)
+							//set new max altitude if higher
+							if(diff_alt>max_alt)
+							{
+								max_alt=diff_alt;
+								climbtime=flighttime;
+							}
+							
+							if(log_flag)
+							{
+								//reset and wait for next logg_flag
+								log_flag=0;
+								//write altitude to propper eeprom positon
+								ext_ee_random_write_32(eepos,diff_alt);
+								if(display)
+								{
+									Display_Clear();
+									sprintf(buffer,"%d",eepos);
+									Write_String(14,0,0,buffer);
+									disp_altitude(ext_ee_random_read_32(eepos));
+									//sprintf(buffer,"%ld",);
+									Write_String(14,1,0,buffer);
+									sprintf(buffer,"%lds",flighttime);
+									Write_String(14,2,0,buffer);
+								}
+								eepos++;//increase position in eeprom
+								eepos_max++;//move last pos in eeprom
+							}//eof log_flag
+							//button indicate landing
+							//display data of last flight
+							if(BUTTON)
+							{
+								entprell=RELOAD_ENTPRELL;
+								state=LANDING;
+								Display_Clear();
+								//climb time
+								sprintf(buffer,") %lds", climbtime);
+								Write_String(14,0,0,buffer);
+								//display formatted max altitude
+								disp_altitude(max_alt);
+								//glide time
+								sprintf(buffer,"(% lds", flighttime-climbtime);
+								Write_String(14,2,0,buffer);
+							}
+							
+							/*if(log_flag==1)
 							{
 								Display_Clear();
 								log_flag=0;
@@ -215,10 +313,11 @@ int main(void)
 								eepos++;
 								eepos_max++;
 							}
-							*/
+							* */
+							
 							//only print if one of the values
 							//has changed
-							
+							/*
 							if((pres_old!=pres)||(altitude!=altitude_old))
 							{
 								//save old values
@@ -237,9 +336,9 @@ int main(void)
 								Write_String(14,2,0,buffer);
 							}//eof if(pres_old...)
 							//check if button is pressed																				
+							*/
 							
-							
-							if(BUTTON)
+							/*if(BUTTON)
 							{
 								entprell=RELOAD_ENTPRELL;
 								buttoncount++;
@@ -274,28 +373,34 @@ int main(void)
 								//reset for next process
 								buttoncount=0;
 								buttonwait=0;
-							}
+							}*/
 							
 							break;
-			case LOGGING:	if(BUTTON)
+			case LANDING:	if(BUTTON)
 							{
 								entprell=RELOAD_ENTPRELL;
-								state=DOWNLOAD;
+								state=DATA;
 								Display_Clear();
-								sprintf(buffer," END");
+								sprintf(buffer,"sending");
 								Write_String(14,0,0,buffer);
-								
-								
+								//send uart sting header
+								uart_send_string("\n\r\n\r******************************");
+								uart_send_string("\n\rTime: [sec]\tAltitude: [m]\n\r");
+								//send logged data in eeprom over uart
 								for(uint16_t rr=1;rr<200;rr++)
 								{
 									reso=ext_ee_random_read_32(rr);
-									sprintf(buffer,"\t%d\t%ld.%d\n",rr, vor_komma(reso), nach_komma(reso));
+									sprintf(buffer,"%d\t%ld.%d\n",rr, vor_komma(reso), nach_komma(reso));
 									uart_send_string(buffer);
 								}
-									
-							}
+								state=DATA;
+								Write_String(14,0,0,"sending");
+								Write_String(14,1,0,"is");
+								Write_String(14,2,0,"buffer");
+								
+							}//eof button
 							break;
-			case DOWNLOAD:	
+			case DATA:	
 							break;
 		}//End of switch(state)	
 		
@@ -329,7 +434,13 @@ ISR (TIMER1_COMPA_vect)
     if(ms100==10)	//sec
 	{
 		ms100=0;
-		if(state==MEASURE)log_flag=1;//save value to log
+		//set log_flag to 1 every second (logging intervall)
+		//flight function will set it back to zero
+		if(state==FLIGHT)
+		{
+			log_flag=1;//save value to log
+			flighttime++;
+		}
 		sec++;
 		//change display screen in fixed time
 	}
