@@ -15,6 +15,7 @@
 #include "spi.h"
 #include "grn_TWI.h"
 
+
 extern const char font8[728];
 extern const char font14[1274];
 

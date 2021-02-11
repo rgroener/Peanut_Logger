@@ -187,13 +187,15 @@ int main(void)
 	
 	while(1);
 	*/
-	ext_ee_random_write_32(1,11111);
+	//ext_ee_random_write_32(1,11111);
 	state = LOGO;
+	//Display_Eeprom(340,2000,0);
+	while(1);
 	Display_Logo();
 	
 	reso=ext_ee_random_read_32(0);
 	sprintf(buffer,"%d\t%ld.%d\n",0, vor_komma(reso), nach_komma(reso));
-	uart_send_string(buffer);
+	//uart_send_string(buffer);
 	
 	while(1)
 	{ 	
@@ -387,7 +389,7 @@ int main(void)
 								uart_send_string("\n\r\n\r******************************");
 								uart_send_string("\n\rTime: [sec]\tAltitude: [m]\n\r");
 								//send logged data in eeprom over uart
-								for(uint16_t rr=1;rr<200;rr++)
+								for(uint16_t rr=1;rr<2000;rr++)
 								{
 									reso=ext_ee_random_read_32(rr);
 									sprintf(buffer,"%d\t%ld.%d\n",rr, vor_komma(reso), nach_komma(reso));

@@ -166,19 +166,20 @@ void Write_String(uint8_t fontsize, uint8_t row, uint8_t pos, const char str[])
 		 }
 	}
 }
-/*	Display bar graphic 
- * 	Bar lenght corresponds to % of the max value.
- * 	Hight of the bar / box is variable
- * 
- * 	Input: 	- Data to visualise in bar
- * 			- Max value to calculate % from
- * 	Return:	% value (0...100)%
- * 	Output:	bar
- * 
- * 	grn Jan 21
- * */
+
 uint8_t Display_Eeprom(uint32_t data, uint32_t max, uint8_t reset)
 {
+	/*	Display bar graphic 
+	 * 	Bar lenght corresponds to % of the max value.
+	 * 	Hight of the bar / box is variable
+	 * 
+	 * 	Input: 	- Data to visualise in bar
+	 * 			- Max value to calculate % from
+	 * 	Return:	% value (0...100)%
+	 * 	Output:	bar
+	 * 
+	 * 	grn Jan 21
+	 * */
 	/* Oled Display 64*48  bit organisation
 	 * array size full display [384]
 	 * 
@@ -202,6 +203,7 @@ uint8_t Display_Eeprom(uint32_t data, uint32_t max, uint8_t reset)
 	static uint8_t boxflag=0;		//draw box only the first time
 	static uint8_t old_rest=0;		//save last rest
 	static uint8_t old_max_page=8;	//save last max position
+	extern const unsigned char barscale[40];
 	/*delete saved values and reset
 	 * variables to original / start settings*/
 	if(reset==1)
@@ -306,5 +308,8 @@ uint8_t Display_Eeprom(uint32_t data, uint32_t max, uint8_t reset)
 		old_rest=rest;
 		old_max_page=max_page;
 	}//eof if(proz!=100)
+	//Display barscale
+	
+	//Display_Picture(64,5,barscale);
 	return proz;
 }//end of Display Eeprom
