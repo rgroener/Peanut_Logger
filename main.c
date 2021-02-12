@@ -39,6 +39,7 @@
 #define DISPLAYON	1	
 #define FLIGHTOFF	0
 #define FLIGHTON		1
+#define EEPROMSIZE 	2000 //available places to store int32 Bit values
 
 uint16_t eepos=1;	//start at 1 to work with multiplication x4
 uint16_t eepos_max=1;
@@ -55,7 +56,7 @@ volatile uint8_t ms10,ms100,sec,min, entprell;
 volatile uint8_t screentoggle, toggle, toggle_alt;
 char buffer[20]; // buffer to store string
 char buff[20]; // buffer to store string
-enum state {LOGO, ZERO, FLIGHT, LANDING, DATA};
+enum state {LOGO, ZERO, FLIGHT, LANDING, NEXTFLIGHT,DATA};
 uint8_t state;
 
 int32_t zero_alt=0;
@@ -70,7 +71,7 @@ uint8_t display=1;//1 = display on / 0 = display off
 uint32_t flighttime=0;//total flight time
 uint32_t climbtime=0;//flight time in climb
 
-
+  int32_t reso=0;
 //button count
 
 uint16_t buttonwait=0;
@@ -88,115 +89,29 @@ void uart_send_char(char c);
 void uart_send_string(volatile char *s);
 void Display_Logo(void);
 ISR(USART0_RX_vect);
-ISR(USART0_RX_vect)
-{
-	char received_byte;
-	received_byte = UDR0;
-	UDR0 = received_byte;//Echo Byte
 
-}//end of USART_rx 
 
 uint32_t xxx=0;
-void disp_altitude(int32_t altitude)
-{
-	
-		//max altitude
-		sprintf(buffer,"' %ld.%dm", vor_komma(altitude),nach_komma(altitude));
-		Write_String(14,1,0,buffer);
-	
-}//eof disp_altitude
+void disp_altitude(int32_t altitude);
+void Display_Eeprom(uint32_t data, uint32_t max,uint16_t ti);
+void init_system(void);
+void init_var(void);
+
 
 int main(void)
 {
-	DDRB 	|= (1<<PB0) | (1<<PB1) | (1<<PB2) | (1<<PB3) | (1<<PB5);//set CS_DISP and RES and D/C output
-	PORTB	|= (1<<PB0) | (1<<PB1) | (1<<PB2) | (1<<PB3) | (1<<PB5);//set CS_DISP and RES and D/C high
-	
-	//TWI
-	DDRC |= (1<<PC5) | (1<<PC4);	//set pins for SCL und SDA as output
-	PORTC |= (1<<PC5) | (1<<PC4);	//set pins high
-	PORTC &= ~(1<<PC5);
-	
-	DDRD |= (1<<PD1)| (1<<PD0);//set TX0 and RX as output
-	TXLED_AUS;
-	RXLED_AUS;
-
-	DDRD &= ~(1<<PD3) | (1<<PD0);	//Button and RX0 as input(red LED)
-	PORTD |= (1<<PD3);	//activate Pullup
-	
-	//init SPI as master without interrupt
-	SPI_MasterInit();
-    //Timer 1 Configuration
-	OCR1A = 1249;	//OCR1A = 0x3D08;==1sec
-	
-    TCCR1B |= (1 << WGM12);
-    // Mode 4, CTC on OCR1A
-
-    TIMSK1 |= (1 << OCIE1A);
-    //Set interrupt on compare match
-
-    TCCR1B |= (1 << CS11) | (1 << CS10);
-    // set prescaler to 64 and start the timer
-    
-    //UART0
-    UCSR0B = (1<<RXEN0) | (1<<TXEN0) | (1<<RXCIE0);	//Turn on RX and TX circuits RXCIE0 enables Interrupt when byte received
-	UCSR0C = (1<<UCSZ01) | (1<<UCSZ00);	//8-Bit Char size
-	UBRR0H = (BAUD_PRESCALE >> 8);	//load upper 8-Bits of baud rate value into high byte of UBRR0H
-	UBRR0L = BAUD_PRESCALE;			//load lower 8-Bits of Baud rate into low byte of UBRR0L
-
-    sei();
-    // enable interrupts
-    
-    ms10=0;
-    ms100=0;
-    sec=0;
-    min=0;
-    entprell=0;
-    screentoggle=3;
-    toggle=0;
-    toggle_alt=toggle;
-    togtime=0;
-		
-	Display_Init();
-	Display_Clear();
-	Set_Page_Address(0);
-    Set_Column_Address(0);
+	init_system();
+	init_var();
+       
     TWIInit();
     _delay_ms(50);
 	sht21_init();
 	DPS310_init(HIGH);
-	int32_t reso=0;
-	/*
-	ext_ee_random_write_32(4,0x11223344);
-	uint32_t ff=ext_ee_random_read_32(0);
 	
-	Display_Clear();
-	//ext_ee_random_write_8(0,0xAA);
-	//ext_ee_random_write_8(1,0xBB);
-	//ext_ee_random_write_8(2,0xCC);
-	//ext_ee_random_write_8(3,0xDD);
-	//ff=(uint8_t)ext_ee_random_read_8(0);
-	
-	sprintf(buffer,"%6lX",ext_ee_random_read_32(4));
-	Write_String(14,0,0,buffer);
-	sprintf(buffer,"%6lX",ff);
-	Write_String(14,1,0,buffer);
-	
-	
-	
-	
-	
-	while(1);
-	*/
-	//ext_ee_random_write_32(1,11111);
 	state = LOGO;
-	//Display_Eeprom(340,2000,0);
-	while(1);
 	Display_Logo();
 	
-	reso=ext_ee_random_read_32(0);
-	sprintf(buffer,"%d\t%ld.%d\n",0, vor_komma(reso), nach_komma(reso));
-	//uart_send_string(buffer);
-	
+
 	while(1)
 	{ 	
 		switch(state)
@@ -378,7 +293,18 @@ int main(void)
 							}*/
 							
 							break;
+			
 			case LANDING:	if(BUTTON)
+							{
+								entprell=RELOAD_ENTPRELL;
+								state=NEXTFLIGHT;
+								//show memory usage to decide 
+								//for next flight
+								Display_Eeprom(eepos_max,EEPROMSIZE,EEPROMSIZE-eepos_max);
+								
+								
+							}break;
+			case NEXTFLIGHT:if(BUTTON)
 							{
 								entprell=RELOAD_ENTPRELL;
 								state=DATA;
@@ -478,7 +404,7 @@ void uart_send_string(volatile char *s)
 void Display_Logo(void)
 {
 	//draw Peanut Logger Logo at fix position
-	Display_Picture(40,48,woodstock);
+	Display_Picture(0,0,40,48,woodstock);
 	Write_String(8,0,6,"PL");
 	Write_String(8,1,6,"EO");
 	Write_String(8,2,6,"AG");
@@ -486,6 +412,91 @@ void Display_Logo(void)
 	Write_String(8,4,6,"UE");
 	Write_String(8,5,6,"TR");
 }
+void Display_Eeprom(uint32_t data, uint32_t max,uint16_t ti)
+{
+	Display_Clear();
+	Eeprom(data,max,0);
+	Display_Picture(0,12,64,5,barscale);
+	Write_String(8,3,0,"Runtime:");
+	sprintf(buffer,"%d sec",ti);
+	Write_String(8,5,0, buffer);
+}
+
+void disp_altitude(int32_t altitude)
+{
+	
+		//max altitude
+		sprintf(buffer,"' %ld.%dm", vor_komma(altitude),nach_komma(altitude));
+		Write_String(14,1,0,buffer);
+	
+}//eof disp_altitude
+ISR(USART0_RX_vect)
+{
+	char received_byte;
+	received_byte = UDR0;
+	UDR0 = received_byte;//Echo Byte
+
+}//end of USART_rx 
+
+void init_system(void)
+{
+	DDRB 	|= (1<<PB0) | (1<<PB1) | (1<<PB2) | (1<<PB3) | (1<<PB5);//set CS_DISP and RES and D/C output
+	PORTB	|= (1<<PB0) | (1<<PB1) | (1<<PB2) | (1<<PB3) | (1<<PB5);//set CS_DISP and RES and D/C high
+	
+	//TWI
+	DDRC |= (1<<PC5) | (1<<PC4);	//set pins for SCL und SDA as output
+	PORTC |= (1<<PC5) | (1<<PC4);	//set pins high
+	PORTC &= ~(1<<PC5);
+	
+	DDRD |= (1<<PD1)| (1<<PD0);//set TX0 and RX as output
+	TXLED_AUS;
+	RXLED_AUS;
+
+	DDRD &= ~(1<<PD3) | (1<<PD0);	//Button and RX0 as input(red LED)
+	PORTD |= (1<<PD3);	//activate Pullup
+	
+	//init SPI as master without interrupt
+	SPI_MasterInit();
+    //Timer 1 Configuration
+	OCR1A = 1249;	//OCR1A = 0x3D08;==1sec
+	
+    TCCR1B |= (1 << WGM12);
+    // Mode 4, CTC on OCR1A
+
+    TIMSK1 |= (1 << OCIE1A);
+    //Set interrupt on compare match
+
+    TCCR1B |= (1 << CS11) | (1 << CS10);
+    // set prescaler to 64 and start the timer
+    
+    //UART0
+    UCSR0B = (1<<RXEN0) | (1<<TXEN0) | (1<<RXCIE0);	//Turn on RX and TX circuits RXCIE0 enables Interrupt when byte received
+	UCSR0C = (1<<UCSZ01) | (1<<UCSZ00);	//8-Bit Char size
+	UBRR0H = (BAUD_PRESCALE >> 8);	//load upper 8-Bits of baud rate value into high byte of UBRR0H
+	UBRR0L = BAUD_PRESCALE;			//load lower 8-Bits of Baud rate into low byte of UBRR0L
+
+    sei();
+    // enable interrupts
+}
+void init_var(void)
+{
+	ms10=0;
+    ms100=0;
+    sec=0;
+    min=0;
+    entprell=0;
+    screentoggle=3;
+    toggle=0;
+    toggle_alt=toggle;
+    togtime=0;
+		
+	Display_Init();
+	Display_Clear();
+	Set_Page_Address(0);
+    Set_Column_Address(0);
+  
+}
+
 
 /*
  * Analyse number of button clicks
