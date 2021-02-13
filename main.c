@@ -35,12 +35,18 @@
 #define UART_BAUD_RATE      9600 
 #define BUTTONWAIT 20	//delay before analysing counts of button
 #define QNH 99300
+/* Available places to store 
+ * 32 bit values in external
+ * eeprom
+ * 
+ * 24LC64 => 64kBit => 8 KByte => 2000 values (4Byte per 32Bit value) 
+ */
+#define EXTEEPROMSIZE 2000 
 
 #define DISPLAYOFF	0
 #define DISPLAYON	1	
 #define FLIGHTOFF	0
 #define FLIGHTON		1
-#define EEPROMSIZE 	2000 //available places to store int32 Bit values
 #define ON 1
 #define OFF 0
 
@@ -59,7 +65,7 @@ volatile uint8_t ms10,ms100,sec,min, entprell;
 volatile uint8_t screentoggle, toggle, toggle_alt;
 char buffer[20]; // buffer to store string
 char buff[20]; // buffer to store string
-enum state {LOGO, MEMORY, APPEND, ZERO, LOGGING,FDATA};
+enum state {LOGO, MEMORY, APPEND, ZERO, LOGGING,FDATA, DOWNLOAD, FULLMEMO};
 uint8_t state;
 int32_t zero_alt=0;
 int32_t altitude=0;
@@ -80,8 +86,16 @@ uint8_t buttoncount=0;
 ISR (TIMER1_COMPA_vect);
 uint8_t togtime;
 //append Data?
-uint8_t EEMEM eememposition;
-uint8_t append=ON;
+uint16_t EEMEM eememposition; //Max Position 65535
+/* 	Max flights to be saved
+	value at array position
+	is last position of this flightnr
+*/	
+uint16_t EEMEM eeflights[50];
+uint16_t flightnr=0; //number of flights logged 
+uint8_t EEMEM eemax_flightnr;//stored number of last flight
+
+
 //UART
 void uart_send_char(char c);
 void uart_send_string(volatile char *s);
@@ -98,30 +112,18 @@ int main(void)
 {
 	init_system();
 	init_var();
-   
     TWIInit();
     _delay_ms(50);
 	sht21_init();
 	DPS310_init(HIGH);
-	
 	state = LOGO;
 	Display_Logo();
 	
-	
-
 	while(1)
 	{ 	
 		switch(state)
 		{
 			case LOGO:		if(BUTTON)
-							{
-								entprell=RELOAD_ENTPRELL;
-								state=MEMORY;
-								//show memory usage to decide 
-								//for next flight
-								Display_Eeprom(eepos_max,EEPROMSIZE,EEPROMSIZE-eepos_max);
-							}break;
-			/*if(BUTTON)
 							{
 								entprell=RELOAD_ENTPRELL;
 								buttoncount++;
@@ -132,37 +134,33 @@ int main(void)
 							//analyse button counter
 							if((buttoncount!=0) && (buttonwait==0))
 							{
-								//button 1x to zero altitude
+								//button pressed once
 								if(buttoncount==1) 
 								{
-									state=ZERO;
-									entprell=RELOAD_ENTPRELL;
-									Display_Clear();
-									Write_String(14,0,0," Button ");
-									Write_String(14,1,0,"   to   ");
-									Write_String(14,2,0, "  ZERO  ");
+									//entprell=RELOAD_ENTPRELL;
+									state=MEMORY;
+									//show memory usage to decide 
+									//for next flight
+									Display_Eeprom(eepos_max,EXTEEPROMSIZE,EXTEEPROMSIZE-eepos_max);
 								}else 
-								//button 2x to download logged data
+								//button pressed twice
 								if(buttoncount==2)
 								{
-									state=LANDING;
-									entprell=RELOAD_ENTPRELL;
+									//entprell=RELOAD_ENTPRELL;
+									state=DOWNLOAD;
 									Display_Clear();
 									sprintf(buffer,"Button");
 									Write_String(14,0,0,buffer);
-									sprintf(buffer,"to send ");
+									sprintf(buffer,"to");
 									Write_String(14,1,0,buffer);
-									sprintf(buffer,"Data ");
+									sprintf(buffer,"Download");
 									Write_String(14,2,0,buffer);
 								}
 								//reset for next process
 								buttoncount=0;
 								buttonwait=0;
-							}
-							* 
-							* 
-							* */
-							
+							}break;
+			
 			case MEMORY:	if(BUTTON)
 							{
 								entprell=RELOAD_ENTPRELL;
@@ -190,13 +188,14 @@ int main(void)
 								{
 									state=ZERO;
 									entprell=RELOAD_ENTPRELL;
-									append=ON;
 									//Read saved End of Data Position
 									//from Eprom
-									eepos_max=eeprom_read_byte(&eememposition);
+									eepos_max=eeprom_read_word(&eememposition);
 									//set start of new data to 
 									//end of old data
-									eepos=eepos_max+1;
+									eepos=eepos_max;
+									//update flightnr addording Eeprom
+									flightnr=eeprom_read_byte(&eemax_flightnr);
 								}else 
 								//Button pressed twice
 								//reset Memory
@@ -204,16 +203,25 @@ int main(void)
 								{
 									state=ZERO;
 									entprell=RELOAD_ENTPRELL;
-									append=OFF;
 									//reset old Memory 
 									//set position to start
 									eepos=1;
 									eepos_max=1;
+									flightnr=0;
+									eeprom_update_byte(&eemax_flightnr,0);
 								}
 								Display_Clear();
+								sprintf(buffer,"pos %d",eepos);
+								Write_String(14,0,0,buffer);
+								sprintf(buffer,"max %d",eepos_max);
+								Write_String(14,1,0,buffer);
+								sprintf(buffer,"nr %d",flightnr);
+								Write_String(14,2,0,buffer);
+								/*
 								Write_String(14,0,0," Button ");
 								Write_String(14,1,0,"   to   ");
 								Write_String(14,2,0, "  ZERO  ");
+								*/
 								//reset for next process
 								buttoncount=0;
 								buttonwait=0;
@@ -245,7 +253,6 @@ int main(void)
 								max_alt=diff_alt;
 								climbtime=flighttime;
 							}
-							
 							if(log_flag)
 							{
 								//reset and wait for next logg_flag
@@ -272,10 +279,20 @@ int main(void)
 							{
 								entprell=RELOAD_ENTPRELL;
 								state=FDATA;
+								/*
+								EEMEM eeflights[50];
+								flightnr=0; 
+								EEMEM eemax_flightnr;
+								*/
 								//Set now End of data position 
 								//in Eproom
-								eeprom_update_byte(&eememposition,eepos_max);
-								
+								eeprom_update_word(&eememposition,eepos_max);
+								//save endposition in eeprom
+								//of last flight
+								eeprom_update_word(&eeflights[flightnr], eepos_max);
+								//set nr of next flight
+								flightnr++;
+								eeprom_update_byte(&eemax_flightnr,flightnr);
 								Display_Clear();
 								//climb time
 								sprintf(buffer,") %lds", climbtime);
@@ -286,8 +303,6 @@ int main(void)
 								sprintf(buffer,"(% lds", flighttime-climbtime);
 								Write_String(14,2,0,buffer);
 							}
-							
-							
 							/*if(log_flag==1)
 							{
 								Display_Clear();
@@ -361,6 +376,14 @@ int main(void)
 								buttoncount=0;
 								buttonwait=0;
 							}*/
+							if(eepos==EXTEEPROMSIZE)
+							{
+								state=FULLMEMO;
+								Display_Clear();
+								Write_String(14,0,0,"No");
+								Write_String(14,1,0,"Memory");
+								Write_String(14,2,0,"left");								
+							}
 							
 							break;
 			
@@ -370,15 +393,13 @@ int main(void)
 								state=MEMORY;
 								//show memory usage to decide 
 								//for next flight
-								Display_Eeprom(eepos_max,EEPROMSIZE,EEPROMSIZE-eepos_max);
-								
-								
+								Display_Eeprom(eepos_max,EXTEEPROMSIZE,EXTEEPROMSIZE-eepos_max);
 							}break;
-							/*
-			case NEXTFLIGHT:if(BUTTON)
+							
+			case DOWNLOAD:if(BUTTON)
 							{
 								entprell=RELOAD_ENTPRELL;
-								state=DATA;
+								state=FDATA;
 								Display_Clear();
 								sprintf(buffer,"sending");
 								Write_String(14,0,0,buffer);
@@ -386,21 +407,36 @@ int main(void)
 								uart_send_string("\n\r\n\r******************************");
 								uart_send_string("\n\rTime: [sec]\tAltitude: [m]\n\r");
 								//send logged data in eeprom over uart
-								for(uint16_t rr=1;rr<2000;rr++)
+								for(uint16_t rr=1;rr<eepos_max;rr++)
 								{
 									reso=ext_ee_random_read_32(rr);
 									sprintf(buffer,"%d\t%ld.%d\n",rr, vor_komma(reso), nach_komma(reso));
 									uart_send_string(buffer);
 								}
-								state=DATA;
-								Write_String(14,0,0,"sending");
-								Write_String(14,1,0,"is");
-								Write_String(14,2,0,"buffer");
+								state=FDATA;
+								Write_String(14,0,0,"Button");
+								Write_String(14,1,0,"   to   ");
+								Write_String(14,2,0,"Download");
 								
 							}//eof button
-							break;*/
+							break;
+			case FULLMEMO:	if(BUTTON)
+							{
+								entprell=RELOAD_ENTPRELL;
+								state=LOGO;
+								//Set now End of data position 
+								//in Eproom
+								eeprom_update_word(&eememposition,eepos_max);
+								//save endposition in eeprom
+								//of last flight
+								eeprom_update_word(&eeflights[flightnr], eepos_max);
+								//set nr of next flight
+								flightnr++;
+								eeprom_update_byte(&eemax_flightnr,flightnr);
+								Display_Clear();
+								Display_Logo();
+							}break;
 		}//End of switch(state)	
-		
 	} //end while
 }//end of main
 
@@ -490,7 +526,6 @@ void Display_Eeprom(uint32_t data, uint32_t max,uint16_t ti)
 	sprintf(buffer,"%d sec",ti);
 	Write_String(8,5,0, buffer);
 }
-
 void disp_altitude(int32_t altitude)
 {
 	
@@ -506,7 +541,6 @@ ISR(USART0_RX_vect)
 	UDR0 = received_byte;//Echo Byte
 
 }//end of USART_rx 
-
 void init_system(void)
 {
 	DDRB 	|= (1<<PB0) | (1<<PB1) | (1<<PB2) | (1<<PB3) | (1<<PB5);//set CS_DISP and RES and D/C output
@@ -558,16 +592,13 @@ void init_var(void)
     toggle=0;
     toggle_alt=toggle;
     togtime=0;
-		
 	Display_Init();
 	Display_Clear();
 	Set_Page_Address(0);
     Set_Column_Address(0);
-	eepos_max=eeprom_read_byte(&eememposition);
-	
-	
-  
+	eepos_max=eeprom_read_word(&eememposition);
 }
+
 
 
 /*
