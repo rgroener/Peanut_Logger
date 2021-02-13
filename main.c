@@ -19,6 +19,7 @@
 #include "ssd1306.h"
 #include "DPS310.h"
 #include "EEPROM_64.h"
+#include <avr/eeprom.h>
 
 #define BUTTON	(!(PIND & (1<<PD3))) && (entprell==0) //read button input
 #define TXLED_EIN PORTD &= ~(1<<PD1)
@@ -79,6 +80,7 @@ uint8_t buttoncount=0;
 ISR (TIMER1_COMPA_vect);
 uint8_t togtime;
 //append Data?
+uint8_t EEMEM eememposition;
 uint8_t append=ON;
 //UART
 void uart_send_char(char c);
@@ -104,6 +106,8 @@ int main(void)
 	
 	state = LOGO;
 	Display_Logo();
+	
+	
 
 	while(1)
 	{ 	
@@ -181,12 +185,18 @@ int main(void)
 							if((buttoncount!=0) && (buttonwait==0))
 							{
 								//Button pressed once
-								//Append new Data in Memory
+								//Append new Data to Memory
 								if(buttoncount==1) 
 								{
 									state=ZERO;
 									entprell=RELOAD_ENTPRELL;
 									append=ON;
+									//Read saved End of Data Position
+									//from Eprom
+									eepos_max=eeprom_read_byte(&eememposition);
+									//set start of new data to 
+									//end of old data
+									eepos=eepos_max+1;
 								}else 
 								//Button pressed twice
 								//reset Memory
@@ -195,6 +205,10 @@ int main(void)
 									state=ZERO;
 									entprell=RELOAD_ENTPRELL;
 									append=OFF;
+									//reset old Memory 
+									//set position to start
+									eepos=1;
+									eepos_max=1;
 								}
 								Display_Clear();
 								Write_String(14,0,0," Button ");
@@ -258,6 +272,10 @@ int main(void)
 							{
 								entprell=RELOAD_ENTPRELL;
 								state=FDATA;
+								//Set now End of data position 
+								//in Eproom
+								eeprom_update_byte(&eememposition,eepos_max);
+								
 								Display_Clear();
 								//climb time
 								sprintf(buffer,") %lds", climbtime);
@@ -268,6 +286,7 @@ int main(void)
 								sprintf(buffer,"(% lds", flighttime-climbtime);
 								Write_String(14,2,0,buffer);
 							}
+							
 							
 							/*if(log_flag==1)
 							{
@@ -544,6 +563,9 @@ void init_var(void)
 	Display_Clear();
 	Set_Page_Address(0);
     Set_Column_Address(0);
+	eepos_max=eeprom_read_byte(&eememposition);
+	
+	
   
 }
 
