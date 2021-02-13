@@ -40,6 +40,8 @@
 #define FLIGHTOFF	0
 #define FLIGHTON		1
 #define EEPROMSIZE 	2000 //available places to store int32 Bit values
+#define ON 1
+#define OFF 0
 
 uint16_t eepos=1;	//start at 1 to work with multiplication x4
 uint16_t eepos_max=1;
@@ -56,9 +58,8 @@ volatile uint8_t ms10,ms100,sec,min, entprell;
 volatile uint8_t screentoggle, toggle, toggle_alt;
 char buffer[20]; // buffer to store string
 char buff[20]; // buffer to store string
-enum state {LOGO, ZERO, FLIGHT, LANDING, NEXTFLIGHT,DATA};
+enum state {LOGO, MEMORY, APPEND, ZERO, LOGGING,FDATA};
 uint8_t state;
-
 int32_t zero_alt=0;
 int32_t altitude=0;
 uint8_t log_flag=0;
@@ -66,30 +67,24 @@ int32_t diff_alt=0;
 int32_t diff_alt_old=0;
 int32_t altitude_old=0;
 int32_t max_alt=0;//maximum altitude reached in flight
-
 uint8_t display=1;//1 = display on / 0 = display off
 uint32_t flighttime=0;//total flight time
 uint32_t climbtime=0;//flight time in climb
-
-  int32_t reso=0;
+int32_t reso=0;
 //button count
-
 uint16_t buttonwait=0;
 uint8_t buttoncount=0;
-
 //QNH
-
-
-
 //TIMER
 ISR (TIMER1_COMPA_vect);
 uint8_t togtime;
+//append Data?
+uint8_t append=ON;
 //UART
 void uart_send_char(char c);
 void uart_send_string(volatile char *s);
 void Display_Logo(void);
 ISR(USART0_RX_vect);
-
 
 uint32_t xxx=0;
 void disp_altitude(int32_t altitude);
@@ -97,12 +92,11 @@ void Display_Eeprom(uint32_t data, uint32_t max,uint16_t ti);
 void init_system(void);
 void init_var(void);
 
-
 int main(void)
 {
 	init_system();
 	init_var();
-       
+   
     TWIInit();
     _delay_ms(50);
 	sht21_init();
@@ -110,13 +104,20 @@ int main(void)
 	
 	state = LOGO;
 	Display_Logo();
-	
 
 	while(1)
 	{ 	
 		switch(state)
 		{
 			case LOGO:		if(BUTTON)
+							{
+								entprell=RELOAD_ENTPRELL;
+								state=MEMORY;
+								//show memory usage to decide 
+								//for next flight
+								Display_Eeprom(eepos_max,EEPROMSIZE,EEPROMSIZE-eepos_max);
+							}break;
+			/*if(BUTTON)
 							{
 								entprell=RELOAD_ENTPRELL;
 								buttoncount++;
@@ -154,11 +155,61 @@ int main(void)
 								buttoncount=0;
 								buttonwait=0;
 							}
+							* 
+							* 
+							* */
+							
+			case MEMORY:	if(BUTTON)
+							{
+								entprell=RELOAD_ENTPRELL;
+								state=APPEND;
+								Display_Clear();
+								Write_String(14,0,0,"Flight");
+								Write_String(14,1,0,"1 Append");
+								Write_String(14,2,0,"2 Reset");
+							}break;
+									
+			case APPEND:	if(BUTTON)
+							{
+								entprell=RELOAD_ENTPRELL;
+								buttoncount++;
+								//start wait time for buttoncount
+								//at first activation of button
+								if(buttonwait==0)buttonwait=BUTTONWAIT;
+							}
+							//analyse button counter
+							if((buttoncount!=0) && (buttonwait==0))
+							{
+								//Button pressed once
+								//Append new Data in Memory
+								if(buttoncount==1) 
+								{
+									state=ZERO;
+									entprell=RELOAD_ENTPRELL;
+									append=ON;
+								}else 
+								//Button pressed twice
+								//reset Memory
+								if(buttoncount==2)
+								{
+									state=ZERO;
+									entprell=RELOAD_ENTPRELL;
+									append=OFF;
+								}
+								Display_Clear();
+								Write_String(14,0,0," Button ");
+								Write_String(14,1,0,"   to   ");
+								Write_String(14,2,0, "  ZERO  ");
+								//reset for next process
+								buttoncount=0;
+								buttonwait=0;
+							}
 							break;
+										
 			case ZERO:		//set current altitude as reference
 							if(BUTTON)
 							{
-								state=FLIGHT;
+								state=LOGGING;
 								entprell=RELOAD_ENTPRELL;
 								pres=DPS310_get_pres();
 								altitude=calcalt(pres,QNH);
@@ -168,7 +219,7 @@ int main(void)
 								Display_Clear();
 							}
 							break;
-			case FLIGHT:	//measure presure
+			case LOGGING:	//measure presure
 							pres=DPS310_get_pres();
 							//calculate altitude
 							altitude=calcalt(pres,QNH);
@@ -206,7 +257,7 @@ int main(void)
 							if(BUTTON)
 							{
 								entprell=RELOAD_ENTPRELL;
-								state=LANDING;
+								state=FDATA;
 								Display_Clear();
 								//climb time
 								sprintf(buffer,") %lds", climbtime);
@@ -294,16 +345,17 @@ int main(void)
 							
 							break;
 			
-			case LANDING:	if(BUTTON)
+			case FDATA:		if(BUTTON)
 							{
 								entprell=RELOAD_ENTPRELL;
-								state=NEXTFLIGHT;
+								state=MEMORY;
 								//show memory usage to decide 
 								//for next flight
 								Display_Eeprom(eepos_max,EEPROMSIZE,EEPROMSIZE-eepos_max);
 								
 								
 							}break;
+							/*
 			case NEXTFLIGHT:if(BUTTON)
 							{
 								entprell=RELOAD_ENTPRELL;
@@ -327,9 +379,7 @@ int main(void)
 								Write_String(14,2,0,"buffer");
 								
 							}//eof button
-							break;
-			case DATA:	
-							break;
+							break;*/
 		}//End of switch(state)	
 		
 	} //end while
@@ -364,7 +414,7 @@ ISR (TIMER1_COMPA_vect)
 		ms100=0;
 		//set log_flag to 1 every second (logging intervall)
 		//flight function will set it back to zero
-		if(state==FLIGHT)
+		if(state==LOGGING)
 		{
 			log_flag=1;//save value to log
 			flighttime++;
