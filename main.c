@@ -91,7 +91,7 @@ uint16_t EEMEM eememposition; //Max Position 65535
 	value at array position
 	is last position of this flightnr
 */	
-uint16_t EEMEM eeflights[50];
+uint16_t EEMEM eeflightlast[50];
 uint16_t flightnr=0; //number of flights logged 
 uint8_t EEMEM eemax_flightnr;//stored number of last flight
 uint8_t maxflightnr=0;
@@ -117,7 +117,7 @@ int main(void)
     _delay_ms(50);
 	sht21_init();
 	DPS310_init(ULTRA);
-	state = LOGO;
+	state = DOWNLOAD;
 	Display_Logo();
 	
 	while(1)
@@ -289,7 +289,7 @@ int main(void)
 								entprell=RELOAD_ENTPRELL;
 								state=LOGO;
 								/*
-								EEMEM eeflights[50];
+								EEMEM eeflightlast[50];
 								flightnr=0; 
 								EEMEM eemax_flightnr;
 								*/
@@ -298,7 +298,7 @@ int main(void)
 								eeprom_update_word(&eememposition,eepos_max);
 								//save endposition in eeprom
 								//of last flight
-								eeprom_update_word(&eeflights[flightnr], eepos_max);
+								eeprom_update_word(&eeflightlast[flightnr], eepos_max);
 								//set nr of next flight
 								flightnr++;
 								eeprom_update_byte(&eemax_flightnr,flightnr);
@@ -409,41 +409,34 @@ int main(void)
 							flightnr=eeprom_read_byte(&eemax_flightnr);
 							sprintf(buffer,"Fltnr %d\t",flightnr);
 							
-							//Send units of datastream
-							uart_send_string("sec\t");
-							for(uint8_t xxx=0;xxx<flightnr+1;xxx++)
+							//addr of last positions
+							uint16_t last[6]={0,0,26,59,114,154};
+							uint8_t ddd=2;
+							for(uint8_t datanummer=1;datanummer<27;datanummer++)
 							{
-								uart_send_string("m\t");
+								for(uint8_t flugnummer=1;flugnummer<5;flugnummer++)
+								{
+									sprintf(buffer,"%ld\t",ext_ee_random_read_32(datanummer+last[flugnummer]));
+									uart_send_string(buffer);
+								}
+								uart_send_string("\n");
 							}
-							//start at new line
-							uart_send_string("\n\r");
-							//Send Label of Datastream
-							uart_send_string("Time\t");
-							for(uint8_t xxx=0;xxx<flightnr+1;xxx++)
-							{
-								sprintf(buffer,"Flight Nr:%d\t",xxx);
-								uart_send_string(buffer);
-							}
-							//start at new line
-							uart_send_string("\n\r");
-							uart_send_string("Ende");
-							
-							
-							
-							
+							/*
+							uart_send_string("\n\n");
+							sprintf(buffer,"%ld\t",ext_ee_random_read_32(1));
+							uart_send_string(buffer);
+							sprintf(buffer,"%ld\t",ext_ee_random_read_32(27));
+							uart_send_string(buffer);
+							sprintf(buffer,"%ld\t",ext_ee_random_read_32(60));
+							uart_send_string(buffer);
+							sprintf(buffer,"%ld\t",ext_ee_random_read_32(115));
+							uart_send_string(buffer);
+							sprintf(buffer,"%ld\t",ext_ee_random_read_32(154));
+							uart_send_string(buffer);*/
 							while(1);
-			
-							if(BUTTON)
-							{
-								entprell=RELOAD_ENTPRELL;
-								state=LOGO;
-								Display_Logo();
-								
-								
-								
-							
-							}//eof button
+										
 							break;
+							
 			case FULLMEMO:	if(BUTTON)
 							{
 								entprell=RELOAD_ENTPRELL;
@@ -453,7 +446,7 @@ int main(void)
 								eeprom_update_word(&eememposition,eepos_max);
 								//save endposition in eeprom
 								//of last flight
-								eeprom_update_word(&eeflights[flightnr], eepos_max);
+								eeprom_update_word(&eeflightlast[flightnr], eepos_max);
 								//set nr of next flight
 								flightnr++;
 								eeprom_update_byte(&eemax_flightnr,flightnr);
