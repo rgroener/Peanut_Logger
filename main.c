@@ -94,6 +94,7 @@ uint16_t EEMEM eememposition; //Max Position 65535
 uint16_t EEMEM eeflights[50];
 uint16_t flightnr=0; //number of flights logged 
 uint8_t EEMEM eemax_flightnr;//stored number of last flight
+uint8_t maxflightnr=0;
 
 
 //UART
@@ -115,7 +116,7 @@ int main(void)
     TWIInit();
     _delay_ms(50);
 	sht21_init();
-	DPS310_init(HIGH);
+	DPS310_init(ULTRA);
 	state = LOGO;
 	Display_Logo();
 	
@@ -209,14 +210,22 @@ int main(void)
 									eepos_max=1;
 									flightnr=0;
 									eeprom_update_byte(&eemax_flightnr,0);
+									eeprom_update_word(&eememposition,eepos_max);
 								}
 								Display_Clear();
+								
+								Write_String(14,0,0,"Takeoff");
+								Write_String(14,1,0,"Flight");
+								sprintf(buffer,"Nr: %d",flightnr);
+								Write_String(14,2,0,buffer);
+																
+								/*
 								sprintf(buffer,"pos %d",eepos);
 								Write_String(14,0,0,buffer);
 								sprintf(buffer,"max %d",eepos_max);
 								Write_String(14,1,0,buffer);
 								sprintf(buffer,"nr %d",flightnr);
-								Write_String(14,2,0,buffer);
+								Write_String(14,2,0,buffer);*/
 								/*
 								Write_String(14,0,0," Button ");
 								Write_String(14,1,0,"   to   ");
@@ -278,7 +287,7 @@ int main(void)
 							if(BUTTON)
 							{
 								entprell=RELOAD_ENTPRELL;
-								state=FDATA;
+								state=LOGO;
 								/*
 								EEMEM eeflights[50];
 								flightnr=0; 
@@ -396,28 +405,43 @@ int main(void)
 								Display_Eeprom(eepos_max,EXTEEPROMSIZE,EXTEEPROMSIZE-eepos_max);
 							}break;
 							
-			case DOWNLOAD:if(BUTTON)
+			case DOWNLOAD:	Display_Clear();
+							flightnr=eeprom_read_byte(&eemax_flightnr);
+							sprintf(buffer,"Fltnr %d\t",flightnr);
+							
+							//Send units of datastream
+							uart_send_string("sec\t");
+							for(uint8_t xxx=0;xxx<flightnr+1;xxx++)
+							{
+								uart_send_string("m\t");
+							}
+							//start at new line
+							uart_send_string("\n\r");
+							//Send Label of Datastream
+							uart_send_string("Time\t");
+							for(uint8_t xxx=0;xxx<flightnr+1;xxx++)
+							{
+								sprintf(buffer,"Flight Nr:%d\t",xxx);
+								uart_send_string(buffer);
+							}
+							//start at new line
+							uart_send_string("\n\r");
+							uart_send_string("Ende");
+							
+							
+							
+							
+							while(1);
+			
+							if(BUTTON)
 							{
 								entprell=RELOAD_ENTPRELL;
-								state=FDATA;
-								Display_Clear();
-								sprintf(buffer,"sending");
-								Write_String(14,0,0,buffer);
-								//send uart sting header
-								uart_send_string("\n\r\n\r******************************");
-								uart_send_string("\n\rTime: [sec]\tAltitude: [m]\n\r");
-								//send logged data in eeprom over uart
-								for(uint16_t rr=1;rr<eepos_max;rr++)
-								{
-									reso=ext_ee_random_read_32(rr);
-									sprintf(buffer,"%d\t%ld.%d\n",rr, vor_komma(reso), nach_komma(reso));
-									uart_send_string(buffer);
-								}
-								state=FDATA;
-								Write_String(14,0,0,"Button");
-								Write_String(14,1,0,"   to   ");
-								Write_String(14,2,0,"Download");
+								state=LOGO;
+								Display_Logo();
 								
+								
+								
+							
 							}//eof button
 							break;
 			case FULLMEMO:	if(BUTTON)
