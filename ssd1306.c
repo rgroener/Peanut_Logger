@@ -224,7 +224,8 @@ uint8_t Eeprom(uint32_t data, uint32_t max, uint8_t reset)
 	if(proz!=100)//only draw if bar is not yet full
 	{
 		//Boxoutline needs to be drawn only once
-		if(boxflag==0)
+		//if(boxflag==0)
+		if(1)
 		{
 			boxflag=1;	
 			//draw left line of memory-box

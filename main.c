@@ -104,7 +104,6 @@ uint16_t flightnr=0; //number of flights logged
 uint8_t EEMEM eemax_flightnr;//stored number of last flight
 uint8_t maxflightnr=0;
 
-
 //UART
 void uart_send_char(char c);
 void uart_send_string(volatile char *s);
@@ -419,41 +418,60 @@ int main(void)
 							}break;
 							
 			case DOWNLOAD:	Display_Clear();
-			
-			
-									eepos_max=eeprom_read_word(&eememposition);
-									sprintf(buffer,"eepos_max %d\n",eepos_max);
-									uart_send_string(buffer);
-									//set start of new data to 
-									//end of old data
-									eepos=eepos_max;
-									//update flightnr addording Eeprom
-									flightnr=eeprom_read_byte(&eemax_flightnr);
-									sprintf(buffer,"flightnr %d\n",flightnr);
-									uart_send_string(buffer);
-									
-									
-			
-			
-							for(uint16_t ggg=0;ggg<flightnr+1;ggg++)
+							//get data from eprom		
+							eepos_max=eeprom_read_word(&eememposition);
+							eepos=eepos_max;
+							flightnr=eeprom_read_byte(&eemax_flightnr);
+							
+							/*	uncomment for debugging						
+							sprintf(buffer,"eepos_max %d\n",eepos_max);
+							uart_send_string(buffer);
+							sprintf(buffer,"flightnr %d\n",flightnr);
+							uart_send_string(buffer);
+							//list data numbers for all flights
+							for(uint16_t ggg=1;ggg<flightnr+1;ggg++)
 							{
 								sprintf(buffer,"last flight %d\n",eeprom_read_word(&eeflightlast[ggg])-eeprom_read_word(&eeflightlast[ggg-1]));
 								uart_send_string(buffer);
 							}
-							
 							uart_send_string("\n\n");
 							uart_send_string("\n\n");
-							
+							//send raw data list
 							for(uint16_t ggg=1;ggg<eepos_max+1+1;ggg++)
 							{
-								
 								sprintf(buffer,"%ld\n",ext_ee_random_read_32(ggg));
 								uart_send_string(buffer);
 							}
+							//
+							*/
 							
+							//***********************************
+							//***********************************
+							for(uint8_t flugnummer=1;flugnummer<flightnr+1;flugnummer++)
+							{
+								uart_send_string("m\t");
+							}
+							uart_send_string("\n");
+							for(uint8_t flugnummer=1;flugnummer<flightnr+1;flugnummer++)
+							{
+								sprintf(buffer,"Flight%d\t",flugnummer);
+								uart_send_string(buffer);
+							}
+							uart_send_string("\n\n");
 							
-						
-							for(uint8_t datanummer=1;datanummer<27;datanummer++)
+							//find flight with the most data stored
+							uint16_t maxdata=0;
+							for(uint16_t ggg=1;ggg<flightnr+1;ggg++)
+							{
+								if(maxdata<eeprom_read_word(&eeflightlast[ggg])-eeprom_read_word(&eeflightlast[ggg-1]))maxdata=eeprom_read_word(&eeflightlast[ggg])-eeprom_read_word(&eeflightlast[ggg-1]);
+								
+							}
+							sprintf(buffer,"maxdata %d\n",maxdata);
+							uart_send_string(buffer);
+							
+							uart_send_string("\n\n");
+													
+							for(uint8_t datanummer=1;datanummer<maxdata;datanummer++)
 							{
 								for(uint8_t flugnummer=1;flugnummer<flightnr+1;flugnummer++)
 								{
@@ -466,24 +484,12 @@ int main(void)
 										sprintf(buffer,"%ld\t",ext_ee_random_read_32(datanummer+eeprom_read_word(&eeflightlast[flugnummer-1])));
 										uart_send_string(buffer);
 									}
-									
 								}
 								uart_send_string("\n");
 							}
-							/*
-							uart_send_string("\n\n");
-							sprintf(buffer,"%ld\t",ext_ee_random_read_32(1));
-							uart_send_string(buffer);
-							sprintf(buffer,"%ld\t",ext_ee_random_read_32(27));
-							uart_send_string(buffer);
-							sprintf(buffer,"%ld\t",ext_ee_random_read_32(60));
-							uart_send_string(buffer);
-							sprintf(buffer,"%ld\t",ext_ee_random_read_32(115));
-							uart_send_string(buffer);
-							sprintf(buffer,"%ld\t",ext_ee_random_read_32(154));
-							uart_send_string(buffer);*/
-							while(1);
-										
+							state=LOGO;
+							Display_Logo();
+							
 							break;
 							
 			case FULLMEMO:	if(BUTTON)
