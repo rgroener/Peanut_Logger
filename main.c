@@ -78,6 +78,14 @@ uint8_t display=1;//1 = display on / 0 = display off
 uint32_t flighttime=0;//total flight time
 uint32_t climbtime=0;//flight time in climb
 int32_t reso=0;
+
+uint16_t logcounter=0;
+
+//Logging frequency
+// 	50 => 500ms
+//	100 => 1s
+uint16_t logintervall=100;
+
 //button count
 uint16_t buttonwait=0;
 uint8_t buttoncount=0;
@@ -117,7 +125,7 @@ int main(void)
     _delay_ms(50);
 	sht21_init();
 	DPS310_init(ULTRA);
-	state = DOWNLOAD;
+	state = LOGO;
 	Display_Logo();
 	
 	while(1)
@@ -197,6 +205,7 @@ int main(void)
 									eepos=eepos_max;
 									//update flightnr addording Eeprom
 									flightnr=eeprom_read_byte(&eemax_flightnr);
+									flightnr++;
 								}else 
 								//Button pressed twice
 								//reset Memory
@@ -208,9 +217,12 @@ int main(void)
 									//set position to start
 									eepos=1;
 									eepos_max=1;
-									flightnr=0;
-									eeprom_update_byte(&eemax_flightnr,0);
+									flightnr=1;
+									eeprom_update_byte(&eemax_flightnr,1);
 									eeprom_update_word(&eememposition,eepos_max);
+									//save endposition in eeprom
+									//of last flight
+									eeprom_update_word(&eeflightlast[0], 0);
 								}
 								Display_Clear();
 								
@@ -298,10 +310,11 @@ int main(void)
 								eeprom_update_word(&eememposition,eepos_max);
 								//save endposition in eeprom
 								//of last flight
-								eeprom_update_word(&eeflightlast[flightnr], eepos_max);
-								//set nr of next flight
-								flightnr++;
+								eeprom_update_word(&eeflightlast[flightnr], eepos_max-1);
+								
 								eeprom_update_byte(&eemax_flightnr,flightnr);
+															
+								
 								Display_Clear();
 								//climb time
 								sprintf(buffer,") %lds", climbtime);
@@ -406,18 +419,54 @@ int main(void)
 							}break;
 							
 			case DOWNLOAD:	Display_Clear();
-							flightnr=eeprom_read_byte(&eemax_flightnr);
-							sprintf(buffer,"Fltnr %d\t",flightnr);
+			
+			
+									eepos_max=eeprom_read_word(&eememposition);
+									sprintf(buffer,"eepos_max %d\n",eepos_max);
+									uart_send_string(buffer);
+									//set start of new data to 
+									//end of old data
+									eepos=eepos_max;
+									//update flightnr addording Eeprom
+									flightnr=eeprom_read_byte(&eemax_flightnr);
+									sprintf(buffer,"flightnr %d\n",flightnr);
+									uart_send_string(buffer);
+									
+									
+			
+			
+							for(uint16_t ggg=0;ggg<flightnr+1;ggg++)
+							{
+								sprintf(buffer,"last flight %d\n",eeprom_read_word(&eeflightlast[ggg])-eeprom_read_word(&eeflightlast[ggg-1]));
+								uart_send_string(buffer);
+							}
 							
-							//addr of last positions
-							uint16_t last[6]={0,0,26,59,114,154};
-							uint8_t ddd=2;
+							uart_send_string("\n\n");
+							uart_send_string("\n\n");
+							
+							for(uint16_t ggg=1;ggg<eepos_max+1+1;ggg++)
+							{
+								
+								sprintf(buffer,"%ld\n",ext_ee_random_read_32(ggg));
+								uart_send_string(buffer);
+							}
+							
+							
+						
 							for(uint8_t datanummer=1;datanummer<27;datanummer++)
 							{
-								for(uint8_t flugnummer=1;flugnummer<5;flugnummer++)
+								for(uint8_t flugnummer=1;flugnummer<flightnr+1;flugnummer++)
 								{
-									sprintf(buffer,"%ld\t",ext_ee_random_read_32(datanummer+last[flugnummer]));
-									uart_send_string(buffer);
+									if(datanummer>(eeprom_read_word(&eeflightlast[flugnummer])-eeprom_read_word(&eeflightlast[flugnummer-1])))
+									{
+										//no more values for this flight
+										uart_send_string("\t");
+									}else
+									{
+										sprintf(buffer,"%ld\t",ext_ee_random_read_32(datanummer+eeprom_read_word(&eeflightlast[flugnummer-1])));
+										uart_send_string(buffer);
+									}
+									
 								}
 								uart_send_string("\n");
 							}
@@ -461,6 +510,17 @@ int main(void)
 ISR (TIMER1_COMPA_vect)
 {
 	ms10++;
+	logcounter++;
+	if(logintervall==logcounter)
+	{
+		if(state==LOGGING)
+		{
+			log_flag=1;//save value to log
+			flighttime++;
+		}	
+		logcounter=0;
+	}
+	
 	if(entprell)entprell--;
 	if(ms10==10)	//100ms
 	{
@@ -486,11 +546,7 @@ ISR (TIMER1_COMPA_vect)
 		ms100=0;
 		//set log_flag to 1 every second (logging intervall)
 		//flight function will set it back to zero
-		if(state==LOGGING)
-		{
-			log_flag=1;//save value to log
-			flighttime++;
-		}
+		
 		sec++;
 		//change display screen in fixed time
 	}

@@ -166,7 +166,6 @@ void Write_String(uint8_t fontsize, uint8_t row, uint8_t pos, const char str[])
 		 }
 	}
 }
-
 uint8_t Eeprom(uint32_t data, uint32_t max, uint8_t reset)
 {
 	/*	Display bar graphic 
