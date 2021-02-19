@@ -71,7 +71,7 @@ void Set_Contrast_Control_Register(unsigned char mod)
 	send_command(mod);
 	return;
 }
-void Display_Picture(uint8_t width, uint8_t height, const unsigned char data[])
+void Display_Picture(uint8_t posx, uint8_t posy, uint8_t width, uint8_t height, const unsigned char data[])
 {
 	/* Oled Display 64*48  bit organisation
 	 * array size full display [384]
@@ -96,11 +96,11 @@ void Display_Picture(uint8_t width, uint8_t height, const unsigned char data[])
 	*/
 	for(unsigned char i=0;i<(width/8);i++)		//write Pages
 	{
-		Set_Page_Address(7-i);
-		Set_Column_Address(0);			//start at column 0
-        for(unsigned char j=0;j<(height-1);j++)	//write Column for current page
+		Set_Page_Address(7-i-posx);			//start at desired page (8Bit wide)
+		Set_Column_Address(posy);			//start at desired column 
+        for(unsigned char j=0;j<(height);j++)	//write Column for current page
 		{
-		    send_data(pgm_read_byte(&data[i*0x30+j]));
+		    send_data(pgm_read_byte(&data[i*height+j]));
 		}
 	}
 	
@@ -166,19 +166,19 @@ void Write_String(uint8_t fontsize, uint8_t row, uint8_t pos, const char str[])
 		 }
 	}
 }
-/*	Display bar graphic 
- * 	Bar lenght corresponds to % of the max value.
- * 	Hight of the bar / box is variable
- * 
- * 	Input: 	- Data to visualise in bar
- * 			- Max value to calculate % from
- * 	Return:	% value (0...100)%
- * 	Output:	bar
- * 
- * 	grn Jan 21
- * */
-uint8_t Display_Eeprom(uint32_t data, uint32_t max, uint8_t reset)
+uint8_t Eeprom(uint32_t data, uint32_t max, uint8_t reset)
 {
+	/*	Display bar graphic 
+	 * 	Bar lenght corresponds to % of the max value.
+	 * 	Hight of the bar / box is variable
+	 * 
+	 * 	Input: 	- Data to visualise in bar
+	 * 			- Max value to calculate % from
+	 * 	Return:	% value (0...100)%
+	 * 	Output:	bar
+	 * 
+	 * 	grn Jan 21
+	 * */
 	/* Oled Display 64*48  bit organisation
 	 * array size full display [384]
 	 * 
@@ -198,7 +198,7 @@ uint8_t Display_Eeprom(uint32_t data, uint32_t max, uint8_t reset)
 	uint8_t max_page=8;		//full used pages to show bar
 	uint8_t rest=0;			//bits for pattern
 	uint8_t pattern=0;		//most forward pixel of bar
-	uint8_t bar_hight=10;	//height o the memo box 2...
+	uint8_t bar_hight=9;	//height o the memo box 2...
 	static uint8_t boxflag=0;		//draw box only the first time
 	static uint8_t old_rest=0;		//save last rest
 	static uint8_t old_max_page=8;	//save last max position
@@ -224,7 +224,8 @@ uint8_t Display_Eeprom(uint32_t data, uint32_t max, uint8_t reset)
 	if(proz!=100)//only draw if bar is not yet full
 	{
 		//Boxoutline needs to be drawn only once
-		if(boxflag==0)
+		//if(boxflag==0)
+		if(1)
 		{
 			boxflag=1;	
 			//draw left line of memory-box
@@ -306,5 +307,8 @@ uint8_t Display_Eeprom(uint32_t data, uint32_t max, uint8_t reset)
 		old_rest=rest;
 		old_max_page=max_page;
 	}//eof if(proz!=100)
+	//Display barscale
+	
+	//Display_Picture(64,5,barscale);
 	return proz;
 }//end of Display Eeprom
