@@ -64,7 +64,6 @@ uint16_t hum=0;
 volatile uint8_t ms10,ms100,sec,min, entprell;
 volatile uint8_t screentoggle, toggle, toggle_alt;
 char buffer[20]; // buffer to store string
-char buff[20]; // buffer to store string
 enum state {LOGO, MEMORY, APPEND, ZERO, LOGGING,FDATA, DOWNLOAD, FULLMEMO};
 uint8_t state;
 int32_t zero_alt=0;
@@ -84,7 +83,7 @@ uint16_t logcounter=0;
 //Logging frequency
 // 	50 => 500ms
 //	100 => 1s
-uint16_t logintervall=100;
+uint16_t logintervall=50;
 
 //button count
 uint16_t buttonwait=0;
@@ -115,6 +114,7 @@ void disp_altitude(int32_t altitude);
 void Display_Eeprom(uint32_t data, uint32_t max,uint16_t ti);
 void init_system(void);
 void init_var(void);
+void reset_timer(void);
 
 int main(void)
 {
@@ -256,6 +256,7 @@ int main(void)
 								pres=DPS310_get_pres();
 								altitude=calcalt(pres,QNH);
 								zero_alt=altitude;
+								reset_timer();
 								flighttime=0;
 								climbtime=0;
 								Display_Clear();
@@ -324,79 +325,7 @@ int main(void)
 								sprintf(buffer,"(% lds", flighttime-climbtime);
 								Write_String(14,2,0,buffer);
 							}
-							/*if(log_flag==1)
-							{
-								Display_Clear();
-								log_flag=0;
-								ext_ee_random_write_32(eepos,diff_alt);
-								sprintf(buffer,"%d",eepos);
-								Write_String(14,0,0,buffer);
-								sprintf(buffer,"%ld",ext_ee_random_read_32(eepos));
-								Write_String(14,1,0,buffer);
-								eepos++;
-								eepos_max++;
-							}
-							* */
-							
-							//only print if one of the values
-							//has changed
-							/*
-							if((pres_old!=pres)||(altitude!=altitude_old))
-							{
-								//save old values
-								pres_old=pres;
-								altitude_old=altitude;
-								//clear display
-								Display_Clear();
-								//print pressure
-								sprintf(buffer,"%ld.%d",vor_komma(pres),nach_komma(pres));
-								Write_String(14,0,0,buffer);
-								//print current altitude
-								sprintf(buffer,"%ld.%dm",vor_komma(altitude),nach_komma(altitude));
-								Write_String(14,1,0,buffer);
-								//print altitude difference
-								sprintf(buffer,"%ld.%dm",vor_komma(diff_alt),nach_komma(diff_alt));
-								Write_String(14,2,0,buffer);
-							}//eof if(pres_old...)
-							//check if button is pressed																				
-							*/
-							
-							/*if(BUTTON)
-							{
-								entprell=RELOAD_ENTPRELL;
-								buttoncount++;
-								//start wait time for buttoncount
-								//at first activation of button
-								if(buttonwait==0)buttonwait=BUTTONWAIT;
-							}
-							//analyse button counter
-							if((buttoncount!=0) && (buttonwait==0))
-							{
-								//button pressed once
-								if(buttoncount==1) 
-								{
-									Display_Clear();
-									sprintf(buffer,"Button");
-									Write_String(14,0,0,buffer);
-									sprintf(buffer,"  for  ");
-									Write_String(14,0,0,buffer);
-									sprintf(buffer," Data ");
-									Write_String(14,0,0,buffer);
-									state=LOGGING;
-								}else 
-								//button pressed twice
-								if(buttoncount==2)
-								{
-									sprintf(buffer,"Zwei");
-									Write_String(14,2,0,buffer);
-									
-									
-									
-								}
-								//reset for next process
-								buttoncount=0;
-								buttonwait=0;
-							}*/
+						
 							if(eepos==EXTEEPROMSIZE)
 							{
 								state=FULLMEMO;
@@ -481,7 +410,7 @@ int main(void)
 										uart_send_string("\t");
 									}else
 									{
-										sprintf(buffer,"%ld\t",ext_ee_random_read_32(datanummer+eeprom_read_word(&eeflightlast[flugnummer-1])));
+										sprintf(buffer,"%ld.%d\t",vor_komma(ext_ee_random_read_32(datanummer+eeprom_read_word(&eeflightlast[flugnummer-1]))),nach_komma(ext_ee_random_read_32(datanummer+eeprom_read_word(&eeflightlast[flugnummer-1]))));
 										uart_send_string(buffer);
 									}
 								}
@@ -522,7 +451,6 @@ ISR (TIMER1_COMPA_vect)
 		if(state==LOGGING)
 		{
 			log_flag=1;//save value to log
-			flighttime++;
 		}	
 		logcounter=0;
 	}
@@ -552,7 +480,7 @@ ISR (TIMER1_COMPA_vect)
 		ms100=0;
 		//set log_flag to 1 every second (logging intervall)
 		//flight function will set it back to zero
-		
+		flighttime++;
 		sec++;
 		//change display screen in fixed time
 	}
@@ -662,10 +590,7 @@ void init_system(void)
 }
 void init_var(void)
 {
-	ms10=0;
-    ms100=0;
-    sec=0;
-    min=0;
+	reset_timer();
     entprell=0;
     screentoggle=3;
     toggle=0;
@@ -678,7 +603,14 @@ void init_var(void)
 	eepos_max=eeprom_read_word(&eememposition);
 }
 
-
+void reset_timer(void)
+{
+	//reset all variables in Timer to zero
+	ms10=0;
+    ms100=0;
+    sec=0;
+    min=0;	
+}
 
 /*
  * Analyse number of button clicks

@@ -29,7 +29,7 @@ void Display_Init(void)
 	send_command(0xda);//--set com pins hardware configuration
 	send_command(0x12);
 	send_command(0x81);//--set contrast control register
-	send_command(0x01);//orig 80
+	send_command(0x08);//orig 80
 	send_command(0xd9);//--set pre-charge period
 	send_command(0xf1);
 	send_command(0xdb);//--set vcomh
