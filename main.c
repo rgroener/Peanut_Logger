@@ -81,9 +81,13 @@ int32_t reso=0;
 uint16_t logcounter=0;
 
 //Logging frequency
-// 	50 => 500ms
-//	100 => 1s
-uint16_t logintervall=50;
+// 	10	=>	100ms
+//	20	=>	200ms
+//	25	=>	250m
+// 	50 	=> 	500ms
+//	100 => 	1s
+//
+uint16_t logintervall=100;
 
 //button count
 uint16_t buttonwait=0;
@@ -101,6 +105,8 @@ uint16_t EEMEM eememposition; //Max Position 65535
 uint16_t EEMEM eeflightlast[50];
 uint16_t flightnr=0; //number of flights logged 
 uint8_t EEMEM eemax_flightnr;//stored number of last flight
+uint16_t EEMEM eelast_intervall;
+uint16_t intervall_faktor=1;
 uint8_t maxflightnr=0;
 
 //UART
@@ -218,7 +224,7 @@ int main(void)
 									eepos_max=1;
 									flightnr=1;
 									eeprom_update_byte(&eemax_flightnr,1);
-									eeprom_update_word(&eememposition,eepos_max);
+									eeprom_update_word(&eememposition,logintervall);
 									//save endposition in eeprom
 									//of last flight
 									eeprom_update_word(&eeflightlast[0], 0);
@@ -311,7 +317,6 @@ int main(void)
 								//save endposition in eeprom
 								//of last flight
 								eeprom_update_word(&eeflightlast[flightnr], eepos_max-1);
-								
 								eeprom_update_byte(&eemax_flightnr,flightnr);
 															
 								
@@ -351,6 +356,27 @@ int main(void)
 							eepos_max=eeprom_read_word(&eememposition);
 							eepos=eepos_max;
 							flightnr=eeprom_read_byte(&eemax_flightnr);
+							logintervall=eeprom_read_word(&eelast_intervall);
+							/* calculation of factor to print index
+							 * as part of seconds*/
+							switch(logintervall)
+							{
+								case 100:	//Intervall was 1 sec
+											intervall_faktor=1;
+											break;
+								case 50:	//Intervall was 0.5 sec
+											intervall_faktor=2;
+											break;
+								case 25:	//Intervall was 0.25 sec
+											intervall_faktor=4;
+											break;
+								case 20:	//Intervall was 0.2 sec
+											intervall_faktor=5;
+											break;
+								case 10:	//Intervall was 0.1 sec
+											intervall_faktor=10;
+											break;
+							}
 							
 							/*	uncomment for debugging						
 							sprintf(buffer,"eepos_max %d\n",eepos_max);
@@ -376,18 +402,18 @@ int main(void)
 							
 							//***********************************
 							//***********************************
+							uart_send_string("sec\t");
 							for(uint8_t flugnummer=1;flugnummer<flightnr+1;flugnummer++)
 							{
 								uart_send_string("m\t");
 							}
-							uart_send_string("\n");
+							uart_send_string("\nTime\t");
 							for(uint8_t flugnummer=1;flugnummer<flightnr+1;flugnummer++)
 							{
 								sprintf(buffer,"Flight%d\t",flugnummer);
 								uart_send_string(buffer);
 							}
 							uart_send_string("\n\n");
-							
 							//find flight with the most data stored
 							uint16_t maxdata=0;
 							for(uint16_t ggg=1;ggg<flightnr+1;ggg++)
@@ -395,22 +421,35 @@ int main(void)
 								if(maxdata<eeprom_read_word(&eeflightlast[ggg])-eeprom_read_word(&eeflightlast[ggg-1]))maxdata=eeprom_read_word(&eeflightlast[ggg])-eeprom_read_word(&eeflightlast[ggg-1]);
 								
 							}
-							sprintf(buffer,"maxdata %d\n",maxdata);
+							sprintf(buffer,"maxdata %d\n",eepos_max);
 							uart_send_string(buffer);
-							
 							uart_send_string("\n\n");
-													
-							for(uint8_t datanummer=1;datanummer<maxdata;datanummer++)
+							for(uint32_t datanummer=1;datanummer<maxdata;datanummer++)
 							{
+								/* print index dependent on logintervall
+								 * output in parts of seconds*/
+								if(logintervall==100)
+								{								
+									sprintf(buffer,"%ld\t",datanummer);
+								}else
+								{
+									sprintf(buffer,"%ld.%d\t",\
+									vor_komma(((uint32_t)datanummer*100)/intervall_faktor),\
+									nach_komma(((uint32_t)datanummer*100)/intervall_faktor));
+								}
+								uart_send_string(buffer);
 								for(uint8_t flugnummer=1;flugnummer<flightnr+1;flugnummer++)
 								{
-									if(datanummer>(eeprom_read_word(&eeflightlast[flugnummer])-eeprom_read_word(&eeflightlast[flugnummer-1])))
+									if(datanummer>(eeprom_read_word(&eeflightlast[flugnummer])\
+									-eeprom_read_word(&eeflightlast[flugnummer-1])))
 									{
 										//no more values for this flight
 										uart_send_string("\t");
 									}else
 									{
-										sprintf(buffer,"%ld.%d\t",vor_komma(ext_ee_random_read_32(datanummer+eeprom_read_word(&eeflightlast[flugnummer-1]))),nach_komma(ext_ee_random_read_32(datanummer+eeprom_read_word(&eeflightlast[flugnummer-1]))));
+										sprintf(buffer,"%ld.%d\t",\
+										vor_komma(ext_ee_random_read_32(datanummer+eeprom_read_word(&eeflightlast[flugnummer-1]))),\
+										nach_komma(ext_ee_random_read_32(datanummer+eeprom_read_word(&eeflightlast[flugnummer-1]))));
 										uart_send_string(buffer);
 									}
 								}
@@ -601,6 +640,7 @@ void init_var(void)
 	Set_Page_Address(0);
     Set_Column_Address(0);
 	eepos_max=eeprom_read_word(&eememposition);
+	eeprom_update_word(&eelast_intervall,logintervall);
 }
 
 void reset_timer(void)
