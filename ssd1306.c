@@ -29,7 +29,7 @@ void Display_Init(void)
 	send_command(0xda);//--set com pins hardware configuration
 	send_command(0x12);
 	send_command(0x81);//--set contrast control register
-	send_command(0x01);//orig 80
+	send_command(0x08);//orig 80
 	send_command(0xd9);//--set pre-charge period
 	send_command(0xf1);
 	send_command(0xdb);//--set vcomh
@@ -199,7 +199,7 @@ uint8_t Eeprom(uint32_t data, uint32_t max, uint8_t reset)
 	uint8_t rest=0;			//bits for pattern
 	uint8_t pattern=0;		//most forward pixel of bar
 	uint8_t bar_hight=9;	//height o the memo box 2...
-	static uint8_t boxflag=0;		//draw box only the first time
+	//static uint8_t boxflag=0;		//draw box only the first time
 	static uint8_t old_rest=0;		//save last rest
 	static uint8_t old_max_page=8;	//save last max position
 	/*delete saved values and reset
@@ -211,7 +211,7 @@ uint8_t Eeprom(uint32_t data, uint32_t max, uint8_t reset)
 		rest=0;			//bits for pattern
 		pattern=0;		//most forward pixel of bar
 		bar_hight=10;	//height o the memo box 2...
-		boxflag=0;		//draw box only the first time
+		//boxflag=0;		//draw box only the first time
 		old_rest=0;		//save last rest
 		old_max_page=8;	//save last max position
 	}
@@ -227,7 +227,7 @@ uint8_t Eeprom(uint32_t data, uint32_t max, uint8_t reset)
 		//if(boxflag==0)
 		if(1)
 		{
-			boxflag=1;	
+			//boxflag=1;	
 			//draw left line of memory-box
 			Set_Column_Address(1);
 			Set_Page_Address(7);
