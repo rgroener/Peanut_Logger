@@ -27,7 +27,7 @@
 #define RXLED_AUS PORTD &= ~(1<<PD0)
 #define RXLED_EIN PORTD |= (1<<PD0)
 #define USART_BAUDRATE 9600
-#define BAUD_PRESCALE (((F_CPU / (USART_BAUDRATE * 8UL)))-1)
+#define BAUD_PRESCALE (((F_CPU / (USART_BAUDRATE * 16UL)))-1)
 #define RELOAD_ENTPRELL 40
 //#define TOGGLEMAX 4
 #define TEMPERATURE 0
@@ -49,6 +49,7 @@
 #define FLIGHTON		1
 #define ON 1
 #define OFF 0
+#define STARTDETECT 100	//detection altitude for start flag [cm]
 
 uint16_t eepos=1;	//start at 1 to work with multiplication x4
 uint16_t eepos_max=1;
@@ -77,9 +78,9 @@ uint8_t display=1;//1 = display on / 0 = display off
 uint32_t flighttime=0;//total flight time
 uint32_t climbtime=0;//flight time in climb
 int32_t reso=0;
-
+int8_t startdetect=0;
+int8_t landdetect=0;
 uint16_t logcounter=0;
-
 //Logging frequency
 // 	10	=>	100ms
 //	20	=>	200ms
@@ -87,7 +88,7 @@ uint16_t logcounter=0;
 // 	50 	=> 	500ms
 //	100 => 	1s
 //
-uint16_t logintervall=100;
+uint16_t logintervall=10;
 
 //button count
 uint16_t buttonwait=0;
@@ -265,6 +266,8 @@ int main(void)
 								reset_timer();
 								flighttime=0;
 								climbtime=0;
+								startdetect=0;
+								landdetect=0;
 								Display_Clear();
 							}
 							break;
@@ -274,6 +277,7 @@ int main(void)
 							altitude=calcalt(pres,QNH);
 							//calculate altitude difference 							
 							diff_alt=altitude-zero_alt;
+														
 							//set new max altitude if higher
 							if(diff_alt>max_alt)
 							{
@@ -299,10 +303,17 @@ int main(void)
 								}
 								eepos++;//increase position in eeprom
 								eepos_max++;//move last pos in eeprom
+								//if detection altitude is reached
+								//set flag for start detection
+								if(diff_alt>STARTDETECT)startdetect=1;
+								//if altidute has fallen below Zero
+								//landing has been detected and
+								//logging will stop
+								if((diff_alt<0)&&startdetect)landdetect=1;
 							}//eof log_flag
 							//button indicate landing
 							//display data of last flight
-							if(BUTTON)
+							if((BUTTON )|| landdetect)
 							{
 								entprell=RELOAD_ENTPRELL;
 								state=LOGO;
@@ -331,12 +342,12 @@ int main(void)
 								Write_String(14,2,0,buffer);
 							}
 						
-							if(eepos==EXTEEPROMSIZE)
+							if(eepos>EXTEEPROMSIZE-2)
 							{
 								state=FULLMEMO;
 								Display_Clear();
-								Write_String(14,0,0,"No");
-								Write_String(14,1,0,"Memory");
+								Write_String(14,0,0,"Stopped");
+								Write_String(14,1,0,"No Memo");
 								Write_String(14,2,0,"left");								
 							}
 							
@@ -428,6 +439,7 @@ int main(void)
 							{
 								/* print index dependent on logintervall
 								 * output in parts of seconds*/
+								 
 								if(logintervall==100)
 								{								
 									sprintf(buffer,"%ld\t",datanummer);
