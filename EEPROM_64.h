@@ -11,6 +11,7 @@
 
 #define EEPROM64_W 0xA0	//24LC64 Eeprom Write address 
 #define EEPROM64_R 0xA1	//24LC64 Eeprom Read address 
+// EEPROM 1M (24LC1026) Read=0xA0 / Write=0xA1
 
 uint8_t ext_ee_random_read_8(uint16_t address);
 uint8_t ext_ee_check_data_8(uint16_t address, uint8_t data);

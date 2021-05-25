@@ -21,6 +21,9 @@
 #include "EEPROM_64.h"
 #include <avr/eeprom.h>
 
+
+#define READYLED_EIN	PORTD |=(1<<PD6)	//READYLED on
+#define READYLED_AUS	PORTD &= ~(1<<PD6)	//READYLED off
 #define BUTTON	(!(PIND & (1<<PD3))) && (entprell==0) //read button input
 #define TXLED_EIN PORTD &= ~(1<<PD1)
 #define TXLED_AUS PORTD |= (1<<PD1)
@@ -39,9 +42,10 @@
  * 32 bit values in external
  * eeprom
  * 
- * 24LC64 => 64kBit => 8 KByte => 2000 values (4Byte per 32Bit value) 
+ * 24LC64 	=> 64kBit 	=> 8 KByte 		=> (8k/4)2000 values (4Byte per 32Bit value) 
+ * 24LC1026 => 1MBit	=>	1'026'000/8	=>	/4	=> 32'000 values
  */
-#define EXTEEPROMSIZE 2000 
+#define EXTEEPROMSIZE 32000 //for 64k eeprom use 2000 
 
 #define DISPLAYOFF	0
 #define DISPLAYON	1	
@@ -81,6 +85,7 @@ int32_t reso=0;
 int8_t startdetect=0;
 int8_t landdetect=0;
 uint16_t logcounter=0;
+uint8_t readyblink=0;
 //Logging frequency
 // 	10	=>	100ms
 //	20	=>	200ms
@@ -125,14 +130,21 @@ void reset_timer(void);
 
 int main(void)
 {
+	
 	init_system();
 	init_var();
     TWIInit();
     _delay_ms(50);
-	sht21_init();
+	//sht21_init();
 	DPS310_init(ULTRA);
+	
+	
+	
 	state = LOGO;
 	Display_Logo();
+//#define DEBUB 0
+
+
 	
 	while(1)
 	{ 	
@@ -140,6 +152,7 @@ int main(void)
 		{
 			case LOGO:		if(BUTTON)
 							{
+								
 								entprell=RELOAD_ENTPRELL;
 								buttoncount++;
 								//start wait time for buttoncount
@@ -255,7 +268,8 @@ int main(void)
 							}
 							break;
 										
-			case ZERO:		//set current altitude as reference
+			case ZERO:		READYLED_EIN;
+							//set current altitude as reference
 							if(BUTTON)
 							{
 								state=LOGGING;
@@ -277,6 +291,13 @@ int main(void)
 							altitude=calcalt(pres,QNH);
 							//calculate altitude difference 							
 							diff_alt=altitude-zero_alt;
+								
+							if(readyblink)
+							{
+								READYLED_EIN;	
+							}else READYLED_AUS;
+								
+								
 														
 							//set new max altitude if higher
 							if(diff_alt>max_alt)
@@ -286,6 +307,7 @@ int main(void)
 							}
 							if(log_flag)
 							{
+								
 								//reset and wait for next logg_flag
 								log_flag=0;
 								//write altitude to propper eeprom positon
@@ -350,7 +372,6 @@ int main(void)
 								Write_String(14,1,0,"No Memo");
 								Write_String(14,2,0,"left");								
 							}
-							
 							break;
 			
 			case FDATA:		if(BUTTON)
@@ -534,6 +555,8 @@ ISR (TIMER1_COMPA_vect)
 		flighttime++;
 		sec++;
 		//change display screen in fixed time
+		readyblink++;
+		if(readyblink==2)readyblink=0;
 	}
 	if(sec==60)	//Minute
 	{
@@ -577,11 +600,12 @@ void Display_Logo(void)
 }
 void Display_Eeprom(uint32_t data, uint32_t max,uint16_t ti)
 {
+	//Display_Eeprom(eepos_max,EXTEEPROMSIZE,EXTEEPROMSIZE-eepos_max);
 	Display_Clear();
 	Eeprom(data,max,0);
 	Display_Picture(0,12,64,5,barscale);
 	Write_String(8,3,0,"Runtime:");
-	sprintf(buffer,"%d sec",ti);
+	sprintf(buffer,"%d",ti);
 	Write_String(8,5,0, buffer);
 }
 void disp_altitude(int32_t altitude)
@@ -609,9 +633,11 @@ void init_system(void)
 	PORTC |= (1<<PC5) | (1<<PC4);	//set pins high
 	PORTC &= ~(1<<PC5);
 	
+	DDRD |= (1<<PD6);//PD6 set output (READYLED)
 	DDRD |= (1<<PD1)| (1<<PD0);//set TX0 and RX as output
 	TXLED_AUS;
 	RXLED_AUS;
+	READYLED_AUS;
 
 	DDRD &= ~(1<<PD3) | (1<<PD0);	//Button and RX0 as input(red LED)
 	PORTD |= (1<<PD3);	//activate Pullup
@@ -708,3 +734,21 @@ if(toggle)
 	Write_String(14,2,0, ".org    ");	
 }
 */
+/*if(DEBUG)
+							{
+								// Sensor Test
+								// Check if Sensorsoldering was 
+								// succesful
+								//measure presure
+								pres=DPS310_get_pres();
+								if(pres != pres_old)
+								{				
+									Display_Clear();			
+									sprintf(buffer,"Pr %ld",pres);
+									Write_String(14,0,0,buffer);
+								}
+								pres_old=pres;
+								
+								
+							}//End of DEBUG 
+							*/ 
