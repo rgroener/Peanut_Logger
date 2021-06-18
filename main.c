@@ -141,7 +141,15 @@ int main(void)
 	
 	
 	state = LOGO;
-	Display_Logo();
+	//Display_Logo();
+	
+	Display_Clear();
+//	Char_Position(14,0,0);
+	Write_Char(16,0,0,'5');
+	
+	while(1);
+	
+	
 //#define DEBUB 0
 
 

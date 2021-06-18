@@ -18,6 +18,7 @@
 
 extern const char font8[728];
 extern const char font14[1274];
+extern const char font16[320];
 extern const unsigned char barscale[40];
 
 //OLED Controling
@@ -51,7 +52,7 @@ void Set_Column_Address(unsigned char add);
 void Set_Contrast_Control_Register(unsigned char mod);
 void Display_Picture(uint8_t posx, uint8_t posy, uint8_t with, uint8_t height,const unsigned char pic[]);
 void Display_Clear(void);
-void Write_Char(uint8_t fontsize, char n);
+void Write_Char(uint8_t fontsize, uint8_t row, uint8_t pos, char n);
 void Char_Position(uint8_t fontsize, uint8_t row, uint8_t pos);
 void Write_String(uint8_t fontsize, uint8_t row, uint8_t pos, const char str[]); 
 uint8_t Eeprom(uint32_t data, uint32_t max, uint8_t reset);

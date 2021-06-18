@@ -123,48 +123,66 @@ void Display_Clear(void)
 }
 void Char_Position(uint8_t fontsize, uint8_t row, uint8_t pos)
 {
-	//set position for new char (font size 8x14)
-	Set_Page_Address(7-pos);	//0-7 	(* 8 bit)
-	Set_Column_Address(row*fontsize);	//0-3	(* 14 collums / char)
+
+	
+		//set position for new char (font size 8x14)
+		Set_Page_Address(7-pos);	//0-7 	(* 8 bit)
+		Set_Column_Address(row*fontsize);	//0-3	(* 14 collums / char)
+	
+	
 }
-void Write_Char(uint8_t fontsize, char n)
+void Write_Char(uint8_t fontsize, uint8_t row, uint8_t pos, char n)
 {
 	const char *fontpointer=0;
 	uint8_t x;
 	
 	switch(fontsize)		//variable height and fixed width (8 Pixel)
 	{
+		//pointer to right array[0]
 		case 8:fontpointer=font8;break;
 		case 14:fontpointer=font14;break;
+		case 16:fontpointer=font16;break;
 	}
-	n-=0x20;			//jump to position in asci table
-	for(x=0;x<fontsize;x++) 
+	if(fontsize==16)
 	{
-		send_data(pgm_read_byte(&fontpointer[(n*fontsize)+x]));
-	}
+		Char_Position(14,row,pos);//first page (first half of digit)
+		for(x=0;x<16;x++)
+		{
+			send_data(pgm_read_byte(&fontpointer[x+32]));
+		}
+		
+		Char_Position(14,row,pos+1);//second page (second half of digit)
+		for(x=0;x<16;x++)
+		{
+			send_data(pgm_read_byte(&fontpointer[x+48]));
+		}
+			
+	}else
+	{
+		n-=0x20;			//jump to position in asci table
+		for(x=0;x<fontsize;x++) 
+		{
+			send_data(pgm_read_byte(&fontpointer[(n*fontsize)+x]));
+		}
+	}//eof fontsize
+	
+	
+	
+		
+
 	
 }
 void Write_String(uint8_t fontsize, uint8_t row, uint8_t pos, const char str[]) 
 {
-	if(fontsize==26)
-	{
-		while(*str)
-		{
-			Set_Page_Address(7-pos*2);			//0-7 	(* 8 bit)
-			Set_Column_Address(row*fontsize);	//0-3	(* 14 collums / char)
-			Write_Char(fontsize, *str++);
-			pos++;
-		 }
-	}else
-	{
+	
 		while(*str)
 		{
 			Set_Page_Address(7-pos);			//0-7 	(* 8 bit)
 			Set_Column_Address(row*fontsize);	//0-3	(* 14 collums / char)
-			Write_Char(fontsize, *str++);
+		//	Write_Char(fontsize, *str++);
 			pos++;
 		 }
-	}
+	
 }
 uint8_t Eeprom(uint32_t data, uint32_t max, uint8_t reset)
 {
