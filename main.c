@@ -141,13 +141,10 @@ int main(void)
 	
 	
 	state = LOGO;
-	//Display_Logo();
+	Display_Logo();
 	
-	Display_Clear();
-//	Char_Position(14,0,0);
-	Write_Char(16,0,0,'5');
-	
-	while(1);
+	//Write_String(16,1,0,"123");
+	//while(1);
 	
 	
 //#define DEBUB 0
@@ -323,13 +320,17 @@ int main(void)
 								if(display)
 								{
 									Display_Clear();
-									sprintf(buffer,"%d",eepos);
-									Write_String(14,0,0,buffer);
-									disp_altitude(ext_ee_random_read_32(eepos));
+									//sprintf(buffer,"%d",eepos);
+									//Write_String(14,0,0,buffer);
+									
+									sprintf(buffer,"%ld.%d",vor_komma(ext_ee_random_read_32(eepos)), nach_komma(ext_ee_random_read_32(eepos)));
+									Write_String(16,1,0,buffer);
+									
+									
 									//sprintf(buffer,"%ld",);
-									Write_String(14,1,0,buffer);
-									sprintf(buffer,"%lds",flighttime);
-									Write_String(14,2,0,buffer);
+									//Write_String(14,1,0,buffer);
+									//sprintf(buffer,"%lds",flighttime);
+									//Write_String(14,2,0,buffer);
 								}
 								eepos++;//increase position in eeprom
 								eepos_max++;//move last pos in eeprom
@@ -620,8 +621,9 @@ void disp_altitude(int32_t altitude)
 {
 	
 		//max altitude
-		sprintf(buffer,"' %ld.%dm", vor_komma(altitude),nach_komma(altitude));
-		Write_String(14,1,0,buffer);
+		sprintf(buffer,"%ld.%d", vor_komma(altitude),nach_komma(altitude));
+		Write_String(16,1,0,buffer);
+		
 	
 }//eof disp_altitude
 ISR(USART0_RX_vect)

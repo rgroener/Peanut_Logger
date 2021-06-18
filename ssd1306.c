@@ -123,13 +123,9 @@ void Display_Clear(void)
 }
 void Char_Position(uint8_t fontsize, uint8_t row, uint8_t pos)
 {
-
-	
 		//set position for new char (font size 8x14)
 		Set_Page_Address(7-pos);	//0-7 	(* 8 bit)
 		Set_Column_Address(row*fontsize);	//0-3	(* 14 collums / char)
-	
-	
 }
 void Write_Char(uint8_t fontsize, uint8_t row, uint8_t pos, char n)
 {
@@ -143,23 +139,26 @@ void Write_Char(uint8_t fontsize, uint8_t row, uint8_t pos, char n)
 		case 14:fontpointer=font14;break;
 		case 16:fontpointer=font16;break;
 	}
-	if(fontsize==16)
+				//jump to position in asci table
+	if(fontsize==16)// char width / hight is 16 bit
 	{
-		Char_Position(14,row,pos);//first page (first half of digit)
+		n-=0x20;
+		Char_Position(fontsize,row,pos);//first page (first half of digit)
 		for(x=0;x<16;x++)
 		{
-			send_data(pgm_read_byte(&fontpointer[x+32]));
+			send_data(pgm_read_byte(&fontpointer[(n*32)+x]));
 		}
 		
-		Char_Position(14,row,pos+1);//second page (second half of digit)
+		Char_Position(fontsize,row,pos+1);//second page (second half of digit)
 		for(x=0;x<16;x++)
 		{
-			send_data(pgm_read_byte(&fontpointer[x+48]));
+			send_data(pgm_read_byte(&fontpointer[(n*32)+x+16]));
 		}
 			
-	}else
+	}else //char width is 8 bit
 	{
-		n-=0x20;			//jump to position in asci table
+		n-=0x20;
+		Char_Position(fontsize,row,pos);//first page 
 		for(x=0;x<fontsize;x++) 
 		{
 			send_data(pgm_read_byte(&fontpointer[(n*fontsize)+x]));
@@ -179,8 +178,15 @@ void Write_String(uint8_t fontsize, uint8_t row, uint8_t pos, const char str[])
 		{
 			Set_Page_Address(7-pos);			//0-7 	(* 8 bit)
 			Set_Column_Address(row*fontsize);	//0-3	(* 14 collums / char)
-		//	Write_Char(fontsize, *str++);
-			pos++;
+			Write_Char(fontsize, row, pos, *str++);
+			if(fontsize==16)
+			{
+				pos+=2;
+			}else
+			{
+				pos++;
+			}
+			
 		 }
 	
 }

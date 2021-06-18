@@ -18,7 +18,7 @@
 
 extern const char font8[728];
 extern const char font14[1274];
-extern const char font16[320];
+extern const char font16[2912];
 extern const unsigned char barscale[40];
 
 //OLED Controling
