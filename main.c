@@ -84,6 +84,7 @@ uint32_t climbtime=0;//flight time in climb
 int32_t reso=0;
 int8_t startdetect=0;
 int8_t landdetect=0;
+int8_t autoland=0; //automatic detect  landing?
 uint16_t logcounter=0;
 uint8_t readyblink=0;
 //Logging frequency
@@ -114,6 +115,8 @@ uint8_t EEMEM eemax_flightnr;//stored number of last flight
 uint16_t EEMEM eelast_intervall;
 uint16_t intervall_faktor=1;
 uint8_t maxflightnr=0;
+
+
 
 //UART
 void uart_send_char(char c);
@@ -147,7 +150,7 @@ int main(void)
 	//while(1);
 	
 	
-//#define DEBUB 0
+#define DEBUB 0
 
 
 	
@@ -323,7 +326,7 @@ int main(void)
 									//sprintf(buffer,"%d",eepos);
 									//Write_String(14,0,0,buffer);
 									
-									sprintf(buffer,"%ld.%d",vor_komma(ext_ee_random_read_32(eepos)), nach_komma(ext_ee_random_read_32(eepos)));
+									sprintf(buffer,"%ld.%02d",vor_komma(ext_ee_random_read_32(eepos)), nach_komma(ext_ee_random_read_32(eepos)));
 									Write_String(16,1,0,buffer);
 									
 									
@@ -337,10 +340,11 @@ int main(void)
 								//if detection altitude is reached
 								//set flag for start detection
 								if(diff_alt>STARTDETECT)startdetect=1;
-								//if altidute has fallen below Zero
+								//if autoland is enabled and altidute 
+								//has fallen below Zero
 								//landing has been detected and
 								//logging will stop
-								if((diff_alt<0)&&startdetect)landdetect=1;
+								if(autoland && (diff_alt<0)&&startdetect)landdetect=1;
 							}//eof log_flag
 							//button indicate landing
 							//display data of last flight
