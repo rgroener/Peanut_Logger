@@ -85,8 +85,8 @@ int32_t reso=0;
 int8_t startdetect=0;
 int8_t landdetect=0;
 int8_t autoland=0; //automatic detect  landing?
-uint16_t logcounter=0;
-uint8_t readyblink=0;
+
+uint8_t led_flash_time=0;
 //Logging frequency
 // 	10	=>	100ms
 //	20	=>	200ms
@@ -94,7 +94,8 @@ uint8_t readyblink=0;
 // 	50 	=> 	500ms
 //	100 => 	1s
 //
-uint16_t logintervall=10;
+uint16_t logintervall=1000;
+uint16_t logintervall_counter=0;
 
 //button count
 uint16_t buttonwait=0;
@@ -116,7 +117,7 @@ uint16_t EEMEM eelast_intervall;
 uint16_t intervall_faktor=1;
 uint8_t maxflightnr=0;
 
-
+uint8_t testcounter=0;
 
 //UART
 void uart_send_char(char c);
@@ -276,7 +277,7 @@ int main(void)
 							}
 							break;
 										
-			case ZERO:		READYLED_EIN;
+			case ZERO:		//READYLED_EIN;
 							//set current altitude as reference
 							if(BUTTON)
 							{
@@ -291,6 +292,8 @@ int main(void)
 								startdetect=0;
 								landdetect=0;
 								Display_Clear();
+								log_flag=1;//save value to log
+								led_flash_time=10;//refill timer
 							}
 							break;
 			case LOGGING:	//measure presure
@@ -300,13 +303,6 @@ int main(void)
 							//calculate altitude difference 							
 							diff_alt=altitude-zero_alt;
 								
-							if(readyblink)
-							{
-								READYLED_EIN;	
-							}else READYLED_AUS;
-								
-								
-														
 							//set new max altitude if higher
 							if(diff_alt>max_alt)
 							{
@@ -315,26 +311,26 @@ int main(void)
 							}
 							if(log_flag)
 							{
-								
+								testcounter++;
+								READYLED_EIN;
 								//reset and wait for next logg_flag
 								log_flag=0;
 								//write altitude to propper eeprom positon
 								ext_ee_random_write_32(eepos,diff_alt);
 								if(display)
 								{
-									Display_Clear();
-									//sprintf(buffer,"%d",eepos);
-									//Write_String(14,0,0,buffer);
-									
-									sprintf(buffer,"%ld.%02d",vor_komma(ext_ee_random_read_32(eepos)), nach_komma(ext_ee_random_read_32(eepos)));
-									Write_String(16,1,0,buffer);
-									
-									
-									//sprintf(buffer,"%ld",);
-									//Write_String(14,1,0,buffer);
-									//sprintf(buffer,"%lds",flighttime);
-									//Write_String(14,2,0,buffer);
-								}
+									/*	no need to write to display
+										if altitude has not changed
+										since last time*/
+									//if(altitude!=altitude_old)
+									//{
+										Display_Clear();
+										//sprintf(buffer,"%ld.%02d",vor_komma(ext_ee_random_read_32(eepos)), nach_komma(ext_ee_random_read_32(eepos)));
+										sprintf(buffer,"%d",testcounter);
+										Write_String(16,1,0,buffer);
+										altitude_old=altitude;//update altitude_old
+									//}
+								}//eof display
 								eepos++;//increase position in eeprom
 								eepos_max++;//move last pos in eeprom
 								//if detection altitude is reached
@@ -530,15 +526,18 @@ int main(void)
 ISR (TIMER1_COMPA_vect)
 {
 	ms10++;
-	logcounter++;
-	if(logintervall==logcounter)
+	logintervall_counter++;
+	if(led_flash_time!=0)
 	{
-		if(state==LOGGING)
-		{
-			log_flag=1;//save value to log
-		}	
-		logcounter=0;
-	}
+		led_flash_time--;
+	}else READYLED_AUS;
+		
+	if((state==LOGGING)&&(logintervall_counter==logintervall))
+	{
+		logintervall_counter=0;//reset counter
+		log_flag=1;//save value to log
+		led_flash_time=10;//refill timer
+	}	
 	
 	if(entprell)entprell--;
 	if(ms10==10)	//100ms
@@ -551,6 +550,8 @@ ISR (TIMER1_COMPA_vect)
 		
 		if(xxx<951)xxx++;
 		screentoggle++;
+		
+		
 		if(screentoggle==togtime)
 		{
 			screentoggle=0;
@@ -568,8 +569,8 @@ ISR (TIMER1_COMPA_vect)
 		flighttime++;
 		sec++;
 		//change display screen in fixed time
-		readyblink++;
-		if(readyblink==2)readyblink=0;
+		
+		
 	}
 	if(sec==60)	//Minute
 	{
@@ -702,6 +703,7 @@ void reset_timer(void)
     ms100=0;
     sec=0;
     min=0;	
+    logintervall_counter=0;
 }
 
 /*
