@@ -366,6 +366,7 @@ int main(void)
 								Display_Clear();
 								sprintf(buffer,"%ds",testcounter);
 								Write_String(16,0,0,buffer);
+								Write_String(16,1,0,"STOP");
 								sprintf(buffer,"%ldm",vor_komma(max_alt));
 								Write_String(16,2,0,buffer);
 								altitude_old=altitude;//update altitude_old
@@ -629,7 +630,7 @@ void Display_Eeprom(uint32_t data, uint32_t max,uint16_t ti)
 	Eeprom(data,max,0);
 	Display_Picture(0,12,64,5,barscale);
 	Write_String(8,3,0,"Runtime:");
-	sprintf(buffer,"%d",eepos_max);
+	sprintf(buffer,"%ld",max);
 	Write_String(8,5,0, buffer);
 }
 void disp_altitude(int32_t altitude)
@@ -703,7 +704,7 @@ void init_var(void)
 	Set_Page_Address(0);
     Set_Column_Address(0);
 	eepos_max=eeprom_read_word(&eememposition);
-	if(eepos_max == -1)eepos_max=1;
+	if(eepos_max == -1)eepos_max=1;//gets rid of frame error
 	eeprom_update_word(&eelast_intervall,logintervall);
 }
 
