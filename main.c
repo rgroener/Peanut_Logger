@@ -45,7 +45,7 @@
  * 24LC64 	=> 64kBit 	=> 8 KByte 		=> (8k/4)2000 values (4Byte per 32Bit value) 
  * 24LC1026 => 1MBit	=>	1'026'000/8	=>	/4	=> 32'000 values
  */
-#define EXTEEPROMSIZE 32000 //for 64k eeprom use 2000 
+#define EXTEEPROMSIZE 32000 //32000 for 1M eeprom / for 64k eeprom use 2000 
 
 #define DISPLAYOFF	0
 #define DISPLAYON	1	
@@ -56,7 +56,7 @@
 #define STARTDETECT 100	//detection altitude for start flag [cm]
 
 uint16_t eepos=1;	//start at 1 to work with multiplication x4
-uint16_t eepos_max=1;
+int16_t eepos_max=1;
 int16_t temperature=0;
 uint32_t pres=0;
 uint32_t pres_old=0;
@@ -94,7 +94,7 @@ uint8_t led_flash_time=0;
 // 	50 	=> 	500ms
 //	100 => 	1s
 //
-uint16_t logintervall=1000;
+uint16_t logintervall=100;
 uint16_t logintervall_counter=0;
 
 //button count
@@ -277,7 +277,8 @@ int main(void)
 							}
 							break;
 										
-			case ZERO:		//READYLED_EIN;
+			case ZERO:		//inidcate that ready to for take off
+							READYLED_EIN;
 							//set current altitude as reference
 							if(BUTTON)
 							{
@@ -325,9 +326,10 @@ int main(void)
 									//if(altitude!=altitude_old)
 									//{
 										Display_Clear();
-										//sprintf(buffer,"%ld.%02d",vor_komma(ext_ee_random_read_32(eepos)), nach_komma(ext_ee_random_read_32(eepos)));
-										sprintf(buffer,"%d",testcounter);
-										Write_String(16,1,0,buffer);
+										sprintf(buffer,"%ds",testcounter);
+										Write_String(16,0,0,buffer);
+										sprintf(buffer,"%ldm",vor_komma(ext_ee_random_read_32(eepos)));
+										Write_String(16,2,0,buffer);
 										altitude_old=altitude;//update altitude_old
 									//}
 								}//eof display
@@ -360,8 +362,15 @@ int main(void)
 								//of last flight
 								eeprom_update_word(&eeflightlast[flightnr], eepos_max-1);
 								eeprom_update_byte(&eemax_flightnr,flightnr);
-															
 								
+								Display_Clear();
+								sprintf(buffer,"%ds",testcounter);
+								Write_String(16,0,0,buffer);
+								sprintf(buffer,"%ldm",vor_komma(max_alt));
+								Write_String(16,2,0,buffer);
+								altitude_old=altitude;//update altitude_old
+															
+								/*
 								Display_Clear();
 								//climb time
 								sprintf(buffer,") %lds", climbtime);
@@ -371,6 +380,7 @@ int main(void)
 								//glide time
 								sprintf(buffer,"(% lds", flighttime-climbtime);
 								Write_String(14,2,0,buffer);
+								* */
 							}
 						
 							if(eepos>EXTEEPROMSIZE-2)
@@ -619,7 +629,7 @@ void Display_Eeprom(uint32_t data, uint32_t max,uint16_t ti)
 	Eeprom(data,max,0);
 	Display_Picture(0,12,64,5,barscale);
 	Write_String(8,3,0,"Runtime:");
-	sprintf(buffer,"%d",ti);
+	sprintf(buffer,"%d",eepos_max);
 	Write_String(8,5,0, buffer);
 }
 void disp_altitude(int32_t altitude)
@@ -693,6 +703,7 @@ void init_var(void)
 	Set_Page_Address(0);
     Set_Column_Address(0);
 	eepos_max=eeprom_read_word(&eememposition);
+	if(eepos_max == -1)eepos_max=1;
 	eeprom_update_word(&eelast_intervall,logintervall);
 }
 

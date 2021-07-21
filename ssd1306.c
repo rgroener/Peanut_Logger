@@ -171,6 +171,7 @@ void Write_Char(uint8_t fontsize, uint8_t row, uint8_t pos, char n)
 
 	
 }
+
 void Write_String(uint8_t fontsize, uint8_t row, uint8_t pos, const char str[]) 
 {
 	
@@ -239,6 +240,8 @@ uint8_t Eeprom(uint32_t data, uint32_t max, uint8_t reset)
 		old_rest=0;		//save last rest
 		old_max_page=8;	//save last max position
 	}
+	
+	
 	if(data>max)data=max;			//avoid bigger data than max
 	proz=0.5+((100*data)/max); 		//calculate used memory in %
 	bar= (proz*64)/100;	 	//is equal to how many pixels
