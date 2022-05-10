@@ -87,14 +87,16 @@ int8_t landdetect=0;
 int8_t autoland=0; //automatic detect  landing?
 
 uint8_t led_flash_time=0;
-//Logging frequency
-// 	10	=>	100ms
-//	20	=>	200ms
-//	25	=>	250m
-// 	50 	=> 	500ms
-//	100 => 	1s
-//
-uint16_t logintervall=100;
+/*Logging frequency     64k		1M
+ 	10	=>	100ms  	=>	~3 min	~53 min
+	20	=>	200ms	=>	~6 min	~1h46min
+	25	=>	250m	=>	~8 min	~2h55min
+ 	50 	=> 	500ms	=>	~16 min	~4h30min
+	100 => 	1s		=>	~33 min	~9h
+
+change logintervall value according 
+Table above*/
+uint16_t logintervall=50;
 uint16_t logintervall_counter=0;
 
 //button count
@@ -117,7 +119,7 @@ uint16_t EEMEM eelast_intervall;
 uint16_t intervall_faktor=1;
 uint8_t maxflightnr=0;
 
-uint8_t testcounter=0;
+uint16_t act_data_counter=0;//logcounter to show log numbers during logging
 
 //UART
 void uart_send_char(char c);
@@ -141,20 +143,13 @@ int main(void)
     _delay_ms(50);
 	//sht21_init();
 	DPS310_init(ULTRA);
-	
-	
-	
+		
 	state = LOGO;
 	Display_Logo();
-	
-	//Write_String(16,1,0,"123");
-	//while(1);
 	
 	
 #define DEBUB 0
 
-
-	
 	while(1)
 	{ 	
 		switch(state)
@@ -312,7 +307,7 @@ int main(void)
 							}
 							if(log_flag)
 							{
-								testcounter++;
+								act_data_counter++;
 								READYLED_EIN;
 								//reset and wait for next logg_flag
 								log_flag=0;
@@ -326,7 +321,7 @@ int main(void)
 									//if(altitude!=altitude_old)
 									//{
 										Display_Clear();
-										sprintf(buffer,"%ds",testcounter);
+										sprintf(buffer,"%d",act_data_counter);
 										Write_String(16,0,0,buffer);
 										sprintf(buffer,"%ldm",vor_komma(ext_ee_random_read_32(eepos)));
 										Write_String(16,2,0,buffer);
@@ -364,7 +359,7 @@ int main(void)
 								eeprom_update_byte(&eemax_flightnr,flightnr);
 								
 								Display_Clear();
-								sprintf(buffer,"%ds",testcounter);
+								sprintf(buffer,"%d",act_data_counter);
 								Write_String(16,0,0,buffer);
 								Write_String(16,1,0,"STOP");
 								sprintf(buffer,"%ldm",vor_komma(max_alt));
