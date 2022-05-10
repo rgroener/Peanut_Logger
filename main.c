@@ -1,7 +1,7 @@
 /*
  * Altitude logger for rubber powered models
  * 
- * grn Dec/20
+ * grn Mai2022
  * 
  * avrdude: safemode: Fuses OK (E:F7, H:D9, L:62)
  * */
