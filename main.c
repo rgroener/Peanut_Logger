@@ -69,7 +69,7 @@ uint16_t hum=0;
 volatile uint8_t ms10,ms100,sec,min, entprell;
 volatile uint8_t screentoggle, toggle, toggle_alt;
 char buffer[20]; // buffer to store string
-enum state {LOGO, MEMORY, APPEND, ZERO, LOGGING,FDATA, DOWNLOAD, FULLMEMO};
+enum state {LOGO, MEMORY, APPEND, ZERO, LOGGING,FDATA, DOWNLOAD, FULLMEMO, CONT_DATA};
 uint8_t state;
 int32_t zero_alt=0;
 int32_t altitude=0;
@@ -119,6 +119,9 @@ uint16_t EEMEM eelast_intervall;
 uint16_t intervall_faktor=1;
 uint8_t maxflightnr=0;
 
+uint8_t testvar=0;//for testing purpose
+volatile uint8_t contdataticker=0;//ticks when to send uart data
+
 uint16_t act_data_counter=0;//logcounter to show log numbers during logging
 
 //UART
@@ -144,8 +147,17 @@ int main(void)
 	//sht21_init();
 	DPS310_init(ULTRA);
 		
-	state = LOGO;
-	Display_Logo();
+	//Normal start case for logger
+	//state = LOGO;
+	//Display_Logo();
+	
+	//start case for sending continuous data
+	//via UART
+	state = CONT_DATA;
+	Display_Clear();
+	Write_String(14,0,0,"sending");
+	Write_String(14,1,0,"live data");
+	Write_String(14,2,0,"via UART");
 	
 	
 #define DEBUB 0
@@ -507,7 +519,7 @@ int main(void)
 							Display_Logo();
 							
 							break;
-							
+												
 			case FULLMEMO:	if(BUTTON)
 							{
 								entprell=RELOAD_ENTPRELL;
@@ -524,6 +536,22 @@ int main(void)
 								Display_Clear();
 								Display_Logo();
 							}break;
+			case CONT_DATA: /*
+								this state is only used to measure 
+								* presure and temp data and send 
+								* it via UART. Case not used in 
+								* peanut logger mode.
+							*/if(contdataticker >= 10)
+							{
+								pres=DPS310_get_pres();
+								temp=DPS310_get_temp();
+								
+								sprintf(buffer,"%ld\t%d",pres,temp);
+								uart_send_string(buffer);
+								uart_send_string("\n\r");
+								testvar++;
+							}
+							break;
 		}//End of switch(state)	
 	} //end while
 }//end of main
@@ -556,6 +584,7 @@ ISR (TIMER1_COMPA_vect)
 		
 		if(xxx<951)xxx++;
 		screentoggle++;
+		contdataticker++;
 		
 		
 		if(screentoggle==togtime)
@@ -655,7 +684,7 @@ void init_system(void)
 	PORTC &= ~(1<<PC5);
 	
 	DDRD |= (1<<PD6);//PD6 set output (READYLED)
-	DDRD |= (1<<PD1)| (1<<PD0);//set TX0 and RX as output
+	DDRD |= (1<<PD1);//set TX0 as output
 	TXLED_AUS;
 	RXLED_AUS;
 	READYLED_AUS;
